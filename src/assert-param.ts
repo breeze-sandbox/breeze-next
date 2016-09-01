@@ -1,15 +1,15 @@
-﻿import { core } from './core-fns';
+﻿import { core, __extend, __formatString } from './core-fns';
 
 interface IParamContext {
-    typeName: string;
-    type: any;
-    prevContext: IParamContext;
-    msg: string | ((context: IParamContext, v: any) => string);
-    mustNotBeEmpty: boolean;
-    enumType: any;
-    propertyName: string;
-    allowNull: boolean;
-    fn(context: IParamContext, v: any): boolean;
+    typeName?: string;
+    type?: any;
+    prevContext?: IParamContext;
+    msg?: string | ((context: IParamContext, v: any) => string);
+    mustNotBeEmpty?: boolean;
+    enumType?: any;
+    propertyName?: string;
+    allowNull?: boolean;
+    fn?(context: IParamContext, v: any): boolean;
 }
 
 function isTypeOf(context: IParamContext, v: any) {
@@ -153,6 +153,8 @@ class Param {
     name: string;
     _context: IParamContext;
     _contexts: IParamContext[];
+    defaultValue: any;
+    parent: ConfigParam;
 
     constructor(v: any, name: string) {
         this.v = v;
@@ -261,7 +263,7 @@ class Param {
         return this;
     };
 
-    check(defaultValue) {
+    check(defaultValue?: any) {
         var ok = exec(this);
         if (ok === undefined) return;
         if (!ok) {
@@ -276,7 +278,7 @@ class Param {
     };
 
     // called from outside this file.
-    _addContext(context) {
+    _addContext(context: IParamContext) {
         return addContext(this, context);
     };
 
@@ -290,16 +292,16 @@ class Param {
         return __formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
-    withDefault(defaultValue) {
+    withDefault(defaultValue: any) {
         this.defaultValue = defaultValue;
         return this;
     };
 
-    whereParam(propName) {
+    whereParam(propName: string) {
         return this.parent.whereParam(propName);
     };
 
-    applyAll(instance, checkOnly) {
+    applyAll(instance: any, checkOnly: boolean) {
         var parentTypeName = instance._$typeName;
         var allowUnknownProperty = (parentTypeName && this.parent.config._$typeName === parentTypeName);
 
@@ -324,7 +326,7 @@ class Param {
         }
     };
 
-    _applyOne = function (instance) {
+    _applyOne = function (instance: any) {
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {
@@ -338,55 +340,30 @@ class Param {
 
 }
 
-var ParamOld = (function () {
-    // The %1 parameter
-    // is required
-    // must be a %2
-    // must be an instance of %2
-    // must be an instance of the %2 enumeration
-    // must have a %2 property
-    // must be an array where each element
-    // is optional or
-
-    var ctor = function (v: any, name: string) {
-        this.v = v;
-        this.name = name;
-        this._contexts = [null];
-
-    };
-    var proto = ctor.prototype;
-    
-
-
-
-    proto.MESSAGE_PREFIX = "The '%1' parameter ";
-    return ctor;
-})();
-
-var assertParam = function (v, name) {
+var assertParam = function (v: any, name: string) {
     return new Param(v, name);
 };
 
-var ConfigParam = (function () {
-    var ctor = function (config) {
+class ConfigParam {
+    config: any;
+    params: Param[];
+    constructor(config: any) {
         if (typeof (config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config));
         }
         this.config = config;
         this.params = [];
-    };
-    var proto = ctor.prototype;
+    }
 
-    proto.whereParam = function (propName) {
+    whereParam(propName: string) {
         var param = new Param(this.config[propName], propName);
         param.parent = this;
         this.params.push(param);
         return param;
-    };
-    return ctor;
-})();
+    }
+}
 
-var assertConfig = function (config) {
+var assertConfig = function (config: any) {
     return new ConfigParam(config);
 };
 

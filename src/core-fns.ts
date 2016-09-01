@@ -92,7 +92,7 @@ function __getOwnPropertyValues(source: any): any[] {
 }
 
 /** Copy properties from source to target. Returns target. */
-function __extend(target: any, source: any, propNames?: string[]): any {
+export function __extend(target: any, source: any, propNames?: string[]): any {
     if (!source) return target;
     if (propNames) {
         propNames.forEach(function (propName) {
@@ -612,7 +612,7 @@ function __stringEndsWith(str: string, suffix: string) {
 
 // Based on fragment from Dean Edwards' Base 2 library
 // format("a %1 and a %2", "cat", "dog") -> "a cat and a dog"
-function __formatString(string: string) {
+export function __formatString(string: string, ...params: any[]) {
     var args = arguments;
     var pattern = RegExp("%([1-" + (arguments.length - 1) + "])", "g");
     return string.replace(pattern, function (match, index) {
@@ -651,7 +651,7 @@ if (!Object.create) {
     };
 }
 
-var core = <any>{};
+export var core = <any>{};
 
 // not all methods above are exported
 core.__isES5Supported = __isES5Supported;
@@ -694,5 +694,4 @@ core.toJSONSafe = __toJSONSafe;
 var breeze: any = breeze || {};
 core.parent = breeze;
 breeze.core = core;
-
 
