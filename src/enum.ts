@@ -203,6 +203,11 @@ the Enum.addSymbol method.
 class EnumSymbol {
 
     name: string;
+    /**
+    The {{#crossLink "Enum"}}{{/crossLink}} to which this symbol belongs.
+    __readOnly__
+    @property parentEnum {Enum}
+    **/
     parentEnum: Enum;
 
     constructor(methodObj: any) {

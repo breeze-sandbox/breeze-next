@@ -278,7 +278,7 @@ export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any
 }
 
 /** Return index of first element matching predicate */
-function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): number {
+export function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): number {
     for (var i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) return i;
     }

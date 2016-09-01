@@ -340,7 +340,7 @@ class Param {
 
 }
 
-var assertParam = function (v: any, name: string) {
+export var assertParam = function (v: any, name: string) {
     return new Param(v, name);
 };
 
