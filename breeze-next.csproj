@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.Default.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ProjectGuid>{23B78244-5E49-4D67-B8F1-8A12A5EF9133}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <OutputPath>bin</OutputPath>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="oldjs\a01_coreFns.js" />
+    <Content Include="oldjs\a05_assertParam.js" />
+    <Content Include="oldjs\a05_enum.js" />
+    <Content Include="oldjs\a10_event.js" />
+    <Content Include="oldjs\a20_config.js" />
+    <Content Include="oldjs\a25_observableArray.js" />
+    <Content Include="oldjs\a25_validate.js" />
+    <Content Include="oldjs\a25_validationOptions.js" />
+    <Content Include="oldjs\a30_complexArray.js" />
+    <Content Include="oldjs\a30_entityAction.js" />
+    <Content Include="oldjs\a30_entityAspect.js" />
+    <Content Include="oldjs\a30_entityKey.js" />
+    <Content Include="oldjs\a30_entityState.js" />
+    <Content Include="oldjs\a30_primitiveArray.js" />
+    <Content Include="oldjs\a30_relationArray.js" />
+    <Content Include="oldjs\a35_defaultPropertyInterceptor.js" />
+    <Content Include="oldjs\a37_dataType.js" />
+    <Content Include="oldjs\a40_dataService.js" />
+    <Content Include="oldjs\a40_entityMetadata.js" />
+    <Content Include="oldjs\a40_keyGenerator.js" />
+    <Content Include="oldjs\a40_localQueryComparisionOptions.js" />
+    <Content Include="oldjs\a40_namingConvention.js" />
+    <Content Include="oldjs\a44_predicate.js" />
+    <Content Include="oldjs\a45_entityQuery.js" />
+    <Content Include="oldjs\a45_queryOptions.js" />
+    <Content Include="oldjs\a50_entityGroup.js" />
+    <Content Include="oldjs\a50_entityManager.js" />
+    <Content Include="oldjs\a55_mappingContext.js" />
+    <Content Include="oldjs\a55_saveOptions.js" />
+    <Content Include="oldjs\a60_abstractDataServiceAdapter.js" />
+    <Content Include="oldjs\b00_breeze.ajax.angular.js" />
+    <Content Include="oldjs\b00_breeze.ajax.jQuery.js" />
+    <Content Include="oldjs\b00_breeze.dataService.odata.js" />
+    <Content Include="oldjs\b00_breeze.dataService.webApi.js" />
+    <Content Include="oldjs\b00_breeze.modelLibrary.backingStore.js" />
+    <Content Include="oldjs\b00_breeze.modelLibrary.ko.js" />
+    <Content Include="oldjs\b00_breeze.uriBuilder.json.js" />
+    <Content Include="oldjs\b00_breeze.uriBuilder.odata.js" />
+    <Content Include="oldjs\iface.ajaxInterface.js" />
+    <Content Include="oldjs\iface.keyGeneratorInterface.js" />
+    <Content Include="oldjs\iface.promise.js" />
+    <Content Include="web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="src\assert-param.ts" />
+    <TypeScriptCompile Include="src\core-fns.ts" />
+    <TypeScriptCompile Include="typings\breeze1x\index.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="tsconfig.json" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>breeze_next</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets')" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>38313</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:38313/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
+    <TypeScriptSourceMap>false</TypeScriptSourceMap>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+</Project>

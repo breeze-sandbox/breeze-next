@@ -1,3 +1,26 @@
+*.svn
+*.idea
+*.user
+*.docx
+*.vs
+*.vsmdi
+*.cmd
+*.testsettings
+*.old
+*.suo
+
+bin
+obj
+packages
+_temp
+Unused
+TestResults
+
+src/**/*.js
+src/**/*.js.map
+
+
+### node setup ###
 # Logs
 logs
 *.log
