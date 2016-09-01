@@ -268,7 +268,7 @@ function __map(items: any, fn: (v:any, ix?:number) => void, includeNull?: boolea
 }
 
 /** Return first element matching predicate */
-function __arrayFirst(array: any[], predicate: (el: any) => boolean): any {
+export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any {
     for (var i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {
             return array[i];
@@ -547,7 +547,7 @@ function __isDateString(s: string) {
     return (typeof s === "string") && rx.test(s);
 }
 
-function __isFunction(o: any) {
+export function __isFunction(o: any) {
     return __classof(o) === "function";
 }
 

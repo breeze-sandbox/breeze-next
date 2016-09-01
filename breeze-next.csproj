@@ -68,6 +68,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="src\assert-param.ts" />
     <TypeScriptCompile Include="src\core-fns.ts" />
+    <TypeScriptCompile Include="src\enum.ts" />
     <TypeScriptCompile Include="typings\breeze1x\index.d.ts" />
   </ItemGroup>
   <ItemGroup>
