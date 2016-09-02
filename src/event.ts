@@ -41,7 +41,7 @@ class Event {
     __nextUnsubKey = 1;
     _subscribers: ISubscription[];
     name: string;
-    publisher: any;
+    publisher: Object;
     _defaultErrorCallback: (e: Error) => any;
 
 
@@ -57,7 +57,7 @@ class Event {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    constructor(name: string, publisher: any, defaultErrorCallback: (e: Error) => any) {
+    constructor(name: string, publisher: Object, defaultErrorCallback: (e: Error) => any) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
 
@@ -195,7 +195,7 @@ class Event {
 
     /** remove all subscribers */
     clear() {
-        this._subscribers = null;
+        this._subscribers = <any>null;
     };
 
     /** event bubbling - document later. */
@@ -231,14 +231,15 @@ class Event {
     children of this object will be enabled or disabled.
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null.
     **/
-    enable(eventName: string, obj: any, isEnabled: boolean) {
+    enable(eventName: string, obj: Object, isEnabled: boolean) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
+        let ob = <any>obj;
+        if (!ob._$eventMap) {
+            ob._$eventMap = {};
         }
-        obj._$eventMap[eventName] = isEnabled;
+        ob._$eventMap[eventName] = isEnabled;
     };
 
     /**
@@ -252,20 +253,21 @@ class Event {
     @param target {Object} The object for which we want to know if notifications are enabled.
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
-    isEnabled(eventName: string, obj: any) {
+    isEnabled(eventName: string, obj: Object) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         // null is ok - it just means that the object is at the top level.
-        if (obj._getEventParent === undefined) {
+        if ((<any>obj)._getEventParent === undefined) {
             throw new Error("This object does not support event enabling/disabling");
         }
         // return ctor._isEnabled(getFullEventName(eventName), obj);
-        return this._isEnabled(eventName, obj);
+        return this._isEnabled(eventName, 3);
     };
 
-    _isEnabled = function (eventName: string, obj: any) {
+    _isEnabled = function (eventName: string, obj: Object) {
         var isEnabled: any = null;
-        var eventMap = obj._$eventMap;
+        let ob = <any>obj;
+        var eventMap = ob._$eventMap;
         if (eventMap) {
             isEnabled = eventMap[eventName];
         }
@@ -276,7 +278,7 @@ class Event {
                 return !!isEnabled;
             }
         } else {
-            var parent = obj._getEventParent && obj._getEventParent();
+            var parent = ob._getEventParent && ob._getEventParent();
             if (parent) {
                 return this._isEnabled(eventName, parent);
             } else {

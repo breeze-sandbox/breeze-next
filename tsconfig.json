@@ -9,6 +9,7 @@
         "experimentalDecorators": true,
         "removeComments": false,
         "noImplicitAny": true,
+        "strictNullChecks": true,
         "suppressImplicitAnyIndexErrors": true
     }
 }

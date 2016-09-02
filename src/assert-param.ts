@@ -1,12 +1,13 @@
 ﻿import { core, __extend, __formatString } from './core-fns';
+import { Enum } from './enum';
 
 interface IParamContext {
     typeName?: string;
-    type?: any;
+    type?: Function;
     prevContext?: IParamContext;
     msg?: string | ((context: IParamContext, v: any) => string);
     mustNotBeEmpty?: boolean;
-    enumType?: any;
+    enumType?: Enum;
     propertyName?: string;
     allowNull?: boolean;
     fn?(context: IParamContext, v: any): boolean;
@@ -24,17 +25,17 @@ function isNonEmptyString(context: IParamContext, v: any) {
 }
 
 function isInstanceOf(context: IParamContext, v: any) {
-    if (v == null) return false;
+    if (v == null || context.type == null) return false;
     return (v instanceof context.type);
 }
 
 function isEnumOf(context: IParamContext, v: any) {
-    if (v == null) return false;
+    if (v == null || context.enumType == null) return false;
     return context.enumType.contains(v);
 }
 
 function hasProperty(context: IParamContext, v: any) {
-    if (v == null) return false;
+    if (v == null || context.propertyName == null) return false;
     return (v[context.propertyName] !== undefined);
 }
 
@@ -49,7 +50,7 @@ function isRequired(context: IParamContext, v: any) {
 function isOptional(context: IParamContext, v: any) {
     if (v == null) return true;
     var prevContext = context.prevContext;
-    if (prevContext) {
+    if (prevContext && prevContext.fn) {
         return prevContext.fn(prevContext, v);
     } else {
         return true;
@@ -73,8 +74,9 @@ function isArray(context: IParamContext, v: any) {
     var prevContext = context.prevContext;
     if (!prevContext) return true;
 
+    let pc = <any>prevContext;
     return v.every(function (v1: any) {
-        return prevContext.fn(prevContext, v1);
+        return pc.fn && pc.fn(pc, v1);
     });
 }
 
@@ -131,7 +133,7 @@ function exec(self: Param) {
         return undefined;
     }
     return contexts.some(function (context: IParamContext) {
-        return context.fn(context, self.v);
+        return context.fn ? context.fn(context, self.v) : false;
     });
 }
 
@@ -159,7 +161,7 @@ class Param {
     constructor(v: any, name: string) {
         this.v = v;
         this.name = name;
-        this._contexts = [null];
+        this._contexts = [<any>null];
     }
 
     isObject(): Param {
@@ -198,7 +200,7 @@ class Param {
         });
     };
 
-    isInstanceOf(type: any, typeName: string): Param {
+    isInstanceOf(type: Function, typeName: string): Param {
         typeName = typeName || type.prototype._$typeName;
         return addContext(this, {
             fn: isInstanceOf,
@@ -218,7 +220,7 @@ class Param {
     };
 
 
-    isEnumOf(enumType: any): Param {
+    isEnumOf(enumType: Enum): Param {
         return addContext(this, {
             fn: isEnumOf,
             enumType: enumType,
@@ -258,8 +260,8 @@ class Param {
     };
 
     or() {
-        this._contexts.push(null);
-        this._context = null;
+        this._contexts.push(<any>null);
+        this._context = <any>null;
         return this;
     };
 
@@ -347,7 +349,7 @@ export var assertParam = function (v: any, name: string) {
 class ConfigParam {
     config: any;
     params: Param[];
-    constructor(config: any) {
+    constructor(config: Object) {
         if (typeof (config) !== "object") {
             throw new Error("Configuration parameter should be an object, instead it is a: " + typeof (config));
         }
@@ -363,7 +365,7 @@ class ConfigParam {
     }
 }
 
-var assertConfig = function (config: any) {
+var assertConfig = function (config: Object) {
     return new ConfigParam(config);
 };
 

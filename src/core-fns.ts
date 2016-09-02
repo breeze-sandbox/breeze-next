@@ -1,6 +1,6 @@
 ﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x';
 
-var __hasOwnProperty: (obj: any, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
+var __hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
 var __arraySlice: (ar: any[], start?: number, end?:number) => any[] = uncurry(Array.prototype.slice);
 var __isES5Supported: boolean = function () {
     try {
@@ -11,7 +11,7 @@ var __isES5Supported: boolean = function () {
 } ();
 
 // iterate over object
-function __objectForEach(obj: any, kvFn: (key: string, val: any) => any) {
+function __objectForEach(obj: Object, kvFn: (key: string, val: any) => any) {
     for (var key in obj) {
         if (__hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
@@ -19,7 +19,7 @@ function __objectForEach(obj: any, kvFn: (key: string, val: any) => any) {
     }
 }
 
-function __objectMap(obj: any, kvFn?: (key: string, val: any) => any) : any[] {
+function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any) : any[] {
     var results: any[] = [];
     for (var key in obj) {
         if (__hasOwnProperty(obj, key)) {
@@ -32,7 +32,7 @@ function __objectMap(obj: any, kvFn?: (key: string, val: any) => any) : any[] {
     return results;
 }
 
-function __objectFirst(obj: any, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } {
+function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } | null {
     for (var key in obj) {
         if (__hasOwnProperty(obj, key)) {
             var value = obj[key];
@@ -50,7 +50,7 @@ function __isSettable(entity: Entity, propertyName: string): boolean {
     return !!(pd.writable || pd.set);
 }
 
-function __getPropDescriptor(obj: any, propertyName: string): PropertyDescriptor {
+function __getPropDescriptor(obj: Object, propertyName: string): PropertyDescriptor | null {
     if (!__isES5Supported) return null;
 
     if (obj.hasOwnProperty(propertyName)) {
@@ -65,14 +65,14 @@ function __getPropDescriptor(obj: any, propertyName: string): PropertyDescriptor
 // Functional extensions
 
 /** can be used like: persons.filter(propEq("firstName", "John")) */
-function __propEq(propertyName: string, value: any): (obj: any) => boolean {
+function __propEq(propertyName: string, value: any): (obj: Object) => boolean {
     return function (obj: any) {
         return obj[propertyName] === value;
     };
 }
 
 /** can be used like persons.map(pluck("firstName")) */
-function __pluck(propertyName: any): (obj: any) => any {
+function __pluck(propertyName: any): (obj: Object) => any {
     return function (obj: any) {
         return obj[propertyName];
     };
@@ -81,7 +81,7 @@ function __pluck(propertyName: any): (obj: any) => any {
 // end functional extensions
 
 /** Return an array of property values from source */
-function __getOwnPropertyValues(source: any): any[] {
+function __getOwnPropertyValues(source: Object): any[] {
     var result: any[] = [];
     for (var name in source) {
         if (__hasOwnProperty(source, name)) {
@@ -92,7 +92,7 @@ function __getOwnPropertyValues(source: any): any[] {
 }
 
 /** Copy properties from source to target. Returns target. */
-export function __extend(target: any, source: any, propNames?: string[]): any {
+export function __extend(target: Object, source: Object, propNames?: string[]): Object {
     if (!source) return target;
     if (propNames) {
         propNames.forEach(function (propName) {
@@ -109,7 +109,7 @@ export function __extend(target: any, source: any, propNames?: string[]): any {
 }
 
 /** Copy properties from defaults iff undefined on target.  Returns target. */
-function __updateWithDefaults(target: any, defaults: any): any {
+function __updateWithDefaults(target: Object, defaults: Object): any {
     for (var name in defaults) {
         if (target[name] === undefined) {
             target[name] = defaults[name];
@@ -124,8 +124,9 @@ function __updateWithDefaults(target: any, defaults: any): any {
     Use current 'ctor.defaultInstance' as the template for any missing properties
     creates a new instance for ctor.defaultInstance
     returns target unchanged */
-function __setAsDefault(target: any, ctor: any): any {
-    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+function __setAsDefault(target: Object, ctor: Object): any {
+    var c = __updateWithDefaults({ my: 3 }, {});
+    //ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
     return target;
 }
 
@@ -147,7 +148,7 @@ function __setAsDefault(target: any, ctor: any): any {
        - if it does not exist then a new object will be created as filled.
     'target is returned.
 */
-function __toJson(source: any, template: any, target: any): any {
+function __toJson(source: Object, template: Object, target: Object): Object {
     target = target || {};
 
     for (var key in template) {
@@ -216,7 +217,7 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
 }
 
 /** Resolves the values of a list of properties by checking each property in multiple sources until a value is found. */
-function __resolveProperties(sources: any[], propertyNames: string[]): any {
+function __resolveProperties(sources: Object[], propertyNames: string[]): any {
     var r = {};
     var length = sources.length;
     propertyNames.forEach(function (pn) {
@@ -372,7 +373,7 @@ function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => bo
 // end of array functions
 
 /** Returns an array for a source and a prop, and creates the prop if needed. */
-function __getArray(source: any, propName: string): any[] {
+function __getArray(source: Object, propName: string): any[] {
     var arr = source[propName];
     if (!arr) {
         arr = [];
@@ -430,7 +431,7 @@ function __requireLibCore(libName: string) {
 }
 
 /** Execute fn while obj has tempValue for property */
-function __using(obj: any, property: string, tempValue: any, fn: () => any) {
+function __using(obj: Object, property: string, tempValue: any, fn: () => any) {
     var originalValue = obj[property];
     if (tempValue === originalValue) {
         return fn();
@@ -611,17 +612,17 @@ function __stringEndsWith(str: string, suffix: string) {
 }
 
 // Based on fragment from Dean Edwards' Base 2 library
-// format("a %1 and a %2", "cat", "dog") -> "a cat and a dog"
-export function __formatString(string: string, ...params: any[]) {
+/** format("a %1 and a %2", "cat", "dog") -> "a cat and a dog" */
+export function __formatString(str: string, ...params: any[]) {
     var args = arguments;
     var pattern = RegExp("%([1-" + (arguments.length - 1) + "])", "g");
-    return string.replace(pattern, function (match, index) {
+    return str.replace(pattern, function (match, index) {
         return args[index];
     });
 }
 
-// Change text to title case with spaces, e.g. 'myPropertyName12' to 'My Property Name 12'
 // See http://stackoverflow.com/questions/7225407/convert-camelcasetext-to-camel-case-text
+/** Change text to title case with spaces, e.g. 'myPropertyName12' to 'My Property Name 12' */
 var __camelEdges = /([A-Z](?=[A-Z][a-z])|[^A-Z](?=[A-Z])|[a-zA-Z](?=[^a-zA-Z]))/g;
 function __titleCaseSpace(text: string) {
     text = text.replace(__camelEdges, '$1 ');

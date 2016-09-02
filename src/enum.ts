@@ -43,9 +43,9 @@
 
   @class Enum
   **/
-class Enum {
+export class Enum {
     name: string;
-    _symbolPrototype: any;
+    _symbolPrototype: EnumSymbol;
 
 
     /**
@@ -63,7 +63,7 @@ class Enum {
     @param name {String}
     @param [methodObj] {Object}
     **/
-    constructor(name: string, methodObj: any) {
+    constructor(name: string, methodObj: Object) {
         this.name = name;
         var prototype = new EnumSymbol(methodObj);
         prototype.parentEnum = this;
@@ -112,7 +112,7 @@ class Enum {
     In other words, the 'propertiesObj' is any state that should be held by the symbol.
     @return {EnumSymbol} The new symbol
     **/
-    addSymbol(propertiesObj: any) {
+    addSymbol(propertiesObj: Object) {
         // TODO: check if sealed.
         var newSymbol = Object.create(this._symbolPrototype);
         if (propertiesObj) {
@@ -210,7 +210,7 @@ class EnumSymbol {
     **/
     parentEnum: Enum;
 
-    constructor(methodObj: any) {
+    constructor(methodObj: Object) {
     }
 
     /**
