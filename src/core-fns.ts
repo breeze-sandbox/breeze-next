@@ -1,8 +1,8 @@
 ﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x';
 
-var __hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
-var __arraySlice: (ar: any[], start?: number, end?:number) => any[] = uncurry(Array.prototype.slice);
-var __isES5Supported: boolean = function () {
+let __hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
+let __arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);
+let __isES5Supported: boolean = function () {
     try {
         return !!(Object.getPrototypeOf && Object.defineProperty({}, 'x', {}));
     } catch (e) {
@@ -12,18 +12,18 @@ var __isES5Supported: boolean = function () {
 
 // iterate over object
 function __objectForEach(obj: Object, kvFn: (key: string, val: any) => any) {
-    for (var key in obj) {
+    for (let key in obj) {
         if (__hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
         }
     }
 }
 
-function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any) : any[] {
-    var results: any[] = [];
-    for (var key in obj) {
+function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any): any[] {
+    let results: any[] = [];
+    for (let key in obj) {
         if (__hasOwnProperty(obj, key)) {
-            var result = kvFn ? kvFn(key, obj[key]) : obj[key];
+            let result = kvFn ? kvFn(key, obj[key]) : obj[key];
             if (result !== undefined) {
                 results.push(result);
             }
@@ -32,10 +32,10 @@ function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any) : any[]
     return results;
 }
 
-function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } | null {
-    for (var key in obj) {
+export function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } | null {
+    for (let key in obj) {
         if (__hasOwnProperty(obj, key)) {
-            var value = obj[key];
+            let value = obj[key];
             if (kvPredicate(key, value)) {
                 return { key: key, value: value };
             }
@@ -45,7 +45,7 @@ function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) => bool
 }
 
 function __isSettable(entity: Entity, propertyName: string): boolean {
-    var pd = __getPropDescriptor(entity, propertyName);
+    let pd = __getPropDescriptor(entity, propertyName);
     if (pd == null) return true;
     return !!(pd.writable || pd.set);
 }
@@ -56,7 +56,7 @@ function __getPropDescriptor(obj: Object, propertyName: string): PropertyDescrip
     if (obj.hasOwnProperty(propertyName)) {
         return Object.getOwnPropertyDescriptor(obj, propertyName);
     } else {
-        var nextObj = Object.getPrototypeOf(obj);
+        let nextObj = Object.getPrototypeOf(obj);
         if (nextObj == null) return null;
         return __getPropDescriptor(nextObj, propertyName);
     }
@@ -82,8 +82,8 @@ function __pluck(propertyName: any): (obj: Object) => any {
 
 /** Return an array of property values from source */
 function __getOwnPropertyValues(source: Object): any[] {
-    var result: any[] = [];
-    for (var name in source) {
+    let result: any[] = [];
+    for (let name in source) {
         if (__hasOwnProperty(source, name)) {
             result.push(source[name]);
         }
@@ -99,7 +99,7 @@ export function __extend(target: Object, source: Object, propNames?: string[]): 
             target[propName] = source[propName];
         });
     } else {
-        for (var propName in source) {
+        for (let propName in source) {
             if (__hasOwnProperty(source, propName)) {
                 target[propName] = source[propName];
             }
@@ -110,7 +110,7 @@ export function __extend(target: Object, source: Object, propNames?: string[]): 
 
 /** Copy properties from defaults iff undefined on target.  Returns target. */
 function __updateWithDefaults(target: Object, defaults: Object): any {
-    for (var name in defaults) {
+    for (let name in defaults) {
         if (target[name] === undefined) {
             target[name] = defaults[name];
         }
@@ -124,8 +124,8 @@ function __updateWithDefaults(target: Object, defaults: Object): any {
     Use current 'ctor.defaultInstance' as the template for any missing properties
     creates a new instance for ctor.defaultInstance
     returns target unchanged */
-function __setAsDefault(target: Object, ctor: Object): any {
-    var c = __updateWithDefaults({ my: 3 }, {});
+function __setAsDefault(target: Object, ctor: Function): any {
+    let c = __updateWithDefaults({ my: 3 }, {});
     //ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
     return target;
 }
@@ -151,13 +151,13 @@ function __setAsDefault(target: Object, ctor: Object): any {
 function __toJson(source: Object, template: Object, target: Object): Object {
     target = target || {};
 
-    for (var key in template) {
-        var aliases = key.split(",");
-        var defaultValue = template[key];
+    for (let key in template) {
+        let aliases = key.split(",");
+        let defaultValue = template[key];
         // using some as a forEach with a 'break'
         aliases.some(function (propName) {
             if (!(propName in source)) return false;
-            var value = source[propName];
+            let value = source[propName];
             // there is a functional property defined with this alias ( not what we want to replace).
             if (typeof value == 'function') return false;
             // '==' is deliberate here - idea is that null or undefined values will never get serialized
@@ -184,14 +184,14 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
     if (obj !== Object(obj)) return obj; // primitive value
     if (obj._$visited) return undefined;
     if (obj.toJSON) {
-        var newObj = obj.toJSON();
+        let newObj = obj.toJSON();
         if (newObj !== Object(newObj)) return newObj; // primitive value
         if (newObj !== obj) return __toJSONSafe(newObj);
         // toJSON returned the object unchanged.
         obj = newObj;
     }
     obj._$visited = true;
-    var result: any;
+    let result: any;
     if (obj instanceof Array) {
         result = obj.map(function (o: any) {
             return __toJSONSafe(o, replacer);
@@ -200,9 +200,9 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
         result = undefined;
     } else {
         result = {};
-        for (var prop in obj) {
+        for (let prop in obj) {
             if (prop === "_$visited") continue;
-            var val = obj[prop];
+            let val = obj[prop];
             if (replacer) {
                 val = replacer(prop, val);
                 if (val === undefined) continue;
@@ -218,13 +218,13 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
 
 /** Resolves the values of a list of properties by checking each property in multiple sources until a value is found. */
 function __resolveProperties(sources: Object[], propertyNames: string[]): any {
-    var r = {};
-    var length = sources.length;
+    let r = {};
+    let length = sources.length;
     propertyNames.forEach(function (pn) {
-        for (var i = 0; i < length; i++) {
-            var src = sources[i];
+        for (let i = 0; i < length; i++) {
+            let src = sources[i];
             if (src) {
-                var val = src[pn];
+                let val = src[pn];
                 if (val !== undefined) {
                     r[pn] = val;
                     break;
@@ -249,15 +249,15 @@ function __toArray(item: any): any[] {
 }
 
 /** a version of Array.map that doesn't require an array, i.e. works on arrays and scalars. */
-function __map(items: any, fn: (v:any, ix?:number) => void, includeNull?: boolean): any {
+function __map(items: any, fn: (v: any, ix?: number) => void, includeNull?: boolean): any {
     // whether to return nulls in array of results; default = true;
     includeNull = includeNull == null ? true : includeNull;
     if (items == null) return items;
-    var result: any;
+    let result: any;
     if (Array.isArray(items)) {
         result = [];
         items.forEach(function (v: any, ix: number) {
-            var r = fn(v, ix);
+            let r = fn(v, ix);
             if (r != null || includeNull) {
                 result[ix] = r;
             }
@@ -270,7 +270,7 @@ function __map(items: any, fn: (v:any, ix?:number) => void, includeNull?: boolea
 
 /** Return first element matching predicate */
 export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any {
-    for (var i = 0, j = array.length; i < j; i++) {
+    for (let i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {
             return array[i];
         }
@@ -280,7 +280,7 @@ export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any
 
 /** Return index of first element matching predicate */
 export function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): number {
-    for (var i = 0, j = array.length; i < j; i++) {
+    for (let i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) return i;
     }
     return -1;
@@ -288,7 +288,7 @@ export function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): n
 
 /** Add item if not already in array */
 function __arrayAddItemUnique(array: any[], item: any) {
-    var ix = array.indexOf(item);
+    let ix = array.indexOf(item);
     if (ix === -1) array.push(item);
 }
 
@@ -298,10 +298,10 @@ function __arrayAddItemUnique(array: any[], item: any) {
  * @param shouldRemoveMultiple - true to keep removing after first match, false otherwise
  */
 function __arrayRemoveItem(array: any[], predicateOrItem: any, shouldRemoveMultiple?: boolean) {
-    var predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
-    var lastIx = array.length - 1;
-    var removed = false;
-    for (var i = lastIx; i >= 0; i--) {
+    let predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
+    let lastIx = array.length - 1;
+    let removed = false;
+    for (let i = lastIx; i >= 0; i--) {
         if (predicate ? predicate(array[i]) : (array[i] === predicateOrItem)) {
             array.splice(i, 1);
             removed = true;
@@ -315,9 +315,9 @@ function __arrayRemoveItem(array: any[], predicateOrItem: any, shouldRemoveMulti
 
 /** Combine array elements using the callback.  Returns array with length == min(a1.length, a2.length) */
 function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): any[] {
-    var result: any[] = [];
-    var n = Math.min(a1.length, a2.length);
-    for (var i = 0; i < n; ++i) {
+    let result: any[] = [];
+    let n = Math.min(a1.length, a2.length);
+    for (let i = 0; i < n; ++i) {
         result.push(callback(a1[i], a2[i]));
     }
     return result;
@@ -325,8 +325,8 @@ function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): 
 
 //function __arrayDistinct(array) {
 //    array = array || [];
-//    var result = [];
-//    for (var i = 0, j = array.length; i < j; i++) {
+//    let result = [];
+//    for (let i = 0, j = array.length; i < j; i++) {
 //        if (result.indexOf(array[i]) < 0)
 //            result.push(array[i]);
 //    }
@@ -338,9 +338,9 @@ function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): 
 //// returns distinct string for distinct objects.  So this is safe for arrays with primitive
 //// types but not for arrays with object types, unless toString() has been implemented.
 //function arrayDistinctUnsafe(array) {
-//    var o = {}, i, l = array.length, r = [];
+//    let o = {}, i, l = array.length, r = [];
 //    for (i = 0; i < l; i += 1) {
-//        var v = array[i];
+//        let v = array[i];
 //        o[v] = v;
 //    }
 //    for (i in o) r.push(o[i]);
@@ -354,8 +354,8 @@ function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => bo
     if (a1.length !== a2.length) return false;
 
     //go thru all the vars
-    for (var i = 0; i < a1.length; i++) {
-        //if the var is an array, we need to make a recursive check
+    for (let i = 0; i < a1.length; i++) {
+        //if the let is an array, we need to make a recursive check
         //otherwise we'll just compare the values
         if (Array.isArray(a1[i])) {
             if (!__arrayEquals(a1[i], a2[i])) return false;
@@ -374,7 +374,7 @@ function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => bo
 
 /** Returns an array for a source and a prop, and creates the prop if needed. */
 function __getArray(source: Object, propName: string): any[] {
-    var arr = source[propName];
+    let arr = source[propName];
     if (!arr) {
         arr = [];
         source[propName] = arr;
@@ -384,9 +384,9 @@ function __getArray(source: Object, propName: string): any[] {
 
 /** Calls __requireLibCore on semicolon-separated libNames */
 function __requireLib(libNames: string, errMessage: string) {
-    var arrNames = libNames.split(";");
-    for (var i = 0, j = arrNames.length; i < j; i++) {
-        var lib = __requireLibCore(arrNames[i]);
+    let arrNames = libNames.split(";");
+    for (let i = 0, j = arrNames.length; i < j; i++) {
+        let lib = __requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
     if (errMessage) {
@@ -394,15 +394,15 @@ function __requireLib(libNames: string, errMessage: string) {
     }
 }
 
-var global: any; // TODO for TS compile of function below.  What are runtime implications?
+let global: any; // TODO for TS compile of function below.  What are runtime implications?
 
 /** Returns the 'libName' module if loaded or else returns undefined */
 function __requireLibCore(libName: string) {
-    var window = global.window;
+    let window = global.window;
     if (!window) return; // Must run in a browser. Todo: add commonjs support
 
     // get library from browser globals if we can
-    var lib = window[libName];
+    let lib = window[libName];
     if (lib) return lib;
 
     // if require exists, maybe require can get it.
@@ -411,7 +411,7 @@ function __requireLibCore(libName: string) {
     // Developer should bootstrap such that the breeze module
     // loads after all other libraries that breeze should find with this method
     // See documentation
-    var r = window.require;
+    let r = window.require;
     if (r) { // if require exists
         if (r.defined) { // require.defined is not standard and may not exist
             // require.defined returns true if module has been loaded
@@ -432,7 +432,7 @@ function __requireLibCore(libName: string) {
 
 /** Execute fn while obj has tempValue for property */
 function __using(obj: Object, property: string, tempValue: any, fn: () => any) {
-    var originalValue = obj[property];
+    let originalValue = obj[property];
     if (tempValue === originalValue) {
         return fn();
     }
@@ -450,7 +450,7 @@ function __using(obj: Object, property: string, tempValue: any, fn: () => any) {
 
 /** Call state = startFn(), call fn(), call endFn(state) */
 function __wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () => any) {
-    var state: any;
+    let state: any;
     try {
         state = startFn();
         return fn();
@@ -467,7 +467,7 @@ function __wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () 
 /** Remember & return the value of fn() when it was called with its current args */
 function __memoize(fn: any): any {
     return function () {
-        var args = __arraySlice(<any>arguments),
+        let args = __arraySlice(<any>arguments),
             hash = "",
             i = args.length,
             currentArg: any = null;
@@ -485,7 +485,7 @@ function __memoize(fn: any): any {
 function __getUuid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         //noinspection NonShortCircuitBooleanExpressionJS
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
@@ -496,20 +496,20 @@ function __durationToSeconds(duration: string) {
 
     // regex splits as follows - grp0, grp1, y, m, d, grp2, h, m, s
     //                           0     1     2  3  4  5     6  7  8
-    var struct = /^P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?$/.exec(duration);
+    let struct = /^P((\d+Y)?(\d+M)?(\d+D)?)?(T(\d+H)?(\d+M)?(\d+S)?)?$/.exec(duration);
     if (!struct) throw new Error("Invalid ISO8601 duration '" + duration + "'");
 
-    var ymdhmsIndexes = [2, 3, 4, 6, 7, 8]; // -> grp1,y,m,d,grp2,h,m,s
-    var factors = [31104000, // year (360*24*60*60)
+    let ymdhmsIndexes = [2, 3, 4, 6, 7, 8]; // -> grp1,y,m,d,grp2,h,m,s
+    let factors = [31104000, // year (360*24*60*60)
         2592000,             // month (30*24*60*60)
         86400,               // day (24*60*60)
         3600,                // hour (60*60)
         60,                  // minute (60)
         1];                  // second (1)
 
-    var seconds = 0;
-    for (var i = 0; i < 6; i++) {
-        var digit = struct[ymdhmsIndexes[i]];
+    let seconds = 0;
+    for (let i = 0; i < 6; i++) {
+        let digit = struct[ymdhmsIndexes[i]];
         // remove letters, replace by 0 if not defined
         digit = <any>(digit ? +digit.replace(/[A-Za-z]+/g, '') : 0);
         seconds += <any>digit * factors[i];
@@ -543,8 +543,8 @@ function __isDate(o: any) {
 }
 
 function __isDateString(s: string) {
-    // var rx = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
-    var rx = /^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/;
+    // let rx = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
+    let rx = /^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/;
     return (typeof s === "string") && rx.test(s);
 }
 
@@ -572,7 +572,7 @@ function __isEmpty(obj: any) {
     if (obj === null || obj === undefined) {
         return true;
     }
-    for (var key in obj) {
+    for (let key in obj) {
         if (__hasOwnProperty(obj, key)) {
             return false;
         }
@@ -614,8 +614,8 @@ function __stringEndsWith(str: string, suffix: string) {
 // Based on fragment from Dean Edwards' Base 2 library
 /** format("a %1 and a %2", "cat", "dog") -> "a cat and a dog" */
 export function __formatString(str: string, ...params: any[]) {
-    var args = arguments;
-    var pattern = RegExp("%([1-" + (arguments.length - 1) + "])", "g");
+    let args = arguments;
+    let pattern = RegExp("%([1-" + (arguments.length - 1) + "])", "g");
     return str.replace(pattern, function (match, index) {
         return args[index];
     });
@@ -623,7 +623,7 @@ export function __formatString(str: string, ...params: any[]) {
 
 // See http://stackoverflow.com/questions/7225407/convert-camelcasetext-to-camel-case-text
 /** Change text to title case with spaces, e.g. 'myPropertyName12' to 'My Property Name 12' */
-var __camelEdges = /([A-Z](?=[A-Z][a-z])|[^A-Z](?=[A-Z])|[a-zA-Z](?=[^a-zA-Z]))/g;
+let __camelEdges = /([A-Z](?=[A-Z][a-z])|[^A-Z](?=[A-Z])|[a-zA-Z](?=[^a-zA-Z]))/g;
 function __titleCaseSpace(text: string) {
     text = text.replace(__camelEdges, '$1 ');
     text = text.charAt(0).toUpperCase() + text.slice(1);
@@ -635,7 +635,7 @@ function __titleCaseSpace(text: string) {
 // See Mark Miller’s explanation of what this does.
 // http://wiki.ecmascript.org/doku.php?id=conventions:safe_meta_programming
 function uncurry(f: any) {
-    var call = Function.call;
+    let call = Function.call;
     return function () {
         return call.apply(f, arguments);
     };
@@ -645,14 +645,14 @@ function uncurry(f: any) {
 
 if (!Object.create) {
     Object.create = function (parent: any) {
-        var F = <any>function() {
+        let F = <any>function() {
         };
         F.prototype = parent;
         return new F();
     };
 }
 
-export var core = <any>{};
+export let core = <any>{};
 
 // not all methods above are exported
 core.__isES5Supported = __isES5Supported;

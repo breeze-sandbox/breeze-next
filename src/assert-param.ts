@@ -49,7 +49,7 @@ function isRequired(context: IParamContext, v: any) {
 
 function isOptional(context: IParamContext, v: any) {
     if (v == null) return true;
-    var prevContext = context.prevContext;
+    let prevContext = context.prevContext;
     if (prevContext && prevContext.fn) {
         return prevContext.fn(prevContext, v);
     } else {
@@ -58,8 +58,8 @@ function isOptional(context: IParamContext, v: any) {
 }
 
 function isOptionalMessage(context: IParamContext, v: any) {
-    var prevContext = context.prevContext;
-    var element = prevContext ? " or it " + getMessage(prevContext, v) : "";
+    let prevContext = context.prevContext;
+    let element = prevContext ? " or it " + getMessage(prevContext, v) : "";
     return "is optional" + element;
 }
 
@@ -71,7 +71,7 @@ function isArray(context: IParamContext, v: any) {
         if (v.length === 0) return false;
     }
     // allow standalone is array call.
-    var prevContext = context.prevContext;
+    let prevContext = context.prevContext;
     if (!prevContext) return true;
 
     let pc = <any>prevContext;
@@ -81,14 +81,14 @@ function isArray(context: IParamContext, v: any) {
 }
 
 function isArrayMessage(context: IParamContext, v: any) {
-    var arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
-    var prevContext = context.prevContext;
-    var element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
+    let arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
+    let prevContext = context.prevContext;
+    let element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
     return " must be " + arrayDescr + element;
 }
 
 function getMessage(context: IParamContext, v: any) {
-    var msg = context.msg;
+    let msg = context.msg;
     if (typeof (msg) === "function") {
         msg = (<any>msg)(context, v);
     }
@@ -97,7 +97,7 @@ function getMessage(context: IParamContext, v: any) {
 
 function addContext(that: Param, context: IParamContext) {
     if (that._context) {
-        var curContext = that._context;
+        let curContext = that._context;
 
         while (curContext.prevContext != null) {
             curContext = curContext.prevContext;
@@ -125,7 +125,7 @@ function setContext(that: Param, context: IParamContext) {
 
 function exec(self: Param) {
     // clear off last one if null
-    var contexts = self._contexts;
+    let contexts = self._contexts;
     if (contexts[contexts.length - 1] == null) {
         contexts.pop();
     }
@@ -237,7 +237,7 @@ class Param {
     };
 
     isOptional(): Param {
-        var context = {
+        let context = {
             fn: isOptional,
             prevContext: <any>null,
             msg: isOptionalMessage
@@ -250,7 +250,7 @@ class Param {
     };
 
     isArray(mustNotBeEmpty?: boolean): Param {
-        var context = {
+        let context = {
             fn: isArray,
             mustNotBeEmpty: mustNotBeEmpty,
             prevContext: <any>null,
@@ -266,7 +266,7 @@ class Param {
     };
 
     check(defaultValue?: any) {
-        var ok = exec(this);
+        let ok = exec(this);
         if (ok === undefined) return;
         if (!ok) {
             throw new Error(this.getMessage());
@@ -287,8 +287,8 @@ class Param {
 
 
     getMessage() {
-        var that = this;
-        var message = this._contexts.map(function (context) {
+        let that = this;
+        let message = this._contexts.map(function (context) {
             return getMessage(context, that.v);
         }).join(", or it ");
         return __formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
@@ -304,10 +304,10 @@ class Param {
     };
 
     applyAll(instance: any, checkOnly: boolean) {
-        var parentTypeName = instance._$typeName;
-        var allowUnknownProperty = (parentTypeName && this.parent.config._$typeName === parentTypeName);
+        let parentTypeName = instance._$typeName;
+        let allowUnknownProperty = (parentTypeName && this.parent.config._$typeName === parentTypeName);
 
-        var clone = __extend({}, this.parent.config);
+        let clone = __extend({}, this.parent.config);
         this.parent.params.forEach(function (p) {
             if (!allowUnknownProperty) delete clone[p.name];
             try {
@@ -319,7 +319,7 @@ class Param {
         });
         // should be no properties left in the clone
         if (!allowUnknownProperty) {
-            for (var key in clone) {
+            for (let key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
                     throwConfigError(instance, __formatString("Unknown property: '%1'.", key));
@@ -342,7 +342,7 @@ class Param {
 
 }
 
-export var assertParam = function (v: any, name: string) {
+export let assertParam = function (v: any, name: string) {
     return new Param(v, name);
 };
 
@@ -358,14 +358,14 @@ class ConfigParam {
     }
 
     whereParam(propName: string) {
-        var param = new Param(this.config[propName], propName);
+        let param = new Param(this.config[propName], propName);
         param.parent = this;
         this.params.push(param);
         return param;
     }
 }
 
-var assertConfig = function (config: Object) {
+let assertConfig = function (config: Object) {
     return new ConfigParam(config);
 };
 

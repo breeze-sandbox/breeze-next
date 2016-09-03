@@ -2,7 +2,7 @@
 import { __arrayIndexOf } from './core-fns';
 
 function publishCore(that: Event, data: any, errorCallback: (e: Error) => any) {
-    var subscribers = that._subscribers;
+    let subscribers = that._subscribers;
     if (!subscribers) return true;
     // subscribers from outer scope.
     subscribers.forEach(function (s) {
@@ -156,7 +156,7 @@ class Event {
             this._subscribers = [];
         }
 
-        var unsubKey = this.__nextUnsubKey;
+        let unsubKey = this.__nextUnsubKey;
         this._subscribers.push({ unsubKey: unsubKey, callback: callback });
         ++this.__nextUnsubKey;
         return unsubKey;
@@ -166,7 +166,7 @@ class Event {
     Unsubscribe from this event.
     @example
         // Assume order is a preexisting 'order' entity
-        var token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
+        let token = order.entityAspect.propertyChanged.subscribe(function (pcEvent) {
                 // do something
         });
         // sometime later
@@ -178,8 +178,8 @@ class Event {
     **/
     unsubscribe = function (unsubKey: number) {
         if (!this._subscribers) return false;
-        var subs = this._subscribers;
-        var ix = __arrayIndexOf(subs, function (s) {
+        let subs = this._subscribers;
+        let ix = __arrayIndexOf(subs, function (s) {
             return s.unsubKey === unsubKey;
         });
         if (ix !== -1) {
@@ -265,9 +265,9 @@ class Event {
     };
 
     _isEnabled = function (eventName: string, obj: Object) {
-        var isEnabled: any = null;
+        let isEnabled: any = null;
         let ob = <any>obj;
-        var eventMap = ob._$eventMap;
+        let eventMap = ob._$eventMap;
         if (eventMap) {
             isEnabled = eventMap[eventName];
         }
@@ -278,7 +278,7 @@ class Event {
                 return !!isEnabled;
             }
         } else {
-            var parent = ob._getEventParent && ob._getEventParent();
+            let parent = ob._getEventParent && ob._getEventParent();
             if (parent) {
                 return this._isEnabled(eventName, parent);
             } else {
