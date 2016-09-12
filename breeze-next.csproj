@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\assert-param.ts" />
+    <TypeScriptCompile Include="src\config.ts" />
     <TypeScriptCompile Include="src\core-fns.ts" />
     <TypeScriptCompile Include="src\enum.ts" />
     <TypeScriptCompile Include="src\event.ts" />

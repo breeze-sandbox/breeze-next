@@ -1,7 +1,7 @@
 ﻿import { assertParam } from './assert-param';
 import { __arrayIndexOf } from './core-fns';
 
-function publishCore(that: Event, data: any, errorCallback: (e: Error) => any) {
+function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {
     let subscribers = that._subscribers;
     if (!subscribers) return true;
     // subscribers from outer scope.
@@ -35,7 +35,7 @@ interface ISubscription {
 Class to support basic event publication and subscription semantics.
 @class Event
 **/
-class Event {
+export class BreezeEvent {
 
     __eventNameMap = {};
     __nextUnsubKey = 1;
@@ -57,7 +57,7 @@ class Event {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
-    constructor(name: string, publisher: Object, defaultErrorCallback: (e: Error) => any) {
+    constructor(name: string, publisher: Object, defaultErrorCallback?: (e: Error) => any) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
 
@@ -93,7 +93,7 @@ class Event {
     @param [errorCallback.e] {Error} Any error encountered during publication execution.
     @return {Boolean} false if event is disabled; true otherwise.
     **/
-    publish(data: any, publishAsync: boolean, errorCallback: (e: Error) => any) {
+    publish(data: any, publishAsync: boolean = false, errorCallback?: (e: Error) => any) {
 
         if (!this._isEnabled(this.name, this.publisher)) return false;
 

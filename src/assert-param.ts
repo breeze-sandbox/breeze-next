@@ -365,7 +365,7 @@ class ConfigParam {
     }
 }
 
-let assertConfig = function (config: Object) {
+export let assertConfig = function (config: Object) {
     return new ConfigParam(config);
 };
 

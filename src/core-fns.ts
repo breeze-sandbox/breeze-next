@@ -19,7 +19,7 @@ function __objectForEach(obj: Object, kvFn: (key: string, val: any) => any) {
     }
 }
 
-function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any): any[] {
+export function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any): any[] {
     let results: any[] = [];
     for (let key in obj) {
         if (__hasOwnProperty(obj, key)) {
@@ -124,9 +124,8 @@ function __updateWithDefaults(target: Object, defaults: Object): any {
     Use current 'ctor.defaultInstance' as the template for any missing properties
     creates a new instance for ctor.defaultInstance
     returns target unchanged */
-function __setAsDefault(target: Object, ctor: Function): any {
-    let c = __updateWithDefaults({ my: 3 }, {});
-    //ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+function __setAsDefault(target: Object, ctor: { new (...args: any[]): any, defaultInstance: any }): any {
+    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
     return target;
 }
 
@@ -692,7 +691,7 @@ core.getPropertyDescriptor = __getPropDescriptor;
 
 core.toJSONSafe = __toJSONSafe;
 
-var breeze: any = breeze || {};
+export var breeze: any = breeze || {};
 core.parent = breeze;
 breeze.core = core;
 
