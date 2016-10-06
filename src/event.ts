@@ -1,6 +1,10 @@
 ﻿import { assertParam } from './assert-param';
 import { __arrayIndexOf } from './core-fns';
 
+export interface IPublisher {
+    
+}
+
 function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {
     let subscribers = that._subscribers;
     if (!subscribers) return true;

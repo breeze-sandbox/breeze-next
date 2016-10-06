@@ -1,7 +1,7 @@
-﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x';
+﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
 
 let __hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
-let __arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);
+export const __arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);
 let __isES5Supported: boolean = function () {
     try {
         return !!(Object.getPrototypeOf && Object.defineProperty({}, 'x', {}));

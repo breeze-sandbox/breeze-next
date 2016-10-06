@@ -1,9 +1,9 @@
 ﻿import { __objectFirst, __objectMap, core, breeze } from './core-fns';
 import { assertParam, assertConfig } from './assert-param';
-import { BreezeEvent } from './event'
+import { BreezeEvent } from './event';
 
 interface ICtor { new (...args: any[]): any };
-interface IDef { ctor: ICtor, defaultInstance: any }
+interface IDef { ctor: ICtor, defaultInstance: any };
 
 class InterfaceDef {
 

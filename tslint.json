@@ -21,8 +21,9 @@
             "check-whitespace"
         ],
         "quotemark": [
-            true,
-            "double"
+            false,
+            "single",
+            "avoid-escape"
         ],
         "semicolon": [
             true,
@@ -30,7 +31,8 @@
         ],
         "triple-equals": [
             true,
-            "allow-null-check"
+            "allow-null-check",
+            "allow-undefined-check"
         ],
         "typedef-whitespace": [
             true,
