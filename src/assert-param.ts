@@ -200,7 +200,8 @@ class Param {
         });
     };
 
-    isInstanceOf(type: Function, typeName: string): Param {
+
+    isInstanceOf(type: Function, typeName?: string): Param {
         typeName = typeName || type.prototype._$typeName;
         return addContext(this, {
             fn: isInstanceOf,

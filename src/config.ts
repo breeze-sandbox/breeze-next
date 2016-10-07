@@ -263,12 +263,12 @@ class Config {
 
 }
 
-let __config = new Config();
-let __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
+export const config = new Config();
+let __modelLibraryDef = config.interfaceRegistry.modelLibrary;
 
 // legacy
-core.config = __config;
+core.config = config;
 
-breeze.config = __config;
+breeze.config = config;
 
 
