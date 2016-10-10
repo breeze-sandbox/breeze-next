@@ -520,7 +520,7 @@ export class Validator {
     let valFn = function (v: any, ctx: any) {
       if (v == null) return true;
       if (typeof v === "string" && ctx && ctx.allowString) {
-        v = parseFloat(v, 10);
+        v = parseFloat(v);
       }
       return (typeof v === "number" && !isNaN(v));
     };
@@ -685,7 +685,6 @@ export class Validator {
     return new Validator('creditCard', valFn, context);
   };
 
-  
 
   /**
   Returns a regular expression validator; the expression must be specified
@@ -878,7 +877,7 @@ function intRangeValidatorCtor(validatorName: string, minValue: number, maxValue
   };
 }
 
-function makeRegExpValidator(validatorName: string, expression: RegExp, defaultMessage: string, context: any) {
+function makeRegExpValidator(validatorName: string, expression: RegExp, defaultMessage: string | null, context: any) {
   if (defaultMessage) {
     Validator.messageTemplates[validatorName] = defaultMessage;
   }
@@ -908,10 +907,8 @@ let  luhn = (function() {
     let incNum: number;
     let odd = false;
     let temp = String(str).replace(/[^\d]/g, "");
-    if ( temp.length == 0)
-      return false;
-    for (let i = temp.length - 1; i >= 0; --i)
-    {
+    if ( temp.length == 0) return false;
+    for (let i = temp.length - 1; i >= 0; --i)  {
       incNum = parseInt(temp.charAt(i), 10);
       counter += (odd = !odd) ? incNum : luhnArr[incNum];
     }

@@ -19,6 +19,30 @@ Use of `Object` often means casting to `any` within methods, but the payoff shou
 
 We can consider creating an `IObject` base interface for all Breeze classes, and use that instead of `Object` in method parameters.  That way String and Number types won't be accepted erroneously.
 
+## Jasmine tests 
 
+1) from command line
+    run 'npm install jasmine -g' ( global install).
+    run 'jasmine'  from top level breeze-next dir.
+
+2) from vs code debugger
+    add this section to 'launch.json'
+     
+        {
+            "name": "Debug Jasime Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/jasmine/bin/jasmine.js",
+            "stopOnEntry": false,
+            "args": [
+               
+            ],
+            "cwd": "${workspaceRoot}",
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/dist"
+        }    
+
+    run 'npm install jasmine' // local install   
+    set breakpoint and hit Ctrl-F5.     
 
 

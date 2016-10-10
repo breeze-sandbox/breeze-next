@@ -1,5 +1,6 @@
-﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
+﻿import { Entity, EntityAspect, EntityType, DataProperty } from '../typings/breeze1x'; // TODO: replace later
 import { __arraySlice } from './core-fns';
+import { BreezeEvent } from './event';
 
 export interface IObservableArray {
   push: (...args: any[]) => number;
@@ -11,8 +12,9 @@ export interface IObservableArray {
   slice: (a: number, b?: number) => any[]; // implemented on the native array
 
   getEntityAspect: () => EntityAspect;
-  parent: Object;
-  parentProperty: Object; // TODO: IProperty 
+  arrayChanged: BreezeEvent;
+  parent?: Object | null;
+  parentProperty?: DataProperty | null; // TODO: IProperty 
   _getEventParent: () => Object;
   _getPendingPubs: () => any[]; // TODO: Pub[]
   _beforeChange: () => void;
@@ -20,10 +22,9 @@ export interface IObservableArray {
   _processRemoves(items: any[]): void;
   _origValues: any[];
   _pendingArgs: any;
-
 }
 
-export let mixin = {
+let mixin = {
   push: (...args: any[]) => {
     if (this._inProgress) {
       return -1;
@@ -106,7 +107,7 @@ export let mixin = {
   }
 };
 
-export function updateEntityState(obsArray: IObservableArray) {
+function updateEntityState(obsArray: IObservableArray) {
   let entityAspect = obsArray.getEntityAspect();
   if (entityAspect.entityState.isUnchanged()) {
     entityAspect.setModified();
@@ -116,7 +117,7 @@ export function updateEntityState(obsArray: IObservableArray) {
   }
 }
 
-export function publish(publisher: IObservableArray, eventName: string, eventArgs: any) {
+function publish(publisher: IObservableArray, eventName: string, eventArgs: any) {
   let pendingPubs = publisher._getPendingPubs();
   if (pendingPubs) {
     if (!publisher._pendingArgs) {
@@ -133,7 +134,7 @@ export function publish(publisher: IObservableArray, eventName: string, eventArg
   }
 }
 
-export function initializeParent(obsArray: IObservableArray, parent: Object, parentProperty: Object) {
+function initializeParent(obsArray: IObservableArray, parent: Object, parentProperty: DataProperty) {
   obsArray.parent = parent;
   obsArray.parentProperty = parentProperty;
 }
@@ -170,6 +171,9 @@ function combineArgs(target: Object, source: Object) {
   }
 }
 
-
-
-
+export const observableArray = {
+  mixin: mixin,
+  updateEntityState: updateEntityState,
+  publish: publish,
+  initializeParent: initializeParent
+};

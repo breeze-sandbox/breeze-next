@@ -13,134 +13,6 @@ interface IParamContext {
     fn?(context: IParamContext, v: any): boolean;
 }
 
-function isTypeOf(context: IParamContext, v: any) {
-    if (v == null) return false;
-    if (typeof (v) === context.typeName) return true;
-    return false;
-}
-
-function isNonEmptyString(context: IParamContext, v: any) {
-    if (v == null) return false;
-    return (typeof (v) === 'string') && v.length > 0;
-}
-
-function isInstanceOf(context: IParamContext, v: any) {
-    if (v == null || context.type == null) return false;
-    return (v instanceof context.type);
-}
-
-function isEnumOf(context: IParamContext, v: any) {
-    if (v == null || context.enumType == null) return false;
-    return context.enumType.contains(v);
-}
-
-function hasProperty(context: IParamContext, v: any) {
-    if (v == null || context.propertyName == null) return false;
-    return (v[context.propertyName] !== undefined);
-}
-
-function isRequired(context: IParamContext, v: any) {
-    if (context.allowNull) {
-        return v !== undefined;
-    } else {
-        return v != null;
-    }
-}
-
-function isOptional(context: IParamContext, v: any) {
-    if (v == null) return true;
-    let prevContext = context.prevContext;
-    if (prevContext && prevContext.fn) {
-        return prevContext.fn(prevContext, v);
-    } else {
-        return true;
-    }
-}
-
-function isOptionalMessage(context: IParamContext, v: any) {
-    let prevContext = context.prevContext;
-    let element = prevContext ? " or it " + getMessage(prevContext, v) : "";
-    return "is optional" + element;
-}
-
-function isArray(context: IParamContext, v: any) {
-    if (!Array.isArray(v)) {
-        return false;
-    }
-    if (context.mustNotBeEmpty) {
-        if (v.length === 0) return false;
-    }
-    // allow standalone is array call.
-    let prevContext = context.prevContext;
-    if (!prevContext) return true;
-
-    let pc = <any>prevContext;
-    return v.every(function (v1: any) {
-        return pc.fn && pc.fn(pc, v1);
-    });
-}
-
-function isArrayMessage(context: IParamContext, v: any) {
-    let arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
-    let prevContext = context.prevContext;
-    let element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
-    return " must be " + arrayDescr + element;
-}
-
-function getMessage(context: IParamContext, v: any) {
-    let msg = context.msg;
-    if (typeof (msg) === "function") {
-        msg = (<any>msg)(context, v);
-    }
-    return msg;
-}
-
-function addContext(that: Param, context: IParamContext) {
-    if (that._context) {
-        let curContext = that._context;
-
-        while (curContext.prevContext != null) {
-            curContext = curContext.prevContext;
-        }
-
-        if (curContext.prevContext === null) {
-            curContext.prevContext = context;
-            // just update the prevContext but don't change the curContext.
-            return that;
-        } else if (context.prevContext == null) {
-            context.prevContext = that._context;
-        } else {
-            throw new Error("Illegal construction - use 'or' to combine checks");
-        }
-    }
-    return setContext(that, context);
-}
-
-function setContext(that: Param, context: IParamContext) {
-    that._contexts[that._contexts.length - 1] = context;
-    that._context = context;
-    return that;
-}
-
-
-function exec(self: Param) {
-    // clear off last one if null
-    let contexts = self._contexts;
-    if (contexts[contexts.length - 1] == null) {
-        contexts.pop();
-    }
-    if (contexts.length === 0) {
-        return undefined;
-    }
-    return contexts.some(function (context: IParamContext) {
-        return context.fn ? context.fn(context, self.v) : false;
-    });
-}
-
-function throwConfigError(instance: any, message: string) {
-    throw new Error(__formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
-}
-
 class Param {
     // The %1 parameter
     // is required
@@ -304,7 +176,7 @@ class Param {
         return this.parent.whereParam(propName);
     };
 
-    applyAll(instance: any, checkOnly: boolean) {
+    applyAll(instance: any, checkOnly: boolean = false) {
         let parentTypeName = instance._$typeName;
         let allowUnknownProperty = (parentTypeName && this.parent.config._$typeName === parentTypeName);
 
@@ -346,6 +218,134 @@ class Param {
 export let assertParam = function (v: any, name: string) {
     return new Param(v, name);
 };
+
+function isTypeOf(context: IParamContext, v: any) {
+    if (v == null) return false;
+    if (typeof (v) === context.typeName) return true;
+    return false;
+}
+
+function isNonEmptyString(context: IParamContext, v: any) {
+    if (v == null) return false;
+    return (typeof (v) === 'string') && v.length > 0;
+}
+
+function isInstanceOf(context: IParamContext, v: any) {
+    if (v == null || context.type == null) return false;
+    return (v instanceof context.type);
+}
+
+function isEnumOf(context: IParamContext, v: any) {
+    if (v == null || context.enumType == null) return false;
+    return context.enumType.contains(v);
+}
+
+function hasProperty(context: IParamContext, v: any) {
+    if (v == null || context.propertyName == null) return false;
+    return (v[context.propertyName] !== undefined);
+}
+
+function isRequired(context: IParamContext, v: any) {
+    if (context.allowNull) {
+        return v !== undefined;
+    } else {
+        return v != null;
+    }
+}
+
+function isOptional(context: IParamContext, v: any) {
+    if (v == null) return true;
+    let prevContext = context.prevContext;
+    if (prevContext && prevContext.fn) {
+        return prevContext.fn(prevContext, v);
+    } else {
+        return true;
+    }
+}
+
+function isOptionalMessage(context: IParamContext, v: any) {
+    let prevContext = context.prevContext;
+    let element = prevContext ? " or it " + getMessage(prevContext, v) : "";
+    return "is optional" + element;
+}
+
+function isArray(context: IParamContext, v: any) {
+    if (!Array.isArray(v)) {
+        return false;
+    }
+    if (context.mustNotBeEmpty) {
+        if (v.length === 0) return false;
+    }
+    // allow standalone is array call.
+    let prevContext = context.prevContext;
+    if (!prevContext) return true;
+
+    let pc = <any>prevContext;
+    return v.every(function (v1: any) {
+        return pc.fn && pc.fn(pc, v1);
+    });
+}
+
+function isArrayMessage(context: IParamContext, v: any) {
+    let arrayDescr = context.mustNotBeEmpty ? "a nonEmpty array" : "an array";
+    let prevContext = context.prevContext;
+    let element = prevContext ? " where each element " + getMessage(prevContext, v) : "";
+    return " must be " + arrayDescr + element;
+}
+
+function getMessage(context: IParamContext, v: any) {
+    let msg = context.msg;
+    if (typeof (msg) === "function") {
+        msg = (<any>msg)(context, v);
+    }
+    return msg;
+}
+
+function addContext(that: Param, context: IParamContext) {
+    if (that._context) {
+        let curContext = that._context;
+
+        while (curContext.prevContext != null) {
+            curContext = curContext.prevContext;
+        }
+
+        if (curContext.prevContext === null) {
+            curContext.prevContext = context;
+            // just update the prevContext but don't change the curContext.
+            return that;
+        } else if (context.prevContext == null) {
+            context.prevContext = that._context;
+        } else {
+            throw new Error("Illegal construction - use 'or' to combine checks");
+        }
+    }
+    return setContext(that, context);
+}
+
+function setContext(that: Param, context: IParamContext) {
+    that._contexts[that._contexts.length - 1] = context;
+    that._context = context;
+    return that;
+}
+
+
+function exec(self: Param) {
+    // clear off last one if null
+    let contexts = self._contexts;
+    if (contexts[contexts.length - 1] == null) {
+        contexts.pop();
+    }
+    if (contexts.length === 0) {
+        return undefined;
+    }
+    return contexts.some(function (context: IParamContext) {
+        return context.fn ? context.fn(context, self.v) : false;
+    });
+}
+
+function throwConfigError(instance: any, message: string) {
+    throw new Error(__formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
+}
 
 class ConfigParam {
     config: any;

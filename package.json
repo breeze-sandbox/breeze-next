@@ -1,0 +1,27 @@
+{
+  "name": "breeze-next",
+  "version": "1.0.0",
+  "description": "Next version of Breeze, built using TypeScript 2.",
+  "main": "app.js",
+  "dependencies": {
+    "typescript": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^2.5.35",
+    "jasmine": "^2.5.2",
+    "jasmine-node": "^1.14.5"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/breeze-sandbox/breeze-next.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/breeze-sandbox/breeze-next/issues"
+  },
+  "homepage": "https://github.com/breeze-sandbox/breeze-next#readme"
+}

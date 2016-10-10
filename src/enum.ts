@@ -1,48 +1,62 @@
 ﻿import { __arrayFirst, __isFunction } from './core-fns';
 
-  // TODO: think about CompositeEnum (flags impl).
+// TODO: think about CompositeEnum (flags impl).
 
-  /**
-  Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
-  A Breeze Enum is a namespaced set of constant values.  Each Enum consists of a group of related constants, called 'symbols'.
-  Unlike enums in some other environments, each 'symbol' can have both methods and properties.
+/**
+Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
+A Breeze Enum is a namespaced set of constant values.  Each Enum consists of a group of related constants, called 'symbols'.
+Unlike enums in some other environments, each 'symbol' can have both methods and properties.
 
-  @example
-      // Example of creating a new Enum
-      let prototype = {
-          nextDay: function () {
-              let nextIndex = (this.dayIndex+1) % 7;
-              return DayOfWeek.getSymbols()[nextIndex];
-          }
-      };
+@example
+    // Example of creating a new Enum
+       class DayOfWeekSymbol extends EnumSymbol {
+            dayIndex: number;
+            isWeekend?: boolean;
+            nextDay() {
+                let nextIndex = (this.dayIndex + 1) % 7;
+                return DayOfWeek.getSymbols()[nextIndex];
+            }
+        }
 
-      let DayOfWeek = new Enum("DayOfWeek", prototype);
-      DayOfWeek.Monday    = DayOfWeek.addSymbol( { dayIndex: 0 });
-      DayOfWeek.Tuesday   = DayOfWeek.addSymbol( { dayIndex: 1 });
-      DayOfWeek.Wednesday = DayOfWeek.addSymbol( { dayIndex: 2 });
-      DayOfWeek.Thursday  = DayOfWeek.addSymbol( { dayIndex: 3 });
-      DayOfWeek.Friday    = DayOfWeek.addSymbol( { dayIndex: 4 });
-      DayOfWeek.Saturday  = DayOfWeek.addSymbol( { dayIndex: 5, isWeekend: true });
-      DayOfWeek.Sunday    = DayOfWeek.addSymbol( { dayIndex: 6, isWeekend: true });
-      DayOfWeek.resolveSymbols();
+        class DayOfWeekEnum extends TypedEnum<DayOfWeekSymbol> {
+            constructor() {
+                super("DayOfWeek", DayOfWeekSymbol);
+            }
+            Monday = this.addSymbol( { dayIndex: 0});
+            Tuesday = this.addSymbol( { dayIndex: 1 });
+            Wednesday = this.addSymbol( { dayIndex: 2 });
+            Thursday = this.addSymbol( { dayIndex: 3 });
+            Friday = this.addSymbol( { dayIndex: 4 });
+            Saturday = this.addSymbol( { dayIndex: 5, isWeekend: true });
+            Sunday = this.addSymbol( { dayIndex: 6, isWeekend: true });
+        }
 
-      // custom methods
-      ok(DayOfWeek.Monday.nextDay() === DayOfWeek.Tuesday);
-      ok(DayOfWeek.Sunday.nextDay() === DayOfWeek.Monday);
-      // custom properties
-      ok(DayOfWeek.Tuesday.isWeekend === undefined);
-      ok(DayOfWeek.Saturday.isWeekend == true);
-      // Standard enum capabilities
-      ok(DayOfWeek instanceof Enum);
-      ok(Enum.isSymbol(DayOfWeek.Wednesday));
-      ok(DayOfWeek.contains(DayOfWeek.Thursday));
-      ok(DayOfWeek.Tuesday.parentEnum == DayOfWeek);
-      ok(DayOfWeek.getSymbols().length === 7);
-      ok(DayOfWeek.Friday.toString() === "Friday");
+        let DayOfWeek = new DayOfWeekEnum();
+
+        describe("DayOfWeek", () => {
+
+            it("should support full enum capabilities", function() {
+                // // custom methods
+                expect(DayOfWeek.Monday.nextDay()).toBe(DayOfWeek.Tuesday);
+                expect(DayOfWeek.Sunday.nextDay()).toBe(DayOfWeek.Monday);
+                // // custom properties
+                expect(DayOfWeek.Tuesday.isWeekend).toBe(undefined);
+                expect(DayOfWeek.Saturday.isWeekend).toBe(true);
+                // // Standard enum capabilities
+                expect(DayOfWeek instanceof Enum).toBe(true);
+                expect(Enum.isSymbol(DayOfWeek.Wednesday)).toBe(true);
+                expect(DayOfWeek.contains(DayOfWeek.Thursday)).toBe(true);
+                expect(DayOfWeek.Tuesday.parentEnum).toBe(DayOfWeek);
+                expect(DayOfWeek.getSymbols().length).toBe(7);
+                expect(DayOfWeek.Friday.toString()).toBe("Friday");
+                });
+
+            });
+        });            
 
 
-  @class Enum
-  **/
+@class Enum
+**/
 export class Enum {
     name: string;
     _symbolPrototype: EnumSymbol;
@@ -65,14 +79,19 @@ export class Enum {
     **/
     constructor(name: string, methodObj: Object) {
         this.name = name;
-        let prototype = new EnumSymbol(methodObj);
-        prototype.parentEnum = this;
-        this._symbolPrototype = prototype;
-        if (methodObj) {
+        let prototype: EnumSymbol;
+        if (methodObj instanceof EnumSymbol) {
+            prototype = methodObj;
+        } else {
+            prototype = new EnumSymbol(methodObj || {});
             Object.keys(methodObj).forEach(function (key) {
                 prototype[key] = methodObj[key];
             });
         }
+
+        prototype.parentEnum = this;
+        this._symbolPrototype = prototype;
+
     }
 
     /**
@@ -112,7 +131,7 @@ export class Enum {
     In other words, the 'propertiesObj' is any state that should be held by the symbol.
     @return {EnumSymbol} The new symbol
     **/
-    addSymbol(propertiesObj: Object) {
+    addSymbol(propertiesObj?: Object) {
         // TODO: check if sealed.
         let newSymbol = Object.create(this._symbolPrototype);
         if (propertiesObj) {
@@ -148,7 +167,7 @@ export class Enum {
     **/
     getSymbols() {
         return this.getNames().map(function (key: string) {
-            return this[key];
+            return <EnumSymbol> this[key];
         }, this);
     };
 
@@ -182,7 +201,7 @@ export class Enum {
     @param {Object} Object or symbol to test.
     @return {Boolean} Whether this Enum contains the specified symbol.
     **/
-    contains(sym: any) {
+    contains(sym: EnumSymbol) {
         if (!(sym instanceof EnumSymbol)) {
             return false;
         }
@@ -200,7 +219,7 @@ the Enum.addSymbol method.
     DayOfWeek.Monday    = DayOfWeek.addSymbol();
 @class EnumSymbol
 **/
-class EnumSymbol {
+export class EnumSymbol {
 
     name: string;
     /**
@@ -250,3 +269,15 @@ class EnumSymbol {
     };
 
 }
+
+export class TypedEnum<T extends EnumSymbol> extends Enum {
+
+    constructor(name: string, c: { new (...args: any[]): T }) {
+        super(name, new c());
+    }
+
+    addSymbol(propertiesObj?: Object) {
+        return <T>super.addSymbol(propertiesObj);
+    }
+}
+

@@ -124,7 +124,7 @@ function __updateWithDefaults(target: Object, defaults: Object): any {
     Use current 'ctor.defaultInstance' as the template for any missing properties
     creates a new instance for ctor.defaultInstance
     returns target unchanged */
-function __setAsDefault(target: Object, ctor: { new (...args: any[]): any, defaultInstance: any }): any {
+export function __setAsDefault(target: Object, ctor: { new (...args: any[]): any, defaultInstance?: any }): any {
     ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
     return target;
 }
