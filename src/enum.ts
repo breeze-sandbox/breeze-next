@@ -1,4 +1,4 @@
-﻿import { __arrayFirst, __isFunction } from './core-fns';
+﻿import { core } from './core-fns';
 
 // TODO: think about CompositeEnum (flags impl).
 
@@ -182,7 +182,7 @@ export class Enum {
         let result: string[] = [];
         for (let key in this) {
             if (this.hasOwnProperty(key)) {
-                if (key !== "name" && key.substr(0, 1) !== "_" && !__isFunction(this[key])) {
+                if (key !== "name" && key.substr(0, 1) !== "_" && ! core.isFunction(this[key])) {
                     result.push(key);
                 }
             }
@@ -242,7 +242,7 @@ export class EnumSymbol {
     getName() {
         if (!this.name) {
             let that = this;
-            this.name = __arrayFirst(this.parentEnum.getNames(), function (name: string) {
+            this.name = core.arrayFirst(this.parentEnum.getNames(), function (name: string) {
                 return that.parentEnum[name] === that;
             });
         }

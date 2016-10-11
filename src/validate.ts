@@ -1,4 +1,4 @@
-﻿import { __extend, core } from './core-fns';
+﻿import { core } from './core-fns';
 import { assertParam } from './assert-param';
 import { config } from './config';
 
@@ -178,7 +178,7 @@ export class Validator {
     // _baseContext is what will get serialized
     this._baseContext = context || {};
     this._baseContext.name = name;
-    context = __extend(Object.create(rootContext), this._baseContext);
+    context = core.extend(Object.create(rootContext), this._baseContext);
     context.messageTemplate = context.messageTemplate || Validator.messageTemplates[name];
     this.name = name;
     this.valFn = valFn;
@@ -228,7 +228,7 @@ export class Validator {
   validate(value: any, additionalContext: any) {
     let currentContext: { value?: Object };
     if (additionalContext) {
-      currentContext = __extend(Object.create(this.context), additionalContext);
+      currentContext = core.extend(Object.create(this.context), additionalContext);
     } else {
       currentContext = this.context;
     }
@@ -907,12 +907,12 @@ let  luhn = (function() {
     let incNum: number;
     let odd = false;
     let temp = String(str).replace(/[^\d]/g, "");
-    if ( temp.length == 0) return false;
+    if ( temp.length === 0) return false;
     for (let i = temp.length - 1; i >= 0; --i)  {
       incNum = parseInt(temp.charAt(i), 10);
       counter += (odd = !odd) ? incNum : luhnArr[incNum];
     }
-    return (counter % 10 == 0);
+    return (counter % 10 === 0);
   };
 })();
 

@@ -1,8 +1,8 @@
-﻿import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
+﻿// import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
 
-let __hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
-export const __arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);
-let __isES5Supported: boolean = function () {
+let hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
+let arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);
+let isES5Supported: boolean = function () {
     try {
         return !!(Object.getPrototypeOf && Object.defineProperty({}, 'x', {}));
     } catch (e) {
@@ -11,18 +11,18 @@ let __isES5Supported: boolean = function () {
 } ();
 
 // iterate over object
-function __objectForEach(obj: Object, kvFn: (key: string, val: any) => any) {
+function objectForEach(obj: Object, kvFn: (key: string, val: any) => any) {
     for (let key in obj) {
-        if (__hasOwnProperty(obj, key)) {
+        if (hasOwnProperty(obj, key)) {
             kvFn(key, obj[key]);
         }
     }
 }
 
-export function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any): any[] {
+function objectMap(obj: Object, kvFn?: (key: string, val: any) => any): any[] {
     let results: any[] = [];
     for (let key in obj) {
-        if (__hasOwnProperty(obj, key)) {
+        if (hasOwnProperty(obj, key)) {
             let result = kvFn ? kvFn(key, obj[key]) : obj[key];
             if (result !== undefined) {
                 results.push(result);
@@ -32,9 +32,9 @@ export function __objectMap(obj: Object, kvFn?: (key: string, val: any) => any):
     return results;
 }
 
-export function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } | null {
+function objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolean): { key: string, value: any } | null {
     for (let key in obj) {
-        if (__hasOwnProperty(obj, key)) {
+        if (hasOwnProperty(obj, key)) {
             let value = obj[key];
             if (kvPredicate(key, value)) {
                 return { key: key, value: value };
@@ -44,35 +44,35 @@ export function __objectFirst(obj: Object, kvPredicate: (key: string, val: any) 
     return null;
 }
 
-function __isSettable(entity: Entity, propertyName: string): boolean {
-    let pd = __getPropDescriptor(entity, propertyName);
+function isSettable(obj: Object, propertyName: string): boolean {
+    let pd = getPropDescriptor(obj, propertyName);
     if (pd == null) return true;
     return !!(pd.writable || pd.set);
 }
 
-function __getPropDescriptor(obj: Object, propertyName: string): PropertyDescriptor | null {
-    if (!__isES5Supported) return null;
+function getPropDescriptor(obj: Object, propertyName: string): PropertyDescriptor | null {
+    if (!isES5Supported) return null;
 
     if (obj.hasOwnProperty(propertyName)) {
         return Object.getOwnPropertyDescriptor(obj, propertyName);
     } else {
         let nextObj = Object.getPrototypeOf(obj);
         if (nextObj == null) return null;
-        return __getPropDescriptor(nextObj, propertyName);
+        return getPropDescriptor(nextObj, propertyName);
     }
 }
 
 // Functional extensions
 
 /** can be used like: persons.filter(propEq("firstName", "John")) */
-function __propEq(propertyName: string, value: any): (obj: Object) => boolean {
+function propEq(propertyName: string, value: any): (obj: Object) => boolean {
     return function (obj: any) {
         return obj[propertyName] === value;
     };
 }
 
 /** can be used like persons.map(pluck("firstName")) */
-function __pluck(propertyName: any): (obj: Object) => any {
+function pluck(propertyName: any): (obj: Object) => any {
     return function (obj: any) {
         return obj[propertyName];
     };
@@ -81,10 +81,10 @@ function __pluck(propertyName: any): (obj: Object) => any {
 // end functional extensions
 
 /** Return an array of property values from source */
-function __getOwnPropertyValues(source: Object): any[] {
+function getOwnPropertyValues(source: Object): any[] {
     let result: any[] = [];
     for (let name in source) {
-        if (__hasOwnProperty(source, name)) {
+        if (hasOwnProperty(source, name)) {
             result.push(source[name]);
         }
     }
@@ -92,7 +92,7 @@ function __getOwnPropertyValues(source: Object): any[] {
 }
 
 /** Copy properties from source to target. Returns target. */
-export function __extend(target: Object, source: Object, propNames?: string[]): Object {
+function extend(target: Object, source: Object, propNames?: string[]): Object {
     if (!source) return target;
     if (propNames) {
         propNames.forEach(function (propName) {
@@ -100,7 +100,7 @@ export function __extend(target: Object, source: Object, propNames?: string[]): 
         });
     } else {
         for (let propName in source) {
-            if (__hasOwnProperty(source, propName)) {
+            if (hasOwnProperty(source, propName)) {
                 target[propName] = source[propName];
             }
         }
@@ -109,7 +109,7 @@ export function __extend(target: Object, source: Object, propNames?: string[]): 
 }
 
 /** Copy properties from defaults iff undefined on target.  Returns target. */
-function __updateWithDefaults(target: Object, defaults: Object): any {
+function updateWithDefaults(target: Object, defaults: Object): any {
     for (let name in defaults) {
         if (target[name] === undefined) {
             target[name] = defaults[name];
@@ -124,8 +124,8 @@ function __updateWithDefaults(target: Object, defaults: Object): any {
     Use current 'ctor.defaultInstance' as the template for any missing properties
     creates a new instance for ctor.defaultInstance
     returns target unchanged */
-export function __setAsDefault(target: Object, ctor: { new (...args: any[]): any, defaultInstance?: any }): any {
-    ctor.defaultInstance = __updateWithDefaults(new ctor(target), ctor.defaultInstance);
+function setAsDefault(target: Object, ctor: { new (...args: any[]): any, defaultInstance?: any }): any {
+    ctor.defaultInstance = updateWithDefaults(new ctor(target), ctor.defaultInstance);
     return target;
 }
 
@@ -147,8 +147,7 @@ export function __setAsDefault(target: Object, ctor: { new (...args: any[]): any
        - if it does not exist then a new object will be created as filled.
     'target is returned.
 */
-function __toJson(source: Object, template: Object, target: Object): Object {
-    target = target || {};
+function toJson(source: Object, template: Object, target: Object = {}): Object {
 
     for (let key in template) {
         let aliases = key.split(",");
@@ -158,7 +157,7 @@ function __toJson(source: Object, template: Object, target: Object): Object {
             if (!(propName in source)) return false;
             let value = source[propName];
             // there is a functional property defined with this alias ( not what we want to replace).
-            if (typeof value == 'function') return false;
+            if (typeof value === 'function') return false;
             // '==' is deliberate here - idea is that null or undefined values will never get serialized
             // if default value is set to null.
             if (value == defaultValue) return true;
@@ -179,13 +178,13 @@ function __toJson(source: Object, template: Object, target: Object): Object {
 }
 
 /** Safely perform toJSON logic on objects with cycles. */
-function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): any {
+function toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): any {
     if (obj !== Object(obj)) return obj; // primitive value
     if (obj._$visited) return undefined;
     if (obj.toJSON) {
         let newObj = obj.toJSON();
         if (newObj !== Object(newObj)) return newObj; // primitive value
-        if (newObj !== obj) return __toJSONSafe(newObj);
+        if (newObj !== obj) return toJSONSafe(newObj);
         // toJSON returned the object unchanged.
         obj = newObj;
     }
@@ -193,7 +192,7 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
     let result: any;
     if (obj instanceof Array) {
         result = obj.map(function (o: any) {
-            return __toJSONSafe(o, replacer);
+            return toJSONSafe(o, replacer);
         });
     } else if (typeof (obj) === "function") {
         result = undefined;
@@ -206,7 +205,7 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
                 val = replacer(prop, val);
                 if (val === undefined) continue;
             }
-            val = __toJSONSafe(val);
+            val = toJSONSafe(val);
             if (val === undefined) continue;
             result[prop] = val;
         }
@@ -216,7 +215,7 @@ function __toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): a
 }
 
 /** Resolves the values of a list of properties by checking each property in multiple sources until a value is found. */
-function __resolveProperties(sources: Object[], propertyNames: string[]): any {
+function resolveProperties(sources: Object[], propertyNames: string[]): any {
     let r = {};
     let length = sources.length;
     propertyNames.forEach(function (pn) {
@@ -237,7 +236,7 @@ function __resolveProperties(sources: Object[], propertyNames: string[]): any {
 
 // array functions
 
-function __toArray(item: any): any[] {
+function toArray(item: any): any[] {
     if (item == null) {
         return [];
     } else if (Array.isArray(item)) {
@@ -248,7 +247,7 @@ function __toArray(item: any): any[] {
 }
 
 /** a version of Array.map that doesn't require an array, i.e. works on arrays and scalars. */
-function __map(items: any, fn: (v: any, ix?: number) => void, includeNull?: boolean): any {
+function map(items: any, fn: (v: any, ix?: number) => void, includeNull?: boolean): any {
     // whether to return nulls in array of results; default = true;
     includeNull = includeNull == null ? true : includeNull;
     if (items == null) return items;
@@ -268,7 +267,7 @@ function __map(items: any, fn: (v: any, ix?: number) => void, includeNull?: bool
 }
 
 /** Return first element matching predicate */
-export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any {
+function arrayFirst(array: any[], predicate: (el: any) => boolean): any {
     for (let i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {
             return array[i];
@@ -278,7 +277,7 @@ export function __arrayFirst(array: any[], predicate: (el: any) => boolean): any
 }
 
 /** Return index of first element matching predicate */
-export function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): number {
+function arrayIndexOf(array: any[], predicate: (el: any) => boolean): number {
     for (let i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) return i;
     }
@@ -286,7 +285,7 @@ export function __arrayIndexOf(array: any[], predicate: (el: any) => boolean): n
 }
 
 /** Add item if not already in array */
-function __arrayAddItemUnique(array: any[], item: any) {
+function arrayAddItemUnique(array: any[], item: any) {
     let ix = array.indexOf(item);
     if (ix === -1) array.push(item);
 }
@@ -296,8 +295,8 @@ function __arrayAddItemUnique(array: any[], item: any) {
  * @param predicateOrItem - item to remove, or function to determine matching item
  * @param shouldRemoveMultiple - true to keep removing after first match, false otherwise
  */
-function __arrayRemoveItem(array: any[], predicateOrItem: any, shouldRemoveMultiple?: boolean) {
-    let predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
+function arrayRemoveItem(array: any[], predicateOrItem: any, shouldRemoveMultiple?: boolean) {
+    let predicate = isFunction(predicateOrItem) ? predicateOrItem : undefined;
     let lastIx = array.length - 1;
     let removed = false;
     for (let i = lastIx; i >= 0; i--) {
@@ -313,7 +312,7 @@ function __arrayRemoveItem(array: any[], predicateOrItem: any, shouldRemoveMulti
 }
 
 /** Combine array elements using the callback.  Returns array with length == min(a1.length, a2.length) */
-function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): any[] {
+function arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): any[] {
     let result: any[] = [];
     let n = Math.min(a1.length, a2.length);
     for (let i = 0; i < n; ++i) {
@@ -322,7 +321,7 @@ function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): 
     return result;
 }
 
-//function __arrayDistinct(array) {
+//function arrayDistinct(array) {
 //    array = array || [];
 //    let result = [];
 //    for (let i = 0, j = array.length; i < j; i++) {
@@ -346,7 +345,7 @@ function __arrayZip(a1: any[], a2: any[], callback: (x1: any, x2: any) => any): 
 //    return r;
 //}
 
-function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => boolean): boolean {
+function arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => boolean): boolean {
     //Check if the arrays are undefined/null
     if (!a1 || !a2) return false;
 
@@ -357,7 +356,7 @@ function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => bo
         //if the let is an array, we need to make a recursive check
         //otherwise we'll just compare the values
         if (Array.isArray(a1[i])) {
-            if (!__arrayEquals(a1[i], a2[i])) return false;
+            if (!arrayEquals(a1[i], a2[i])) return false;
         } else {
             if (equalsFn) {
                 if (!equalsFn(a1[i], a2[i])) return false;
@@ -372,7 +371,7 @@ function __arrayEquals(a1: any[], a2: any[], equalsFn?: (x1: any, x2: any) => bo
 // end of array functions
 
 /** Returns an array for a source and a prop, and creates the prop if needed. */
-function __getArray(source: Object, propName: string): any[] {
+function getArray(source: Object, propName: string): any[] {
     let arr = source[propName];
     if (!arr) {
         arr = [];
@@ -381,11 +380,11 @@ function __getArray(source: Object, propName: string): any[] {
     return arr;
 }
 
-/** Calls __requireLibCore on semicolon-separated libNames */
-function __requireLib(libNames: string, errMessage: string) {
+/** Calls requireLibCore on semicolon-separated libNames */
+function requireLib(libNames: string, errMessage?: string) {
     let arrNames = libNames.split(";");
     for (let i = 0, j = arrNames.length; i < j; i++) {
-        let lib = __requireLibCore(arrNames[i]);
+        let lib = requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
     if (errMessage) {
@@ -396,7 +395,7 @@ function __requireLib(libNames: string, errMessage: string) {
 let global: any; // TODO for TS compile of function below.  What are runtime implications?
 
 /** Returns the 'libName' module if loaded or else returns undefined */
-function __requireLibCore(libName: string) {
+function requireLibCore(libName: string) {
     let window = global.window;
     if (!window) return; // Must run in a browser. Todo: add commonjs support
 
@@ -430,7 +429,7 @@ function __requireLibCore(libName: string) {
 }
 
 /** Execute fn while obj has tempValue for property */
-function __using(obj: Object, property: string, tempValue: any, fn: () => any) {
+function using(obj: Object, property: string, tempValue: any, fn: () => any) {
     let originalValue = obj[property];
     if (tempValue === originalValue) {
         return fn();
@@ -448,7 +447,7 @@ function __using(obj: Object, property: string, tempValue: any, fn: () => any) {
 }
 
 /** Call state = startFn(), call fn(), call endFn(state) */
-function __wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () => any) {
+function wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () => any) {
     let state: any;
     try {
         state = startFn();
@@ -464,9 +463,9 @@ function __wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () 
 }
 
 /** Remember & return the value of fn() when it was called with its current args */
-function __memoize(fn: any): any {
+function memoize(fn: any): any {
     return function () {
-        let args = __arraySlice(<any>arguments),
+        let args = arraySlice(<any>arguments),
             hash = "",
             i = args.length,
             currentArg: any = null;
@@ -481,7 +480,7 @@ function __memoize(fn: any): any {
     };
 }
 
-function __getUuid(): string {
+function getUuid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         //noinspection NonShortCircuitBooleanExpressionJS
         let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -489,7 +488,7 @@ function __getUuid(): string {
     });
 }
 
-function __durationToSeconds(duration: string) {
+function durationToSeconds(duration: string) {
     // basic algorithm from https://github.com/nezasa/iso8601-js-period
     if (typeof duration !== "string") throw new Error("Invalid ISO8601 duration '" + duration + "'");
 
@@ -519,15 +518,15 @@ function __durationToSeconds(duration: string) {
 
 // is functions
 
-function __noop() {
+function noop() {
     // does nothing
 }
 
-function __identity(x: any): any {
+function identity(x: any): any {
     return x;
 }
 
-function __classof(o: any) {
+function classof(o: any) {
     if (o === null) {
         return "null";
     }
@@ -537,82 +536,82 @@ function __classof(o: any) {
     return Object.prototype.toString.call(o).slice(8, -1).toLowerCase();
 }
 
-function __isDate(o: any) {
-    return __classof(o) === "date" && !isNaN(o.getTime());
+function isDate(o: any) {
+    return classof(o) === "date" && !isNaN(o.getTime());
 }
 
-function __isDateString(s: string) {
+function isDateString(s: string) {
     // let rx = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/;
     let rx = /^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/;
     return (typeof s === "string") && rx.test(s);
 }
 
-export function __isFunction(o: any) {
-    return __classof(o) === "function";
+function isFunction(o: any) {
+    return classof(o) === "function";
 }
 
-function __isString(o: any) {
+function isString(o: any) {
     return (typeof o === "string");
 }
 
-function __isObject(o: any) {
+function isObject(o: any) {
     return (typeof o === "object");
 }
 
-function __isGuid(value: any) {
+function isGuid(value: any) {
     return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);
 }
 
-function __isDuration(value: any) {
+function isDuration(value: any) {
     return (typeof value === "string") && /^(-|)?P[T]?[\d\.,\-]+[YMDTHS]/.test(value);
 }
 
-function __isEmpty(obj: any) {
+function isEmpty(obj: any) {
     if (obj === null || obj === undefined) {
         return true;
     }
     for (let key in obj) {
-        if (__hasOwnProperty(obj, key)) {
+        if (hasOwnProperty(obj, key)) {
             return false;
         }
     }
     return true;
 }
 
-function __isNumeric(n: any) {
+function isNumeric(n: any) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 // returns true for booleans, numbers, strings and dates
 // false for null, and non-date objects, functions, and arrays
-function __isPrimitive(obj: any) {
+function isPrimitive(obj: any) {
     if (obj == null) return false;
     // true for numbers, strings, booleans and null, false for objects
     if (obj != Object(obj)) return true;
-    return __isDate(obj);
+    return isDate(obj);
 }
 
 // end of is Functions
 
 // string functions
 
-function __stringStartsWith(str: string, prefix: string) {
+function stringStartsWith(str: string, prefix: string) {
     // returns true for empty string or null prefix
     if ((!str)) return false;
-    if (prefix == "" || prefix == null) return true;
+    if (prefix === "" || prefix == null) return true;
     return str.indexOf(prefix, 0) === 0;
 }
 
-function __stringEndsWith(str: string, suffix: string) {
+function stringEndsWith(str: string, suffix: string) {
     // returns true for empty string or null suffix
     if ((!str)) return false;
-    if (suffix == "" || suffix == null) return true;
+    if (suffix === "" || suffix == null) return true;
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 // Based on fragment from Dean Edwards' Base 2 library
 /** format("a %1 and a %2", "cat", "dog") -> "a cat and a dog" */
-export function __formatString(str: string, ...params: any[]) {
+function formatString(str: string, ...params: any[]) {
     let args = arguments;
     let pattern = RegExp("%([1-" + (arguments.length - 1) + "])", "g");
     return str.replace(pattern, function (match, index) {
@@ -622,9 +621,9 @@ export function __formatString(str: string, ...params: any[]) {
 
 // See http://stackoverflow.com/questions/7225407/convert-camelcasetext-to-camel-case-text
 /** Change text to title case with spaces, e.g. 'myPropertyName12' to 'My Property Name 12' */
-let __camelEdges = /([A-Z](?=[A-Z][a-z])|[^A-Z](?=[A-Z])|[a-zA-Z](?=[^a-zA-Z]))/g;
-function __titleCaseSpace(text: string) {
-    text = text.replace(__camelEdges, '$1 ');
+let camelEdges = /([A-Z](?=[A-Z][a-z])|[^A-Z](?=[A-Z])|[a-zA-Z](?=[^a-zA-Z]))/g;
+function titleCaseSpace(text: string) {
+    text = text.replace(camelEdges, '$1 ');
     text = text.charAt(0).toUpperCase() + text.slice(1);
     return text;
 }
@@ -651,47 +650,57 @@ if (!Object.create) {
     };
 }
 
-export let core = <any>{};
-
-// not all methods above are exported
-core.__isES5Supported = __isES5Supported;
-
-core.objectForEach = __objectForEach;
-
-core.extend = __extend;
-core.propEq = __propEq;
-core.pluck = __pluck;
-
-core.arrayEquals = __arrayEquals;
-core.arrayFirst = __arrayFirst;
-core.arrayIndexOf = __arrayIndexOf;
-core.arrayRemoveItem = __arrayRemoveItem;
-core.arrayZip = __arrayZip;
-
-core.requireLib = __requireLib;
-core.using = __using;
-
-core.memoize = __memoize;
-core.getUuid = __getUuid;
-core.durationToSeconds = __durationToSeconds;
-
-core.isDate = __isDate;
-core.isGuid = __isGuid;
-core.isDuration = __isDuration;
-core.isFunction = __isFunction;
-core.isEmpty = __isEmpty;
-core.isNumeric = __isNumeric;
-
-core.stringStartsWith = __stringStartsWith;
-core.stringEndsWith = __stringEndsWith;
-core.formatString = __formatString;
-core.titleCase = __titleCaseSpace;
-
-core.getPropertyDescriptor = __getPropDescriptor;
-
-core.toJSONSafe = __toJSONSafe;
-
 export var breeze: any = breeze || {};
-core.parent = breeze;
+
+// // not all methods above are exported
+export const core = {
+    isES5Supported: isES5Supported,
+    hasOwnProperty: hasOwnProperty,
+    objectForEach:  objectForEach,
+    objectFirst: objectFirst,
+    objectMap: objectMap,
+    extend: extend,
+    propEq: propEq,
+    pluck: pluck,
+    getArray: getArray,
+    toArray: toArray,
+    arrayEquals: arrayEquals,
+    arraySlice: arraySlice,
+    arrayFirst: arrayFirst,
+    arrayIndexOf: arrayIndexOf,
+    arrayRemoveItem: arrayRemoveItem,
+    arrayZip: arrayZip,
+    arrayAddItemUnique: arrayAddItemUnique,
+
+    requireLib: requireLib,
+    using: using,
+
+    memoize: memoize,
+    getUuid: getUuid,
+    durationToSeconds: durationToSeconds,
+
+    isDate: isDate,
+    isGuid: isGuid,
+    isDuration: isDuration,
+    isFunction: isFunction,
+    isEmpty: isEmpty,
+    isNumeric: isNumeric,
+
+    stringStartsWith: stringStartsWith,
+    stringEndsWith: stringEndsWith,
+    formatString: formatString,
+    titleCase: titleCaseSpace,
+
+    getPropertyDescriptor: getPropDescriptor,
+
+    toJson: toJson,
+    toJSONSafe: toJSONSafe,
+    parent: breeze
+};
+
+export interface ErrorCallback {
+    (error: Error): void;
+}
+
 breeze.core = core;
 

@@ -1,4 +1,4 @@
-﻿import { core, __extend, __formatString } from './core-fns';
+﻿import { core  } from './core-fns';
 import { Enum } from './enum';
 
 interface IParamContext {
@@ -13,7 +13,7 @@ interface IParamContext {
     fn?(context: IParamContext, v: any): boolean;
 }
 
-class Param {
+export class Param {
     // The %1 parameter
     // is required
     // must be a %2
@@ -164,7 +164,7 @@ class Param {
         let message = this._contexts.map(function (context) {
             return getMessage(context, that.v);
         }).join(", or it ");
-        return __formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
+        return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
     };
 
     withDefault(defaultValue: any) {
@@ -180,7 +180,7 @@ class Param {
         let parentTypeName = instance._$typeName;
         let allowUnknownProperty = (parentTypeName && this.parent.config._$typeName === parentTypeName);
 
-        let clone = __extend({}, this.parent.config);
+        let clone = core.extend({}, this.parent.config);
         this.parent.params.forEach(function (p) {
             if (!allowUnknownProperty) delete clone[p.name];
             try {
@@ -195,7 +195,7 @@ class Param {
             for (let key in clone) {
                 // allow props with an undefined value
                 if (clone[key] !== undefined) {
-                    throwConfigError(instance, __formatString("Unknown property: '%1'.", key));
+                    throwConfigError(instance, core.formatString("Unknown property: '%1'.", key));
                 }
             }
         }
@@ -344,7 +344,7 @@ function exec(self: Param) {
 }
 
 function throwConfigError(instance: any, message: string) {
-    throw new Error(__formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
+    throw new Error(core.formatString("Error configuring an instance of '%1'. %2", (instance && instance._$typeName) || "object", message));
 }
 
 class ConfigParam {
@@ -370,10 +370,8 @@ export let assertConfig = function (config: Object) {
     return new ConfigParam(config);
 };
 
+
 // Param is exposed so that additional 'is' methods can be added to the prototype.
-core.Param = Param;
-core.assertParam = assertParam;
-core.assertConfig = assertConfig;
-
-
-
+(core as any).Param = Param;
+(core as any).assertParam = assertParam;
+(core as any).assertConfig = assertConfig;

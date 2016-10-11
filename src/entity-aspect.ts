@@ -354,7 +354,7 @@ export class EntityAspect {
   **/
   setDetached = function () {
     return this.setEntityState(EntityState.Detached);
-  }
+  };
 
   /**
   Sets the entity to the specified EntityState. See also 'setUnchanged', 'setModified', 'setDetached', etc.
@@ -584,7 +584,7 @@ export class EntityAspect {
     if (property) {
       let propertyName = typeof (property) === 'string' ? property : property.name;
       result = result.filter(function (ve: ValidationError) {
-        return ve.property && (ve.property.name === propertyName || (propertyName.indexOf(".") != -1 && ve.propertyName == propertyName));
+        return ve.property && (ve.property.name === propertyName || (propertyName.indexOf(".") !== -1 && ve.propertyName === propertyName));
       });
     }
     return result;

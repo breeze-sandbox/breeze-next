@@ -1,9 +1,9 @@
-﻿import { __objectFirst, __objectMap, core, breeze } from './core-fns';
+﻿import { core, breeze } from './core-fns';
 import { assertParam, assertConfig } from './assert-param';
 import { BreezeEvent } from './event';
 
-interface ICtor { new (...args: any[]): any };
-interface IDef { ctor: ICtor, defaultInstance: any };
+interface ICtor { new (...args: any[]): any; };
+interface IDef { ctor: ICtor;  defaultInstance: any; };
 
 class InterfaceDef {
 
@@ -29,7 +29,7 @@ class InterfaceDef {
 
     /** Return the first implementation for this InterfaceDef */
     getFirstImpl(): IDef {
-        let kv = __objectFirst(this._implMap, function () {
+        let kv = core.objectFirst(this._implMap, function () {
             return true;
         });
         return kv ? kv.value : null;
@@ -68,7 +68,7 @@ class Config {
                     "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
             }
             return this.defaultInstance;
-        }
+        };
     }
 
     /**
@@ -126,7 +126,7 @@ class Config {
             .whereParam("ajax").isOptional()
             .whereParam("uriBuilder").isOptional()
             .applyAll(this, false);
-        return __objectMap(config, this.initializeAdapterInstance);
+        return core.objectMap(config, this.initializeAdapterInstance);
     };
 
     /**
@@ -167,7 +167,7 @@ class Config {
         let idef = this.getInterfaceDef(interfaceName);
         let impl: IDef;
 
-        let isDefault = adapterName == null || adapterName == "";
+        let isDefault = adapterName == null || adapterName === "";
         if (isDefault) {
             if (idef.defaultInstance) return idef.defaultInstance;
             impl = idef.getFirstImpl();
@@ -203,7 +203,7 @@ class Config {
         this.objectRegistry[key] = obj;
     };
 
-    private _fetchObject(type: string | Function, name: string) {
+    _fetchObject(type: string | Function, name: string) {
         if (!name) return undefined;
         let key = (typeof (type) === "string" ? type : type.prototype._$typeName) + "." + name;
         let result = this.objectRegistry[key];
@@ -252,7 +252,7 @@ class Config {
     getInterfaceDef(interfaceName: string): InterfaceDef {
         let lcName = interfaceName.toLowerCase();
         // source may be null
-        let kv = __objectFirst(this.interfaceRegistry || {}, function (k, v) {
+        let kv = core.objectFirst(this.interfaceRegistry || {}, function (k, v) {
             return k.toLowerCase() === lcName;
         });
         if (!kv) {
@@ -264,10 +264,10 @@ class Config {
 }
 
 export const config = new Config();
-let __modelLibraryDef = config.interfaceRegistry.modelLibrary;
+export const modelLibraryDef = config.interfaceRegistry.modelLibrary;
 
 // legacy
-core.config = config;
+(core as any).config = config;
 
 breeze.config = config;
 

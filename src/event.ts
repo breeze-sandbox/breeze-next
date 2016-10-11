@@ -1,9 +1,6 @@
-﻿import { assertParam } from './assert-param';
-import { __arrayIndexOf } from './core-fns';
+﻿import { core } from './core-fns';
+import { assertParam } from './assert-param';
 
-export interface IPublisher {
-    
-}
 
 function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {
     let subscribers = that._subscribers;
@@ -41,11 +38,11 @@ Class to support basic event publication and subscription semantics.
 **/
 export class BreezeEvent {
 
-    __eventNameMap = {};
-    __nextUnsubKey = 1;
-    _subscribers: ISubscription[];
+    static __eventNameMap = {};
+    static __nextUnsubKey = 1;
     name: string;
     publisher: Object;
+    _subscribers: ISubscription[];
     _defaultErrorCallback: (e: Error) => any;
 
 
@@ -67,7 +64,7 @@ export class BreezeEvent {
 
         this.name = name;
         // register the name
-        this.__eventNameMap[name] = true;
+        BreezeEvent.__eventNameMap[name] = true;
         this.publisher = publisher;
         if (defaultErrorCallback) {
             this._defaultErrorCallback = defaultErrorCallback;
@@ -99,7 +96,7 @@ export class BreezeEvent {
     **/
     publish(data: any, publishAsync: boolean = false, errorCallback?: (e: Error) => any) {
 
-        if (!this._isEnabled(this.name, this.publisher)) return false;
+        if (!BreezeEvent._isEnabled(this.name, this.publisher)) return false;
 
         if (publishAsync === true) {
             setTimeout(publishCore, 0, this, data, errorCallback);
@@ -160,9 +157,9 @@ export class BreezeEvent {
             this._subscribers = [];
         }
 
-        let unsubKey = this.__nextUnsubKey;
+        let unsubKey = BreezeEvent.__nextUnsubKey;
         this._subscribers.push({ unsubKey: unsubKey, callback: callback });
-        ++this.__nextUnsubKey;
+        ++BreezeEvent.__nextUnsubKey;
         return unsubKey;
     };
 
@@ -183,7 +180,7 @@ export class BreezeEvent {
     unsubscribe = function (unsubKey: number) {
         if (!this._subscribers) return false;
         let subs = this._subscribers;
-        let ix = __arrayIndexOf(subs, function (s) {
+        let ix = core.arrayIndexOf(subs, function (s) {
             return s.unsubKey === unsubKey;
         });
         if (ix !== -1) {
@@ -203,7 +200,7 @@ export class BreezeEvent {
     };
 
     /** event bubbling - document later. */
-    static bubbleEvent(target: any, getParentFn: () => any) {
+    static bubbleEvent(target: any, getParentFn: (() => any) | null) {
         target._getEventParent = getParentFn;
     };
 

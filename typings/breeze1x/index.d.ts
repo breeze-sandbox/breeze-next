@@ -207,6 +207,7 @@ export namespace core {
         useJsonp: boolean;
         constructor(config: DataServiceOptions);
         using(config: DataServiceOptions): DataService;
+        static fromJSON(json: DataService | Object): DataService;
     }
 
     export interface DataServiceOptions {
@@ -718,7 +719,7 @@ export namespace core {
         static defaultInstance: LocalQueryComparisonOptions;
 
         constructor(config: { name?: string; isCaseSensitive?: boolean; usesSql92CompliantStringComparison?: boolean; });
-
+        name: string;
         setAsDefault(): void;
     }
 
@@ -766,6 +767,7 @@ export namespace core {
         static camelCase: NamingConvention;
         static defaultInstance: NamingConvention;
         static none: NamingConvention;
+        name: string;
 
         constructor(config: NamingConventionOptions);
 

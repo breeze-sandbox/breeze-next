@@ -1,5 +1,5 @@
 ﻿import { Entity, EntityAspect, EntityType, DataProperty } from '../typings/breeze1x'; // TODO: replace later
-import { __arraySlice } from './core-fns';
+import { core } from './core-fns';
 import { BreezeEvent } from './event';
 
 export interface IObservableArray {
@@ -77,8 +77,8 @@ let mixin = {
   },
 
   splice: (...args: any[]) => {
-    let goodAdds = this._getGoodAdds(__arraySlice(args, 2));
-    let newArgs = __arraySlice(args, 0, 2).concat(goodAdds);
+    let goodAdds = this._getGoodAdds(core.arraySlice(args, 2));
+    let newArgs = core.arraySlice(args, 0, 2).concat(goodAdds);
     this._beforeChange();
     let result = Array.prototype.splice.apply(this, newArgs);
     processRemoves(this, result);

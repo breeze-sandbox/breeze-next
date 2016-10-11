@@ -1,6 +1,6 @@
 import { Entity, ComplexObject, ComplexAspect, DataProperty } from '../typings/breeze1x'; // TODO: replace later
 
-import { breeze, __extend } from './core-fns';
+import { breeze, core  } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 
@@ -77,7 +77,7 @@ let  complexArrayMixin = {
   _acceptChanges: () => {
     this._origValues = null;
   }
-}
+};
 
 // local functions
 
@@ -130,8 +130,8 @@ function makeComplexArray(arr: IObservableArray, parent: Entity | ComplexObject,
 
   observableArray.initializeParent(arr, parent, parentProperty);
   arr.arrayChanged = new BreezeEvent("arrayChanged", arr);
-  __extend(arr, observableArray.mixin);
-  return __extend(arr, complexArrayMixin);
+  core.extend(arr, observableArray.mixin);
+  return core.extend(arr, complexArrayMixin);
 }
 
 breeze.makeComplexArray = makeComplexArray; 
