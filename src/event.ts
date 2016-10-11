@@ -203,7 +203,7 @@ export class BreezeEvent {
     };
 
     /** event bubbling - document later. */
-    bubbleEvent(target: any, getParentFn: () => any) {
+    static bubbleEvent(target: any, getParentFn: () => any) {
         target._getEventParent = getParentFn;
     };
 
@@ -235,7 +235,7 @@ export class BreezeEvent {
     children of this object will be enabled or disabled.
     @param isEnabled {Boolean|null|Function} A boolean, a null or a function that returns either a boolean or a null.
     **/
-    enable(eventName: string, obj: Object, isEnabled: boolean) {
+    static enable(eventName: string, obj: Object, isEnabled: boolean) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
@@ -257,7 +257,7 @@ export class BreezeEvent {
     @param target {Object} The object for which we want to know if notifications are enabled.
     @return {Boolean|null} A null is returned if this value has not been set.
     **/
-    isEnabled(eventName: string, obj: Object) {
+    static isEnabled(eventName: string, obj: Object) {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         // null is ok - it just means that the object is at the top level.
@@ -265,10 +265,10 @@ export class BreezeEvent {
             throw new Error("This object does not support event enabling/disabling");
         }
         // return ctor._isEnabled(getFullEventName(eventName), obj);
-        return this._isEnabled(eventName, 3);
+        return BreezeEvent._isEnabled(eventName, 3);
     };
 
-    _isEnabled = function (eventName: string, obj: Object) {
+    static _isEnabled = function (eventName: string, obj: Object) {
         let isEnabled: any = null;
         let ob = <any>obj;
         let eventMap = ob._$eventMap;

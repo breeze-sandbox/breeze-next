@@ -96,11 +96,17 @@ export namespace core {
     export interface Entity {
         entityAspect: EntityAspect;
         entityType: EntityType;
+        getProperty(prop: string): any;
+        setProperty(prop: any, value: any): void;
+        prototype: Object;
+        _$entityType: EntityType;
     }
 
     export interface ComplexObject {
         complexAspect: ComplexAspect;
         complexType: ComplexType;
+        getProperty(prop: string): any;
+        setProperty(prop: any, value: any): void;
     }
 
     export interface IProperty {
@@ -148,6 +154,7 @@ export namespace core {
         validators: Validator[];
         addProperty(dataProperty: DataProperty): ComplexType;
         getProperties(): DataProperty[];
+        getCtor(): Function;
     }
 
     export class DataProperty implements IProperty {
@@ -473,6 +480,8 @@ export namespace core {
         rejectChanges(): Entity[];
         saveChanges(entities?: Entity[], saveOptions?: SaveOptions, callback?: SaveChangesSuccessCallback, errorCallback?: SaveChangesErrorCallback): promises.IPromise<SaveResult>;
         setProperties(config: EntityManagerProperties): void;
+
+        _notifyStateChange(entity: Entity, needsSave: boolean): void;
     }
 
     export interface EntityManagerOptions {
@@ -649,6 +658,7 @@ export namespace core {
         addValidator(validator: Validator, property?: IProperty): void;
         createEntity(initialValues?: Object): Entity;
         getCtor(): Function;
+        getEntityCtor(): Function;
         getDataProperty(propertyName: string): DataProperty;
         getNavigationProperty(propertyName: string): NavigationProperty;
         getProperties(): IProperty[];
@@ -658,6 +668,7 @@ export namespace core {
         isSubtypeOf(entityType: EntityType): boolean;
         setProperties(config: EntityTypeProperties): void;
         toString(): string;
+        _checkNavProperty(navProp: NavigationProperty | string): NavigationProperty;
     }
 
     export interface EntityTypeOptions {
@@ -930,7 +941,7 @@ export namespace core {
         propertyName: string;
         validator: Validator;
         getKey: (validator: Validator, property: string) => string;
-
+        static getKey: (validator: Validator, property: string) => string;
         constructor(validator: Validator, context: any, errorMessage: string, key: string);
     }
 
