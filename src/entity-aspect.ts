@@ -885,8 +885,8 @@ function validateTarget(target: any, coIndex?: number) {
 export class ComplexAspect {
   complexObject: IComplexObject;
   originalValues: {};
-  parent: IEntity | IComplexObject;
-  parentProperty: DataProperty;
+  parent: IEntity | IComplexObject | null;
+  parentProperty: DataProperty | null;
 
   constructor(complexObject: IComplexObject, parent: IEntity | IComplexObject, parentProperty: DataProperty) {
     if (!complexObject) {

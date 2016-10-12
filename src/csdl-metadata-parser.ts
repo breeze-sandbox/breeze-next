@@ -223,7 +223,7 @@ function parseCsdlNavProperty(entityType: EntityType, csdlProperty: any, schema:
     // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
 
     // Think about adding this back later.
-    if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
+    if (association.end[0].multiplicity === "*" && association.end[1].multiplicity === "*") {
       // ignore many to many relations for now
       return;
     } else {

@@ -1,11 +1,13 @@
-import { Entity, ComplexObject, ComplexAspect, DataProperty } from '../typings/breeze1x'; // TODO: replace later
-
 import { breeze, core  } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
+import { IEntity, IComplexObject } from './entity-aspect';
+import { DataProperty } from './entity-metadata';
 
 interface IComplexArray extends IObservableArray {
-  [index: number]: ComplexObject;
+  [index: number]: IComplexObject;
+  parent: IEntity | IComplexObject | null;
+  parentProperty: DataProperty | null;
 }
 
 let  complexArrayMixin = {
@@ -65,11 +67,11 @@ let  complexArrayMixin = {
   _rejectChanges: () => {
     if (!this._origValues) return;
     let that = this;
-    this.forEach(function (co: ComplexObject) {
+    this.forEach(function (co: IComplexObject) {
       clearAspect(co, that);
     });
     this.length = 0;
-    this._origValues.forEach(function (co: ComplexObject) {
+    this._origValues.forEach(function (co: IComplexObject) {
       that.push(co);
     });
   },
@@ -82,7 +84,7 @@ let  complexArrayMixin = {
 // local functions
 
 
-function getGoodAdds(complexArray: IComplexArray, adds: ComplexObject[]) {
+function getGoodAdds(complexArray: IComplexArray, adds: IComplexObject[]) {
   // remove any that are already added here
   return adds.filter(function (a) {
     // return a.parent !== complexArray.parent;  // TODO: check if this is actually a bug in original breezejs ???
@@ -90,7 +92,7 @@ function getGoodAdds(complexArray: IComplexArray, adds: ComplexObject[]) {
   });
 }
 
-function processAdds(complexArray: IComplexArray, adds: ComplexObject[]) {
+function processAdds(complexArray: IComplexArray, adds: IComplexObject[]) {
   adds.forEach(function (a) {
     // if (a.parent != null) { // TODO: check if this is actually a bug in original breezejs ???
     if (a.complexAspect && a.complexAspect.parent != null) {
@@ -100,13 +102,13 @@ function processAdds(complexArray: IComplexArray, adds: ComplexObject[]) {
   });
 }
 
-function processRemoves(complexArray: IComplexArray, removes: ComplexObject[]) {
+function processRemoves(complexArray: IComplexArray, removes: IComplexObject[]) {
   removes.forEach(function (a) {
     clearAspect(a, complexArray);
   });
 }
 
-function clearAspect(co: ComplexObject, arr: IComplexArray) {
+function clearAspect(co: IComplexObject, arr: IComplexArray) {
   let coAspect = co.complexAspect;
   // if not already attached - exit
   if (coAspect.parent !== arr.parent) return null;
@@ -116,7 +118,7 @@ function clearAspect(co: ComplexObject, arr: IComplexArray) {
   return coAspect;
 }
 
-function setAspect(co: ComplexObject, arr: IComplexArray) {
+function setAspect(co: IComplexObject, arr: IComplexArray) {
   let coAspect = co.complexAspect;
   // if already attached - exit
   if (coAspect.parent === arr.parent) return null;
@@ -126,7 +128,7 @@ function setAspect(co: ComplexObject, arr: IComplexArray) {
   return coAspect;
 }
 
-function makeComplexArray(arr: IObservableArray, parent: Entity | ComplexObject, parentProperty: DataProperty) {
+function makeComplexArray(arr: IObservableArray, parent: IEntity | IComplexObject, parentProperty: DataProperty) {
 
   observableArray.initializeParent(arr, parent, parentProperty);
   arr.arrayChanged = new BreezeEvent("arrayChanged", arr);

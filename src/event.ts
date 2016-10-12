@@ -1,7 +1,6 @@
 ﻿import { core } from './core-fns';
 import { assertParam } from './assert-param';
 
-
 function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {
     let subscribers = that._subscribers;
     if (!subscribers) return true;

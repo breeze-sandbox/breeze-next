@@ -36,7 +36,7 @@ class InterfaceDef<T extends IBaseAdapter> {
     };
 
     getDefaultInstance()  {
-        return this.defaultInstance;
+        return this.defaultInstance!;
     }
 }
 
@@ -52,7 +52,9 @@ interface IAjaxAdapter extends IBaseAdapter {
 }
 
 interface IModelLibraryAdapter extends IBaseAdapter {
-
+    startTracking(entity: any, entityCtor: Function): void;
+    initializeEntityPrototype(proto: Object): void;
+    createCtor?: Function;
 }
 
 interface IDataServiceAdapter extends IBaseAdapter {
