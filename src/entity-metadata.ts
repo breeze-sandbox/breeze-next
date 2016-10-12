@@ -1,4 +1,4 @@
-﻿import {  EntityQuery, EntityManager, NamingConvention, LocalQueryComparisonOptions  } from '../typings/breeze1x'; // TODO: replace later
+﻿import {  EntityQuery, EntityManager, LocalQueryComparisonOptions  } from '../typings/breeze1x'; // TODO: replace later
 
 import { breeze, core, ErrorCallback } from './core-fns';
 import { config  } from './config';
@@ -7,11 +7,13 @@ import { assertParam, assertConfig, Param } from './assert-param';
 import { DataType, DataTypeSymbol } from './data-type';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
-import { EntityAspect, ComplexAspect, IEntity, IComplexObject } from './entity-aspect';
+import { EntityAspect, ComplexAspect, IEntity, IComplexObject  } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { Validator, ValidationError } from './validate';
 import { Enum, EnumSymbol, TypedEnum } from './enum';
 import { DataService } from './data-service';
+import { NamingConvention } from './naming-convention';
+import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate this later;
 
 // Get the promises library called Q
 // define a quick failing version if not found.
@@ -125,7 +127,7 @@ export class MetadataStore {
 
   // needs to be made avail to breeze.dataService.xxx files
   static normalizeTypeName = core.memoize(function (rawTypeName: string) {
-    return rawTypeName && parseTypeName(rawTypeName)!.typeName;
+    return rawTypeName && MetadataStore.parseTypeName(rawTypeName).typeName;
   });
   // for debugging use the line below instead.
   //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
@@ -236,7 +238,7 @@ export class MetadataStore {
       this._shortNameMap[structuralType.shortName] = structuralType.name;
     }
 
-    structuralType.getProperties().forEach( (p: IStructuralProperty) => {
+    structuralType.getProperties().forEach( p => {
       structuralType._updateNames(p);
       if (!p.isUnmapped) {
         structuralType._mappedPropertiesCount++;
@@ -245,6 +247,7 @@ export class MetadataStore {
 
     structuralType._updateCps();
 
+    // 'isEntityType' is a type guard
     if (isEntityType(structuralType)) {
       structuralType._updateNps();
       // give the type it's base's resource name if it doesn't have its own.
@@ -653,6 +656,41 @@ export class MetadataStore {
     }
   };
 
+  static parseTypeName(entityTypeName: string) {
+    // TODO: removed 
+    // if (!entityTypeName) {
+    //   return null;
+    // }
+
+    let typeParts = entityTypeName.split(":#");
+    if (typeParts.length > 1) {
+      return MetadataStore.makeTypeHash(typeParts[0], typeParts[1]);
+    }
+
+    if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
+      let typeHash = MetadataStore.makeTypeHash(entityTypeName);
+      (typeHash as any).isAnonymous = true;
+      return typeHash;
+    }
+    let entityTypeNameNoAssembly = entityTypeName.split(",")[0];
+    typeParts = entityTypeNameNoAssembly.split(".");
+    if (typeParts.length > 1) {
+      let shortName = typeParts[typeParts.length - 1];
+      let namespaceParts = typeParts.slice(0, typeParts.length - 1);
+      let ns = namespaceParts.join(".");
+      return MetadataStore.makeTypeHash(shortName, ns);
+    } else {
+      return MetadataStore.makeTypeHash(entityTypeName);
+    }
+  }
+
+  static makeTypeHash(shortName: string, ns?: string) {
+    return {
+      shortTypeName: shortName,
+      namespace: ns,
+      typeName: qualifyTypeName(shortName, ns)
+    };
+  }
 
   // protected methods
 
@@ -1227,10 +1265,11 @@ export class EntityType implements IStructuralType {
     }
     property.parentType = this;
     let ms = this.metadataStore;
-    if (property.isDataProperty) {
-      this._addDataProperty(property as DataProperty);
+    // if (property.isDataProperty) { // modified because doesn't act as a type guard 
+    if (property instanceof DataProperty) {
+      this._addDataProperty(property);
     } else {
-      this._addNavigationProperty(property as NavigationProperty);
+      this._addNavigationProperty(property);
       // metadataStore can be undefined if this entityType has not yet been added to a MetadataStore.
       if (shouldResolve && ms) {
         tryResolveNp(property, ms);
@@ -1867,8 +1906,8 @@ function calcUnmappedProperties(stype: EntityType | ComplexType, instance: any) 
         isUnmapped: true
       });
       newProp.isSettable = core.isSettable(instance, pn);
-      if (stype.subtypes != null && stype.subtypes.length) {
-        stype.getSelfAndSubtypes().forEach(function (st) {
+      if (stype instanceof EntityType && stype.subtypes != null && stype.subtypes.length) {
+        stype.getSelfAndSubtypes().forEach((st) => {
           st._addPropertyCore(new DataProperty(newProp));
         });
       } else {
@@ -1936,6 +1975,7 @@ export class ComplexType implements IStructuralType {
   _setCtor = EntityType.prototype._setCtor;
   // note the name change.
   createInstance = EntityType.prototype.createEntity;  // name change
+  warnings: any[];
 
 
   constructor(config: ComplexTypeConfig) {
@@ -2067,7 +2107,7 @@ export class ComplexType implements IStructuralType {
     return this._addPropertyCore(dataProperty);
   };
 
-  getProperties() {
+  getProperties(): IStructuralProperty[] {
     return this.dataProperties;
   };
 
@@ -2993,41 +3033,6 @@ function isEntityProperty(context: any, v: any) {
 }
 
 // functions shared between classes related to Metadata
-
-function parseTypeName(entityTypeName: string) {
-  if (!entityTypeName) {
-    return null;
-  }
-
-  let typeParts = entityTypeName.split(":#");
-  if (typeParts.length > 1) {
-    return makeTypeHash(typeParts[0], typeParts[1]);
-  }
-
-  if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
-    let typeHash = makeTypeHash(entityTypeName);
-    (typeHash as any).isAnonymous = true;
-    return typeHash;
-  }
-  let entityTypeNameNoAssembly = entityTypeName.split(",")[0];
-  typeParts = entityTypeNameNoAssembly.split(".");
-  if (typeParts.length > 1) {
-    let shortName = typeParts[typeParts.length - 1];
-    let namespaceParts = typeParts.slice(0, typeParts.length - 1);
-    let ns = namespaceParts.join(".");
-    return makeTypeHash(shortName, ns);
-  } else {
-    return makeTypeHash(entityTypeName);
-  }
-}
-
-function makeTypeHash(shortName: string, ns?: string) {
-  return {
-    shortTypeName: shortName,
-    namespace: ns,
-    typeName: qualifyTypeName(shortName, ns)
-  };
-}
 
 function isQualifiedTypeName(entityTypeName: string) {
   return entityTypeName.indexOf(":#") >= 0;

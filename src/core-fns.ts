@@ -657,6 +657,7 @@ export const core = {
     isES5Supported: isES5Supported,
     hasOwnProperty: hasOwnProperty,
     getOwnPropertyValues: getOwnPropertyValues,
+    getPropertyDescriptor: getPropDescriptor,
     objectForEach:  objectForEach,
     objectFirst: objectFirst,
     objectMap: objectMap,
@@ -664,6 +665,7 @@ export const core = {
     propEq: propEq,
     pluck: pluck,
     resolveProperties: resolveProperties,
+    setAsDefault: setAsDefault,
     getArray: getArray,
     toArray: toArray,
     arrayEquals: arrayEquals,
@@ -696,7 +698,7 @@ export const core = {
     formatString: formatString,
     titleCase: titleCaseSpace,
 
-    getPropertyDescriptor: getPropDescriptor,
+    
 
     toJson: toJson,
     toJSONSafe: toJSONSafe,

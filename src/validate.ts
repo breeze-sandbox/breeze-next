@@ -380,7 +380,7 @@ export class Validator {
   @param [context.allowEmptyStrings] {Boolean} If this parameter is omitted or false then empty strings do NOT pass validation.
   @return {Validator} A new Validator
   **/
-  public static required(context: any) {
+  public static required(context?: any) {
     let valFn = function (v: any, ctx: any) {
       if (typeof v === "string") {
         if (ctx && ctx.allowEmptyStrings) return true;

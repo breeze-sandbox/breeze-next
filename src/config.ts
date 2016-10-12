@@ -2,14 +2,14 @@
 import { assertParam, assertConfig } from './assert-param';
 import { BreezeEvent } from './event';
 
-interface ICtor { new (...args: any[]): any; };
-interface IDef { ctor: ICtor;  defaultInstance: any; };
+interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; };
+interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance: T | null; };
 
-class InterfaceDef {
+class InterfaceDef<T extends IBaseAdapter> {
 
     name: string;
-    defaultInstance: any;
-    _implMap: { [name: string]: IDef };
+    defaultInstance: T | null;
+    _implMap: { [name: string]: IDef<T> };
 
     constructor(name: string) {
         this.name = name;
@@ -18,33 +18,56 @@ class InterfaceDef {
     }
 
     /** Define an implementation of the given adaptername */
-    registerCtor(adapterName: string, ctor: ICtor): void {
+    registerCtor(adapterName: string, ctor: IAdapterCtor<T>): void {
         this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
     };
 
     /** Return the definition for the given adapterName */
-    getImpl(adapterName: string): IDef {
+    getImpl(adapterName: string): IDef<T> {
         return this._implMap[adapterName.toLowerCase()];
     };
 
     /** Return the first implementation for this InterfaceDef */
-    getFirstImpl(): IDef {
+    getFirstImpl(): IDef<T> {
         let kv = core.objectFirst(this._implMap, function () {
             return true;
         });
         return kv ? kv.value : null;
     };
 
-    getDefaultInstance(): IDef {
+    getDefaultInstance()  {
         return this.defaultInstance;
     }
 }
 
+interface IBaseAdapter {
+    _$impl: any;
+    name: string;
+    initialize(): Function;
+    checkForRecomposition?: (context: any) => void;
+}
+
+interface IAjaxAdapter extends IBaseAdapter {
+
+}
+
+interface IModelLibraryAdapter extends IBaseAdapter {
+
+}
+
+interface IDataServiceAdapter extends IBaseAdapter {
+
+}
+
+interface IUriBuilderAdapter extends IBaseAdapter {
+
+}
+
 interface InterfaceRegistry {
-    ajax: InterfaceDef;
-    modelLibrary: InterfaceDef;
-    dataService: InterfaceDef;
-    uriBuilder: InterfaceDef;
+    ajax: InterfaceDef<IAjaxAdapter>;
+    modelLibrary: InterfaceDef<IModelLibraryAdapter>;
+    dataService: InterfaceDef<IDataServiceAdapter>;
+    uriBuilder: InterfaceDef<IUriBuilderAdapter>;
 }
 
 class Config {
@@ -53,10 +76,10 @@ class Config {
     objectRegistry = {};
     interfaceInitialized: BreezeEvent;
     interfaceRegistry: InterfaceRegistry = {
-        ajax: new InterfaceDef("ajax"),
-        modelLibrary: new InterfaceDef("modelLibrary"),
-        dataService: new InterfaceDef("dataService"),
-        uriBuilder: new InterfaceDef("uriBuilder")
+        ajax: new InterfaceDef<IAjaxAdapter>("ajax"),
+        modelLibrary: new InterfaceDef<IModelLibraryAdapter>("modelLibrary"),
+        dataService: new InterfaceDef<IDataServiceAdapter>("dataService"),
+        uriBuilder: new InterfaceDef<IUriBuilderAdapter>("uriBuilder")
     };
     stringifyPad = '';
     modelLibraryDef = this.interfaceRegistry.modelLibrary;
@@ -79,7 +102,7 @@ class Config {
     @param interfaceName {String} - one of the following interface names "ajax", "dataService" or "modelLibrary"
     @param adapterCtor {Function} - an ctor function that returns an instance of the specified interface.
     **/
-    registerAdapter(interfaceName: string, adapterCtor: ICtor) {
+    registerAdapter<T extends IBaseAdapter>(interfaceName: string, adapterCtor: IAdapterCtor<T>) {
         assertParam(interfaceName, "interfaceName").isNonEmptyString().check();
         assertParam(adapterCtor, "adapterCtor").isFunction().check();
         // this impl will be thrown away after the name is retrieved.
@@ -164,9 +187,9 @@ class Config {
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    getAdapterInstance(interfaceName: string, adapterName: string) {
-        let idef = this.getInterfaceDef(interfaceName);
-        let impl: IDef;
+    getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName: string)  {
+        let idef = this.getInterfaceDef<T>(interfaceName);
+        let impl: IDef<T>;
 
         let isDefault = adapterName == null || adapterName === "";
         if (isDefault) {
@@ -222,12 +245,15 @@ class Config {
     };
 
 
-    initializeAdapterInstanceCore(interfaceDef: InterfaceDef, impl: IDef, isDefault: boolean) {
-        let instance = impl.defaultInstance;
-        if (!instance) {
+    initializeAdapterInstanceCore<T extends IBaseAdapter>(interfaceDef: InterfaceDef<T>, impl: IDef<T>, isDefault: boolean) {
+        let instance: T;
+        let inst = impl.defaultInstance;
+        if (!inst) {
             instance = new (impl.ctor)();
             impl.defaultInstance = instance;
             instance._$impl = impl;
+        } else {
+            instance = inst;
         }
 
         instance.initialize();
@@ -240,17 +266,18 @@ class Config {
         // recomposition of other impls will occur here.
         this.interfaceInitialized.publish({ interfaceName: interfaceDef.name, instance: instance, isDefault: true });
 
-        if (instance.checkForRecomposition) {
+        if (instance.checkForRecomposition != null) {
             // now register for own dependencies.
-            this.interfaceInitialized.subscribe(function (interfaceInitializedArgs) {
-                instance.checkForRecomposition(interfaceInitializedArgs);
+            this.interfaceInitialized.subscribe((interfaceInitializedArgs) => {
+                // TODO: why '!'s needed here for typescript to compile correctly???
+                instance.checkForRecomposition!(interfaceInitializedArgs);
             });
         }
 
         return instance;
     }
 
-    getInterfaceDef(interfaceName: string): InterfaceDef {
+    getInterfaceDef<T extends IBaseAdapter>(interfaceName: string) {
         let lcName = interfaceName.toLowerCase();
         // source may be null
         let kv = core.objectFirst(this.interfaceRegistry || {}, function (k, v) {
@@ -259,7 +286,7 @@ class Config {
         if (!kv) {
             throw new Error("Unknown interface name: " + interfaceName);
         }
-        return kv.value;
+        return <InterfaceDef<T>> kv.value;
     }
 
 }
