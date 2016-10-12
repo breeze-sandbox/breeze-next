@@ -680,6 +680,7 @@ export const core = {
     durationToSeconds: durationToSeconds,
 
     isDate: isDate,
+    isDateString: isDateString,
     isGuid: isGuid,
     isDuration: isDuration,
     isFunction: isFunction,
