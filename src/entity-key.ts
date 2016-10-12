@@ -1,7 +1,7 @@
-﻿import { EntityType, DataType, MetadataStore } from '../typings/breeze1x'; // TODO: replace later
-
-import { breeze, core } from './core-fns';
+﻿import { breeze, core } from './core-fns';
 import { assertParam } from './assert-param';
+import { EntityType, MetadataStore } from './entity-metadata';
+import { DataType } from './data-type';
 
 /**
   An EntityKey is an object that represents the unique identity of an entity.  EntityKey's are immutable.
@@ -30,7 +30,7 @@ import { assertParam } from './assert-param';
   @param keyValues {value|Array of values} A single value or an array of values.
   **/
 
-class EntityKey {
+export class EntityKey {
 
   static ENTITY_KEY_DELIMITER = ":::";
   entityType: EntityType;

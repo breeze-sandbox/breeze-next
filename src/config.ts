@@ -59,6 +59,7 @@ class Config {
         uriBuilder: new InterfaceDef("uriBuilder")
     };
     stringifyPad = '';
+    modelLibraryDef = this.interfaceRegistry.modelLibrary;
 
     constructor() {
         this.interfaceInitialized = new BreezeEvent("interfaceInitialized", this);
@@ -264,7 +265,6 @@ class Config {
 }
 
 export const config = new Config();
-export const modelLibraryDef = config.interfaceRegistry.modelLibrary;
 
 // legacy
 (core as any).config = config;

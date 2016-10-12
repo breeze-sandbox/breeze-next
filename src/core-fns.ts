@@ -656,6 +656,7 @@ export var breeze: any = breeze || {};
 export const core = {
     isES5Supported: isES5Supported,
     hasOwnProperty: hasOwnProperty,
+    getOwnPropertyValues: getOwnPropertyValues,
     objectForEach:  objectForEach,
     objectFirst: objectFirst,
     objectMap: objectMap,

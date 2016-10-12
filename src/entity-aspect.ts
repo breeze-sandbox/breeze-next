@@ -1,12 +1,16 @@
-﻿import { EntityType, EntityQuery, EntityManager, EntityKey, ComplexType, DataProperty, NavigationProperty, ValidationError, Validator, IProperty } from '../typings/breeze1x'; // TODO: replace later
+﻿import { EntityQuery, EntityManager } from '../typings/breeze1x'; // TODO: replace later
 
 import { breeze, core } from './core-fns';
+import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
+import { EntityType, ComplexType, DataProperty, NavigationProperty, IStructuralProperty } from './entity-metadata';
+import { EntityKey } from './entity-key';
+import { Validator, ValidationError } from './validate';
 
-export interface Entity {
+export interface IEntity {
   entityAspect: EntityAspect;
   entityType: EntityType;
   getProperty(prop: string): any;
@@ -15,7 +19,7 @@ export interface Entity {
   _$entityType: EntityType;
 }
 
-export interface ComplexObject {
+export interface IComplexObject {
   complexAspect: ComplexAspect;
   complexType: ComplexType;
   getProperty(prop: string): any;
@@ -39,7 +43,7 @@ export interface ComplexObject {
   @class EntityAspect
   **/
 export class EntityAspect {
-  entity: Entity | null;
+  entity: IEntity | null;
   entityManager: EntityManager | null;
   entityGroup: Object | null; // TODO: make EntityGroup later
   entityState: EntityStateSymbol;
@@ -56,7 +60,7 @@ export class EntityAspect {
 
   static _nullInstance = new EntityAspect(null); // TODO: determine if this works
 
-  constructor(entity: Entity | null) {
+  constructor(entity: IEntity | null) {
 
     // if called without new
     // if (!(this instanceof EntityAspect)) {
@@ -93,11 +97,11 @@ export class EntityAspect {
         }
       }
       let entityCtor = entityType.getEntityCtor();
-      core.modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
+      config.modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
     }
   };
 
-  static createFrom(entity: Entity): EntityAspect {
+  static createFrom(entity: IEntity): EntityAspect {
     if (entity === null) {
       return EntityAspect._nullInstance;
     } else if (entity === undefined) {
@@ -551,7 +555,7 @@ export class EntityAspect {
       context.propertyName = property;
     } else {
       context.property = property;
-      context.propertyName = property.name;
+      context.propertyName = (property as IStructuralProperty).name;
     }
 
     return this._validateProperty(value, context);
@@ -647,7 +651,7 @@ export class EntityAspect {
     return new EntityKey(navigationProperty.entityType, fkValues);
   };
 
-  getPropertyValue(property: string | IProperty) {
+  getPropertyValue(property: string | DataProperty | NavigationProperty) {
     assertParam(property, "property").isString().or().isEntityProperty().check();
     let value: any;
     if (typeof (property) === 'string') {
@@ -762,7 +766,7 @@ function rejectChangesCore(target: any) {
   });
 }
 
-function removeFromRelations(entity: Entity, entityState: EntityStateSymbol) {
+function removeFromRelations(entity: IEntity, entityState: EntityStateSymbol) {
   // remove this entity from any collections.
   // mark the entity deleted or detached
 
@@ -770,13 +774,13 @@ function removeFromRelations(entity: Entity, entityState: EntityStateSymbol) {
   if (isDeleted) {
     removeFromRelationsCore(entity);
   } else {
-    core.using(entity.entityAspect.entityManager, "isLoading", true, function () {
+    core.using(entity.entityAspect.entityManager!, "isLoading", true, function () {
       removeFromRelationsCore(entity);
     });
   }
 }
 
-function removeFromRelationsCore(entity: Entity) {
+function removeFromRelationsCore(entity: IEntity) {
   entity.entityType.navigationProperties.forEach(function (np) {
     let inverseNp = np.inverse;
     let npValue = entity.getProperty(np.name);
@@ -878,13 +882,13 @@ function validateTarget(target: any, coIndex?: number) {
       // aCustomer === aspect.parent;
   @class ComplexAspect
   **/
-class ComplexAspect {
-  complexObject: ComplexObject;
+export class ComplexAspect {
+  complexObject: IComplexObject;
   originalValues: {};
-  parent: Entity | ComplexObject;
-  parentProperty: IProperty;
+  parent: IEntity | IComplexObject;
+  parentProperty: DataProperty;
 
-  constructor(complexObject: ComplexObject, parent: Entity | ComplexObject, parentProperty: DataProperty) {
+  constructor(complexObject: IComplexObject, parent: IEntity | IComplexObject, parentProperty: DataProperty) {
     if (!complexObject) {
       throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
     }
@@ -919,7 +923,7 @@ class ComplexAspect {
       }
     }
     let complexCtor = complexType.getCtor();
-    core.modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
+    config.modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
   };
 
@@ -936,7 +940,7 @@ class ComplexAspect {
   The parent object that to which this aspect belongs; this will either be an entity or another complex object.
 
   __readOnly__
-  @property parent {Entity|ComplexObject}
+  @property parent {Entity|IComplexObject}
   **/
 
   /**
