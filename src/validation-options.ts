@@ -1,4 +1,4 @@
-﻿import { breeze, __setAsDefault } from './core-fns';
+﻿import { breeze, core  } from './core-fns';
 import { assertParam, assertConfig } from './assert-param';
 
 export interface IValidationOptionsConfig {
@@ -98,7 +98,7 @@ export class ValidationOptions implements IValidationOptionsConfig {
   @chainable
   **/
   setAsDefault() {
-    return __setAsDefault(this, ValidationOptions);
+    return core.setAsDefault(this, ValidationOptions);
   };
 
   /**
@@ -116,7 +116,6 @@ export class ValidationOptions implements IValidationOptionsConfig {
 
 function updateWithConfig(options: ValidationOptions, config: IValidationOptionsConfig) {
   if (config) {
-    assertConfig(config)
     assertConfig(config)
         .whereParam("validateOnAttach").isBoolean().isOptional()
         .whereParam("validateOnSave").isBoolean().isOptional()
