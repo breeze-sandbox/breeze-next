@@ -1,15 +1,16 @@
-﻿import {  EntityQuery, EntityManager, EntityKey, NamingConvention, LocalQueryComparisonOptions, DataService } from '../typings/breeze1x'; // TODO: replace later
+﻿import {  EntityQuery, EntityManager, EntityKey, NamingConvention, LocalQueryComparisonOptions  } from '../typings/breeze1x'; // TODO: replace later
 
 import { breeze, core, ErrorCallback } from './core-fns';
 import { config, modelLibraryDef } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
+import { DataType } from './data-type';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
 import { EntityAspect } from './entity-aspect';
 import { Validator, ValidationError } from './validate';
 import { Enum, EnumSymbol, TypedEnum } from './enum';
-
+import { DataService } from './data-service';
 
 // Get the promises library called Q
 // define a quick failing version if not found.
@@ -459,11 +460,11 @@ export class MetadataStore {
         throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
       }
       let that = this;
-      return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
+      return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata: any) {
         that.metadataFetched.publish({ metadataStore: that, dataService: dataService, rawMetadata: rawMetadata });
         if (callback) callback(rawMetadata);
         return Q.resolve(rawMetadata);
-      }, function (error) {
+      }, function (error: any) {
         if (errorCallback) errorCallback(error);
         return Q.reject(error);
       });
@@ -953,8 +954,10 @@ class EntityType implements IStructuralType {
     this._mappedPropertiesCount = 0;
     this.subtypes = [];
     // now process any data/nav props
-    if (etConfig) {
+    if (etConfig && etConfig.dataProperties) {
       addProperties(this, etConfig.dataProperties, DataProperty);
+    }
+    if (etConfig && etConfig.navigationProperties) {
       addProperties(this, etConfig.navigationProperties, NavigationProperty);
     }
   };
@@ -1273,7 +1276,7 @@ class EntityType implements IStructuralType {
       this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
 
       this.navigationProperties.forEach(function (np) {
-        let relatedEntity;
+        let relatedEntity: any;
         let val = initialValues[np.name];
         if (val != undefined) {
           let navEntityType = np.entityType;
@@ -2532,6 +2535,7 @@ export class NavigationProperty implements IStructuralProperty {
   entityType: EntityType;
   parentType: EntityType; // ?? same as entityType
   parentEntityType: EntityType; // ?? same as above
+  baseProperty?: NavigationProperty;
   inverse: NavigationProperty;
   name: string;
   nameOnServer: string;
