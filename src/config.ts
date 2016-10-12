@@ -195,7 +195,7 @@ class Config {
         return this.functionRegistry[fnName];
     };
 
-    private _storeObject(obj: Object, type: string | Function, name: string) {
+    _storeObject(obj: Object, type: string | Function, name: string) {
         // uncomment this if we make this public.
         //assertParam(obj, "obj").isObject().check();
         //assertParam(name, "objName").isString().check();

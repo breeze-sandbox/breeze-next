@@ -1,4 +1,4 @@
-﻿import { DataType, EntityQuery, EntityManager, EntityKey, IProperty, NamingConvention, LocalQueryComparisonOptions, DataService } from '../typings/breeze1x'; // TODO: replace later
+﻿import {  EntityQuery, EntityManager, EntityKey, NamingConvention, LocalQueryComparisonOptions, DataService } from '../typings/breeze1x'; // TODO: replace later
 
 import { breeze, core, ErrorCallback } from './core-fns';
 import { config, modelLibraryDef } from './config';

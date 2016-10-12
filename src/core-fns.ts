@@ -662,6 +662,7 @@ export const core = {
     extend: extend,
     propEq: propEq,
     pluck: pluck,
+    resolveProperties: resolveProperties,
     getArray: getArray,
     toArray: toArray,
     arrayEquals: arrayEquals,
