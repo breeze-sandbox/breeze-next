@@ -681,6 +681,8 @@ export const core = {
     getUuid: getUuid,
     durationToSeconds: durationToSeconds,
 
+    isSettable: isSettable,
+
     isDate: isDate,
     isDateString: isDateString,
     isGuid: isGuid,

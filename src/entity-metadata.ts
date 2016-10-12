@@ -4,10 +4,10 @@ import { breeze, core, ErrorCallback } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
-import { DataType } from './data-type';
+import { DataType, DataTypeSymbol } from './data-type';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
-import { EntityAspect, ComplexAspect, IEntity } from './entity-aspect';
+import { EntityAspect, ComplexAspect, IEntity, IComplexObject } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { Validator, ValidationError } from './validate';
 import { Enum, EnumSymbol, TypedEnum } from './enum';
@@ -207,11 +207,12 @@ export class MetadataStore {
   **/
   addEntityType(stype: EntityType | ComplexType | EntityTypeConfig | ComplexTypeConfig) {
     let structuralType: EntityType | ComplexType;
-    if (!(stype instanceof EntityType || stype instanceof ComplexType)) {
-      structuralType = (stype as any).isComplexType ? new ComplexType(stype) : new EntityType(stype);
-    } else {
+    if (stype instanceof EntityType || stype instanceof ComplexType) {
       structuralType = stype;
+    } else {
+      structuralType = (stype as any).isComplexType ? new ComplexType(stype) : new EntityType(stype);
     }
+
     // if (!structuralType.isComplexType) { // same as below but isn't a 'type guard'
     if (isEntityType(structuralType)) {
       if (structuralType.baseTypeName && !structuralType.baseEntityType) {
@@ -806,6 +807,7 @@ export interface IStructuralType {
   validators: Validator[];
   custom?: Object;
   getProperty(propName: string, throwIfNotFound?: boolean): IStructuralProperty;
+  getPropertyNames(): string[];
 }
 
 export interface IStructuralProperty {
@@ -818,6 +820,7 @@ export interface IStructuralProperty {
     isNavigationProperty: boolean;
     isUnmapped: boolean;
     custom?: Object;
+    baseProperty?: IStructuralProperty;
 }
 
 export interface EntityTypeConfig {
@@ -1178,7 +1181,7 @@ export class EntityType implements IStructuralType {
           if (property.isNavigationProperty) {
             st._addPropertyCore(new NavigationProperty(property), true);
           } else {
-            st._addPropertyCore(new DataProperty(property), true);
+            st._addPropertyCore(new DataProperty(property as DataProperty), true);
           }
         }
       });
@@ -1270,7 +1273,6 @@ export class EntityType implements IStructuralType {
       })) {
         initialValues._$eref = instance;
       }
-      ;
 
       this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
 
@@ -1314,13 +1316,14 @@ export class EntityType implements IStructuralType {
       fn[instance];
     }
     this.complexProperties && this.complexProperties.forEach(function (cp) {
+      let complexType = cp.dataType as ComplexType;
       let ctInstance = instance.getProperty(cp.name);
       if (Array.isArray(ctInstance)) {
-        ctInstance.forEach(function (ctInst) {
-          cp.dataType._initializeInstance(ctInst);
+        ctInstance.forEach((ctInst) => {
+          complexType._initializeInstance(ctInst);
         });
       } else {
-        cp.dataType._initializeInstance(ctInstance);
+        complexType._initializeInstance(ctInstance);
       }
     });
     // not needed for complexObjects
@@ -1544,10 +1547,10 @@ export class EntityType implements IStructuralType {
     return propNames.join(delimiter);
   }
 
-  getEntityKeyFromRawEntity = function (rawEntity: any, rawValueFn: Function) {
-    let keyValues = this.keyProperties.map(function (dp) {
+  getEntityKeyFromRawEntity(rawEntity: any, rawValueFn: Function) {
+    let keyValues = this.keyProperties.map((dp) => {
       let val = rawValueFn(rawEntity, dp);
-      return parseRawValue(val, dp.dataType);
+      return this.parseRawValue(val, dp.dataType as DataTypeSymbol);
     });
     return new EntityKey(this, keyValues);
   };
@@ -1561,16 +1564,17 @@ export class EntityType implements IStructuralType {
       let dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
       let oldVal: any;
       if (dp.isComplexProperty) {
+        let complexType = dp.dataType as ComplexType;
         if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
         oldVal = target.getProperty(dp.name);
         if (dp.isScalar) {
-          dataType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
+          complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
         } else {
           if (Array.isArray(rawVal)) {
             let newVal = rawVal.map(function (rawCo) {
-              let newCo = dataType._createInstanceCore(target, dp);
-              dataType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
-              dataType._initializeInstance(newCo);
+              let newCo = complexType._createInstanceCore(target, dp);
+              complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
+              complexType._initializeInstance(newCo);
               return newCo;
             });
             if (!core.arrayEquals(oldVal, newVal, coEquals)) {
@@ -1587,14 +1591,14 @@ export class EntityType implements IStructuralType {
       } else {
         let val: any;
         if (dp.isScalar) {
-          let newVal = parseRawValue(rawVal, dataType);
+          let newVal = this.parseRawValue(rawVal, dataType);
           target.setProperty(dp.name, newVal);
         } else {
           oldVal = target.getProperty(dp.name);
           if (Array.isArray(rawVal)) {
             // need to compare values
             let newVal = rawVal.map(function (rv) {
-              return parseRawValue(rv, dataType);
+              return this.parseRawValue(rv, dataType);
             });
             if (!core.arrayEquals(oldVal, newVal)) {
               // clear the old array and push new objects into it.
@@ -1726,7 +1730,7 @@ export class EntityType implements IStructuralType {
     });
 
     if (this.isComplexType) {
-      (incompleteTypeMap[this.name] || []).forEach(function (cp) {
+      (incompleteTypeMap[this.name] || []).forEach(function (cp: DataProperty) {
         resolveCp(cp, metadataStore);
       });
       delete incompleteTypeMap[this.name];
@@ -1744,7 +1748,7 @@ export class EntityType implements IStructuralType {
     });
     let incompleteTypeMap = metadataStore._incompleteTypeMap;
     // next resolve all navProp that point to this entityType.
-    (incompleteTypeMap[this.name] || []).forEach(function (np) {
+    (incompleteTypeMap[this.name] || []).forEach(function (np: NavigationProperty) {
       tryResolveNp(np, metadataStore);
     });
     // every navProp that pointed to this type should now be resolved
@@ -1759,12 +1763,12 @@ function getRawValueFromConfig(rawEntity: any, dp: DataProperty) {
   return (rawEntity.entityAspect || rawEntity.complexAspect) ? rawEntity.getProperty(dp.name) : rawEntity[dp.name];
 }
 
-function updateClientServerNames(nc, parent, clientPropName) {
+function updateClientServerNames(nc: NamingConvention, parent: any, clientPropName: string) {
   let serverPropName = clientPropName + "OnServer";
   let clientName = parent[clientPropName];
   if (clientName && clientName.length) {
     // if (parent.isUnmapped) return;
-    let serverNames = __toArray(clientName).map(function (cName) {
+    let serverNames = core.toArray(clientName).map(function (cName) {
       let sName = nc.clientPropertyNameToServer(cName, parent);
       let testName = nc.serverPropertyNameToClient(sName, parent);
       if (cName !== testName) {
@@ -1776,7 +1780,7 @@ function updateClientServerNames(nc, parent, clientPropName) {
   } else {
     let serverName = parent[serverPropName];
     if ((!serverName) || serverName.length === 0) return;
-    let clientNames = __toArray(serverName).map(function (sName) {
+    let clientNames = core.toArray(serverName).map(function (sName) {
       let cName = nc.serverPropertyNameToClient(sName, parent);
       let testName = nc.clientPropertyNameToServer(cName, parent);
       if (sName !== testName) {
@@ -1788,13 +1792,14 @@ function updateClientServerNames(nc, parent, clientPropName) {
   }
 }
 
-function createEmptyCtor(type) {
+function createEmptyCtor(type: any) {
   let name = type.name.replace(/\W/g, '_');
   return Function('return function ' + name + '(){}')();
 }
 
-function coEquals(co1, co2) {
-  let dataProps = co1.complexAspect.parentProperty.dataType.dataProperties;
+function coEquals(co1: IComplexObject, co2: IComplexObject): boolean {
+  let complexType = co1.complexAspect.parentProperty.dataType as ComplexType;
+  let dataProps = complexType.dataProperties;
   let areEqual = dataProps.every(function (dp) {
     if (!dp.isSettable) return true;
     let v1 = co1.getProperty(dp.name);
@@ -1802,32 +1807,32 @@ function coEquals(co1, co2) {
     if (dp.isComplexProperty) {
       return coEquals(v1, v2);
     } else {
-      let dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
+      let dataType = <any> dp.dataType; // this will be a complexType when dp is a complexProperty
       return (v1 === v2 || (dataType && dataType.normalize && v1 && v2 && dataType.normalize(v1) === dataType.normalize(v2)));
     }
   });
   return areEqual;
 }
 
-function localPropsOnly(props) {
+function localPropsOnly(props: IStructuralProperty[]) {
   return props.filter(function (prop) {
     return prop.baseProperty == null;
   });
 }
 
 
-function resolveCp(cp, metadataStore) {
+function resolveCp(cp: DataProperty, metadataStore: MetadataStore) {
   let complexType = metadataStore._getEntityType(cp.complexTypeName, true);
   if (!complexType) return false;
   if (!(complexType instanceof ComplexType)) {
-    throw new Error("Unable to resolve ComplexType with the name: " + cp.complexTypeName + " for the property: " + property.name);
+    throw new Error("Unable to resolve ComplexType with the name: " + cp.complexTypeName + " for the property: " + cp.name);
   }
   cp.dataType = complexType;
   cp.defaultValue = null;
   return true;
 }
 
-function tryResolveNp(np, metadataStore) {
+function tryResolveNp(np: NavigationProperty, metadataStore: MetadataStore) {
   if (np.entityType) return true;
 
   let entityType = metadataStore._getEntityType(np.entityTypeName, true);
@@ -1837,21 +1842,21 @@ function tryResolveNp(np, metadataStore) {
     // don't bother removing - _updateNps will do it later.
     // __arrayRemoveItem(incompleteNps, np, false);
   } else {
-    let incompleteNps = __getArray(metadataStore._incompleteTypeMap, np.entityTypeName);
-    __arrayAddItemUnique(incompleteNps, np);
+    let incompleteNps = core.getArray(metadataStore._incompleteTypeMap, np.entityTypeName);
+    core.arrayAddItemUnique(incompleteNps, np);
   }
   return !!entityType;
 }
 
-function calcUnmappedProperties(stype, instance) {
+function calcUnmappedProperties(stype: EntityType | ComplexType, instance: any) {
   let metadataPropNames = stype.getPropertyNames();
-  let modelLib = __modelLibraryDef.getDefaultInstance();
+  let modelLib = config.modelLibraryDef.getDefaultInstance();
   let trackablePropNames = modelLib.getTrackablePropertyNames(instance);
-  trackablePropNames.forEach(function (pn) {
+  trackablePropNames.forEach(function (pn: string) {
     if (metadataPropNames.indexOf(pn) === -1) {
       let val = instance[pn];
       try {
-        if (typeof val == "function") val = val();
+        if (typeof val === "function") val = val();
       } catch (e) {
       }
       let dt = DataType.fromValue(val);
@@ -1861,8 +1866,8 @@ function calcUnmappedProperties(stype, instance) {
         isNullable: true,
         isUnmapped: true
       });
-      newProp.isSettable = __isSettable(instance, pn);
-      if (stype.subtypes && stype.subtypes.length) {
+      newProp.isSettable = core.isSettable(instance, pn);
+      if (stype.subtypes != null && stype.subtypes.length) {
         stype.getSelfAndSubtypes().forEach(function (st) {
           st._addPropertyCore(new DataProperty(newProp));
         });
@@ -2048,7 +2053,7 @@ export class ComplexType implements IStructuralType {
   @param initialValues {Object} Configuration object containing initial values for the instance.
   **/
   // This method is actually the EntityType.createEntity method renamed 
-  _createInstanceCore(parent, parentProperty) {
+  _createInstanceCore(parent: IEntity | IComplexObject, parentProperty: DataProperty) {
     let aCtor = this.getCtor();
     let instance = new aCtor();
     new ComplexAspect(instance, parent, parentProperty);
@@ -2136,8 +2141,9 @@ export class DataProperty implements IStructuralProperty {
 
   name: string;
   nameOnServer: string;
-  dataType?: DataTypeSymbol | string | ComplexType;
+  dataType: DataTypeSymbol | ComplexType; // this will be a complexType when dp is a complexProperty
   complexTypeName: string;
+  complexType: ComplexType | null;
   isComplexProperty: boolean;
   isNullable: boolean;
   isScalar: boolean; // will be false for some NoSQL databases.
@@ -2154,7 +2160,7 @@ export class DataProperty implements IStructuralProperty {
   custom?: Object;
 
   parentType: EntityType | ComplexType;
-  baseProperty: DataProperty;
+  baseProperty?: DataProperty;
 
   /**
     @example
@@ -2184,7 +2190,7 @@ export class DataProperty implements IStructuralProperty {
     @param [config.validators] {Array of Validator}
     @param [config.custom] {Object}
     **/
-  constructor(config: DataPropertyConfig) {
+  constructor(config: DataPropertyConfig | DataProperty) {
     assertConfig(config)
       .whereParam("name").isString().isOptional()
       .whereParam("nameOnServer").isString().isOptional()
@@ -2212,7 +2218,7 @@ export class DataProperty implements IStructuralProperty {
 
     if (this.complexTypeName) {
       this.isComplexProperty = true;
-      this.dataType = null;
+      // this.dataType = null; // TODO: would like to remove this line because dataType will be set later.
     } else if (typeof (this.dataType) === "string") {
       let dt = DataType.fromName(this.dataType);
       if (!dt) {
@@ -2233,13 +2239,13 @@ export class DataProperty implements IStructuralProperty {
         } else if (this.dataType === DataType.Binary) {
           this.defaultValue = "AAAAAAAAJ3U="; // hack for all binary fields but value is specifically valid for timestamp fields - arbitrary valid 8 byte base64 value.
         } else {
-          this.defaultValue = this.dataType.defaultValue;
+          this.defaultValue = (this.dataType as any).defaultValue;
           if (this.defaultValue == null) {
             throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + (this.name || this.nameOnServer));
           }
         }
       }
-    } else if (this.dataType.isNumeric) {
+    } else if ((this.dataType as any).isNumeric) {
       // in case the defaultValue comes in as a string ( which it does in EF6).
       if (typeof (this.defaultValue) === "string") {
         this.defaultValue = parseFloat(this.defaultValue);
@@ -2265,7 +2271,6 @@ export class DataProperty implements IStructuralProperty {
     let val = rawEntity[dp.name];
     return val !== undefined ? val : dp.defaultValue;
   }
-
 
   /**
   The name of this property
@@ -2768,7 +2773,7 @@ export class NavigationProperty implements IStructuralProperty {
     if (this.inverse || invNp.inverse) {
       throwSetInverseError(this, "It has already been set on one side or the other.");
     }
-    if (invNp.entityType != this.parentType) {
+    if (invNp.entityType !== this.parentType) {
       throwSetInverseError(this, invNp.formatName + " is not a valid inverse property for this.");
     }
     if (this.associationName) {
@@ -2954,6 +2959,13 @@ function isComplexType(type: IStructuralType): type is ComplexType {
 
 // mixin methods
 
+declare module "./assert-param" {
+    interface Param {
+        isEntity(): Param;
+        isEntityProperty(): Param;
+    }
+}
+
 let proto = Param.prototype;
 
 proto.isEntity = function () {
@@ -2963,7 +2975,7 @@ proto.isEntity = function () {
   });
 };
 
-function isEntity(context, v) {
+function isEntity(context: any, v: any) {
   if (v == null) return false;
   return (v.entityType !== undefined);
 }
@@ -2975,11 +2987,10 @@ proto.isEntityProperty = function () {
   });
 };
 
-function isEntityProperty(context, v) {
+function isEntityProperty(context: any, v: any) {
   if (v == null) return false;
   return (v.isDataProperty || v.isNavigationProperty);
 }
-
 
 // functions shared between classes related to Metadata
 
@@ -2995,7 +3006,7 @@ function parseTypeName(entityTypeName: string) {
 
   if (core.stringStartsWith(entityTypeName, MetadataStore.ANONTYPE_PREFIX)) {
     let typeHash = makeTypeHash(entityTypeName);
-    typeHash.isAnonymous = true
+    (typeHash as any).isAnonymous = true;
     return typeHash;
   }
   let entityTypeNameNoAssembly = entityTypeName.split(",")[0];
