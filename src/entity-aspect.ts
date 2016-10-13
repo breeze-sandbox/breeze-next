@@ -986,7 +986,7 @@ export class ComplexAspect {
     let parent = <any>this.parent;
     if (!parent) return null;
     let aspect = parent.complexAspect || parent.entityAspect;
-    return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    return aspect.getPropertyPath(this.parentProperty!.name + "." + propName);
   }
 
 }
