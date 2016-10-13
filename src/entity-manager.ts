@@ -5,12 +5,14 @@ import { EntityAspect, ComplexAspect, IEntity, IComplexObject } from './entity-a
 import { DataService } from './data-service';
 import { ValidationOptions } from './validation-options';
 import { MetadataStore } from './entity-metadata';
+import { QueryOptions } from './query-options';
+import { SaveOptions } from './save-options';
 
 export interface EntityManagerConfig {
   serviceName?: string;
   dataService?: DataService;
   queryOptions?: QueryOptions;
-  saveOptions?: SaveOptions
+  saveOptions?: SaveOptions;
   validationOptions?: ValidationOptions;
   keyGeneratorCtor?: Function; // TODO: refine this
   metadataStore?: MetadataStore;
@@ -26,7 +28,7 @@ export class EntityManager {
   serviceName: string;
   dataService: DataService;
   queryOptions: QueryOptions;
-  saveOptions: SaveOptions
+  saveOptions: SaveOptions;
   validationOptions: ValidationOptions;
   keyGeneratorCtor?: Function; // TODO: refine this
   metadataStore: MetadataStore;
