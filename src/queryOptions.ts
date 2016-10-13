@@ -152,7 +152,7 @@ export class QueryOptions {
   @param [config.includeDeleted] {Boolean} Whether query should return cached deleted entities (false by default)
   **/
   constructor(config: QueryOptionsConfig) {
-    QueryOptions.updateWithConfig(this, config);
+    QueryOptions._updateWithConfig(this, config);
   };
 
 
@@ -210,7 +210,7 @@ export class QueryOptions {
     } else if ( qoConfig instanceof FetchStrategySymbol) {
       qoConfig = { fetchStrategy: qoConfig };
     }
-    return QueryOptions.updateWithConfig(result, qoConfig);
+    return QueryOptions._updateWithConfig(result, qoConfig);
   };
 
   /**
@@ -242,7 +242,7 @@ export class QueryOptions {
     });
   };
 
-  static updateWithConfig(obj: QueryOptions, config: QueryOptionsConfig) {
+  private static _updateWithConfig(obj: QueryOptions, config: QueryOptionsConfig) {
     if (config) {
       assertConfig(config)
         .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()
