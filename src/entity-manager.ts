@@ -1,10 +1,39 @@
-﻿
+﻿import { breeze, core } from './core-fns';
+import { assertParam, assertConfig } from './assert-param';
+import { BreezeEvent } from './event';
+import { EntityAspect, ComplexAspect, IEntity, IComplexObject } from './entity-aspect';
+import { DataService } from './data-service';
+import { ValidationOptions } from './validation-options';
+import { MetadataStore } from './entity-metadata';
 
-var EntityManager = (function () {
-  /**
+export interface EntityManagerConfig {
+  serviceName?: string;
+  dataService?: DataService;
+  queryOptions?: QueryOptions;
+  saveOptions?: SaveOptions
+  validationOptions?: ValidationOptions;
+  keyGeneratorCtor?: Function; // TODO: refine this
+  metadataStore?: MetadataStore;
+}
+
+/**
   Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client.
   @class EntityManager
   **/
+export class EntityManager {
+  _$typeName = "EntityManager";
+
+  serviceName: string;
+  dataService: DataService;
+  queryOptions: QueryOptions;
+  saveOptions: SaveOptions
+  validationOptions: ValidationOptions;
+  keyGeneratorCtor?: Function; // TODO: refine this
+  metadataStore: MetadataStore;
+
+  entityChanged: BreezeEvent;
+  validationErrorsChanged: BreezeEvent;
+  hasChangesChanged: BreezeEvent;
 
   /**
   At its most basic an EntityManager can be constructed with just a service name
@@ -50,7 +79,7 @@ var EntityManager = (function () {
   @param [config.validationOptions=ValidationOptions.defaultInstance] {ValidationOptions}
   @param [config.keyGeneratorCtor] {Function}
   **/
-  var ctor = function EntityManager(config) {
+  constructor(config: EntityManagerConfig) {
 
     if (arguments.length > 1) {
       throw new Error("The EntityManager ctor has a single optional argument that is either a 'serviceName' or a configuration object.");
@@ -61,19 +90,18 @@ var EntityManager = (function () {
       config = { serviceName: config };
     }
 
-    updateWithConfig(this, config, true);
+    EntityManager._updateWithConfig(this, config, true);
 
-    this.entityChanged = new Event("entityChanged", this);
-    this.validationErrorsChanged = new Event("validationErrorsChanged", this);
-    this.hasChangesChanged = new Event("hasChangesChanged", this);
+    this.entityChanged = new BreezeEvent("entityChanged", this);
+    this.validationErrorsChanged = new BreezeEvent("validationErrorsChanged", this);
+    this.hasChangesChanged = new BreezeEvent("hasChangesChanged", this);
 
     this.clear();
 
   };
 
-  var proto = ctor.prototype;
-  proto._$typeName = "EntityManager";
-  Event.bubbleEvent(proto, null);
+  // TODO: add this back
+  // Event.bubbleEvent(proto, null);
 
   /**
   General purpose property set method.  Any of the properties documented below
@@ -93,17 +121,17 @@ var EntityManager = (function () {
   @param [config.validationOptions] {ValidationOptions}
   @param [config.keyGeneratorCtor] {Function}
   **/
-  proto.setProperties = function (config) {
-    updateWithConfig(this, config, false);
+  setProperties(config: EntityManagerConfig) {
+    EntityManager._updateWithConfig(this, config, false);
   };
 
-  function updateWithConfig(em, config, isCtor) {
-    var defaultQueryOptions = isCtor ? QueryOptions.defaultInstance : em.queryOptions;
-    var defaultSaveOptions = isCtor ? SaveOptions.defaultInstance : em.saveOptions;
-    var defaultValidationOptions = isCtor ? ValidationOptions.defaultInstance : em.validationOptions;
+  static _updateWithConfig(em: EntityManager, config: EntityManagerConfig, isCtor: boolean) {
+    let defaultQueryOptions = isCtor ? QueryOptions.defaultInstance : em.queryOptions;
+    let defaultSaveOptions = isCtor ? SaveOptions.defaultInstance : em.saveOptions;
+    let defaultValidationOptions = isCtor ? ValidationOptions.defaultInstance : em.validationOptions;
 
 
-    var configParam = assertConfig(config)
+    let configParam = assertConfig(config)
         .whereParam("serviceName").isOptional().isString()
         .whereParam("dataService").isOptional().isInstanceOf(DataService)
         .whereParam("queryOptions").isInstanceOf(QueryOptions).isOptional().withDefault(defaultQueryOptions)
@@ -117,9 +145,9 @@ var EntityManager = (function () {
     configParam.applyAll(em);
 
     // insure that entityManager's options versions are completely populated
-    __updateWithDefaults(em.queryOptions, defaultQueryOptions);
-    __updateWithDefaults(em.saveOptions, defaultSaveOptions);
-    __updateWithDefaults(em.validationOptions, defaultValidationOptions);
+    core.updateWithDefaults(em.queryOptions, defaultQueryOptions);
+    core.updateWithDefaults(em.saveOptions, defaultSaveOptions);
+    core.updateWithDefaults(em.validationOptions, defaultValidationOptions);
 
     if (config.serviceName) {
       em.dataService = new DataService({

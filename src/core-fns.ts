@@ -666,6 +666,7 @@ export const core = {
     pluck: pluck,
     resolveProperties: resolveProperties,
     setAsDefault: setAsDefault,
+    updateWithDefaults: updateWithDefaults,
     getArray: getArray,
     toArray: toArray,
     arrayEquals: arrayEquals,
@@ -697,8 +698,6 @@ export const core = {
     stringEndsWith: stringEndsWith,
     formatString: formatString,
     titleCase: titleCaseSpace,
-
-    
 
     toJson: toJson,
     toJSONSafe: toJSONSafe,
