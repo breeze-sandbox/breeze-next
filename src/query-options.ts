@@ -127,7 +127,7 @@ export class QueryOptions {
   @property defaultInstance {QueryOptions}
   @static
   **/
-  defaultInstance = new QueryOptions({
+  static defaultInstance = new QueryOptions({
     fetchStrategy: FetchStrategy.FromServer,
     mergeStrategy: MergeStrategy.PreserveChanges,
     includeDeleted: false
