@@ -10,6 +10,7 @@
         "removeComments": false,
         "noImplicitAny": true,
         "strictNullChecks": true,
-        "suppressImplicitAnyIndexErrors": true
+        "suppressImplicitAnyIndexErrors": true,
+        "lib": ["es5", "es2015.promise"]
     }
 }

@@ -71,7 +71,7 @@ function parseCsdlEntityType(csdlEntityType: any, schema: any, schemas: any, met
   if (csdlEntityType.baseType) {
     let baseTypeName = parseTypeNameWithSchema(csdlEntityType.baseType, schema).typeName;
     entityType.baseTypeName = baseTypeName;
-    let baseEntityType = metadataStore._getEntityType(baseTypeName, true);
+    let baseEntityType = metadataStore._getStructuralType(baseTypeName, true);
     if (baseEntityType) {
       completeParseCsdlEntityType(entityType, csdlEntityType, schema, schemas, metadataStore);
     } else {

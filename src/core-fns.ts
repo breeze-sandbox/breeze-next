@@ -247,27 +247,29 @@ function toArray(item: any): any[] {
 }
 
 /** a version of Array.map that doesn't require an array, i.e. works on arrays and scalars. */
-function map(items: any, fn: (v: any, ix?: number) => void, includeNull?: boolean): any {
+function map<T, U>(items: T | T[], fn: (v: T, ix?: number) => U, includeNull?: boolean): U | U[] {
     // whether to return nulls in array of results; default = true;
     includeNull = includeNull == null ? true : includeNull;
     if (items == null) return items;
-    let result: any;
+    // let result: U[];
     if (Array.isArray(items)) {
-        result = [];
+        let result: U[] = [];
         items.forEach(function (v: any, ix: number) {
             let r = fn(v, ix);
             if (r != null || includeNull) {
                 result[ix] = r;
             }
         });
+        return result;
     } else {
-        result = fn(items);
+        let result = fn(items);
+        return result;
     }
-    return result;
+
 }
 
 /** Return first element matching predicate */
-function arrayFirst(array: any[], predicate: (el: any) => boolean): any {
+function arrayFirst<T>(array: T[], predicate: (el: any) => boolean) {
     for (let i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {
             return array[i];

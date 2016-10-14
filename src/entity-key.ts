@@ -89,7 +89,7 @@ export class EntityKey {
   };
 
   static fromJSON(json: any, metadataStore: MetadataStore) {
-    let et = metadataStore._getEntityType(json.entityType, true) as EntityType;
+    let et = metadataStore._getStructuralType(json.entityType, true) as EntityType;
     return new EntityKey(et, json.values);
   };
 

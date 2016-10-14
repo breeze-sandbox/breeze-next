@@ -55,6 +55,7 @@ interface IModelLibraryAdapter extends IBaseAdapter {
     startTracking(entity: any, entityCtor: Function): void;
     initializeEntityPrototype(proto: Object): void;
     createCtor?: Function;
+    getTrackablePropertyNames: (entity: any) => string[];
 }
 
 interface IDataServiceAdapter extends IBaseAdapter {

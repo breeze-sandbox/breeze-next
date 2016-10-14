@@ -46,8 +46,12 @@ breeze.config.setQ = function (q: any) {
 };
 breeze.Q = Q; // Todo: consider a "safer" way for apps to get breeze's Q. 
 
+type EntityProperty = DataProperty | NavigationProperty;
+
+type StructuralType = EntityType | ComplexType;
+
 interface IStructuralTypeMap {
-  [index: string]: EntityType | ComplexType;
+  [index: string]: StructuralType;
 }
 
 export interface MetadataStoreConfig {
@@ -211,8 +215,8 @@ export class MetadataStore {
   @method addEntityType
   @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
   **/
-  addEntityType(stype: EntityType | ComplexType | EntityTypeConfig | ComplexTypeConfig) {
-    let structuralType: EntityType | ComplexType;
+  addEntityType(stype: StructuralType | EntityTypeConfig | ComplexTypeConfig) {
+    let structuralType: StructuralType;
     if (stype instanceof EntityType || stype instanceof ComplexType) {
       structuralType = stype;
     } else {
@@ -220,9 +224,9 @@ export class MetadataStore {
     }
 
     // if (!structuralType.isComplexType) { // same as below but isn't a 'type guard'
-    if (isEntityType(structuralType)) {
+    if (structuralType instanceof EntityType) {
       if (structuralType.baseTypeName && !structuralType.baseEntityType) {
-        let baseEntityType = this._getEntityType(structuralType.baseTypeName, true);
+        let baseEntityType = this._getStructuralType(structuralType.baseTypeName, true);
         // safe cast because we know that baseEntityType must be an EntityType if the structuralType is an EntityType
         structuralType._updateFromBase(baseEntityType as EntityType);
       }
@@ -253,7 +257,7 @@ export class MetadataStore {
     structuralType._updateCps();
 
     // 'isEntityType' is a type guard
-    if (isEntityType(structuralType)) {
+    if (structuralType instanceof EntityType) {
       structuralType._updateNps();
       // give the type it's base's resource name if it doesn't have its own.
       let defResourceName = structuralType.defaultResourceName || (structuralType.baseEntityType && structuralType.baseEntityType.defaultResourceName);
@@ -585,10 +589,10 @@ export class MetadataStore {
   getEntityType(structuralTypeName: string, okIfNotFound: boolean = false) {
     assertParam(structuralTypeName, "structuralTypeName").isString().check();
     assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
-    return this._getEntityType(structuralTypeName, okIfNotFound);
+    return this._getStructuralType(structuralTypeName, okIfNotFound);
   };
 
-  _getEntityType(typeName: string, okIfNotFound: boolean = false) {
+  _getStructuralType(typeName: string, okIfNotFound: boolean = false) {
     let qualTypeName = getQualifiedTypeName(this, typeName, false);
     let type = this._structuralTypeMap[qualTypeName];
     if (!type) {
@@ -656,7 +660,7 @@ export class MetadataStore {
     }
 
     this._resourceEntityTypeMap[resourceName] = entityTypeName;
-    let entityType = this._getEntityType(entityTypeName, true);
+    let entityType = this._getStructuralType(entityTypeName, true);
     if (entityType && entityType instanceof EntityType && !entityType.defaultResourceName) {
       entityType.defaultResourceName = resourceName;
     }
@@ -707,7 +711,7 @@ export class MetadataStore {
       throw new Error("This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method");
     }
     // we know that it is an EntityType ( as opposed to a ComplexType)
-    let entityType =  this._getEntityType(typeName) as EntityType;
+    let entityType =  this._getStructuralType(typeName) as EntityType;
     if (entityType) {
       entity.entityType = entityType;
     }
@@ -719,7 +723,7 @@ export class MetadataStore {
 BreezeEvent.bubbleEvent(MetadataStore.prototype, null);
 
 function getTypesFromMap(typeMap: IStructuralTypeMap) {
-  let types: (EntityType | ComplexType)[] = [];
+  let types: (StructuralType)[] = [];
   for (let key in typeMap) {
     let value = typeMap[key];
     // skip 'shortName' entries
@@ -732,7 +736,7 @@ function getTypesFromMap(typeMap: IStructuralTypeMap) {
 
 function structuralTypeFromJson(metadataStore: MetadataStore, json: any, allowMerge: boolean) {
   let typeName = qualifyTypeName(json.shortName, json.namespace);
-  let stype = metadataStore._getEntityType(typeName, true);
+  let stype = metadataStore._getStructuralType(typeName, true);
   if (stype) {
     if (allowMerge) {
       return mergeStructuralType(stype, json);
@@ -755,7 +759,7 @@ function structuralTypeFromJson(metadataStore: MetadataStore, json: any, allowMe
   // baseType may not have been imported yet so we need to defer handling this type until later.
   if (json.baseTypeName) {
     stype.baseTypeName = json.baseTypeName;
-    let baseEntityType = metadataStore._getEntityType(json.baseTypeName, true);
+    let baseEntityType = metadataStore._getStructuralType(json.baseTypeName, true);
     if (baseEntityType) {
       completeStructuralTypeFromJson(metadataStore, json, stype );
     } else {
@@ -770,7 +774,7 @@ function structuralTypeFromJson(metadataStore: MetadataStore, json: any, allowMe
   return stype;
 }
 
-function mergeStructuralType(stype: EntityType | ComplexType, json: any) {
+function mergeStructuralType(stype: StructuralType, json: any) {
   if (json.custom) {
     stype.custom = json.custom;
   }
@@ -780,7 +784,7 @@ function mergeStructuralType(stype: EntityType | ComplexType, json: any) {
   return stype;
 }
 
-function mergeProps(stype: IStructuralType, jsonProps: any[]) {
+function mergeProps(stype: StructuralType, jsonProps: any[]) {
   if (!jsonProps) return;
   jsonProps.forEach(function (jsonProp) {
     let propName = jsonProp.name;
@@ -840,33 +844,22 @@ function getQualifiedTypeName(metadataStore: MetadataStore, structTypeName: stri
   return result;
 }
 
-export interface IStructuralType {
-  metadataStore: MetadataStore;
-  isComplexType: boolean;
-  complexProperties: DataProperty[];
-  dataProperties: DataProperty[];
-  name: string;
-  namespace: string;
-  shortName: string;
-  unmappedProperties: DataProperty[];
-  validators: Validator[];
-  custom?: Object;
-  getProperty(propName: string, throwIfNotFound?: boolean): IStructuralProperty;
-  getPropertyNames(): string[];
-}
+// export interface IStructuralType {
+//   metadataStore: MetadataStore;
+//   isComplexType: boolean;
+//   complexProperties: DataProperty[];
+//   dataProperties: DataProperty[];
+//   name: string;
+//   namespace: string;
+//   shortName: string;
+//   unmappedProperties: DataProperty[];
+//   validators: Validator[];
+//   custom?: Object;
+//   getProperty(propName: string, throwIfNotFound?: boolean): EntityProperty;
+//   getPropertyNames(): string[];
+// }
 
-export interface IStructuralProperty {
-    name: string;
-    nameOnServer: string;
-    displayName: string;
-    parentType: IStructuralType;
-    validators: Validator[];
-    isDataProperty: boolean;
-    isNavigationProperty: boolean;
-    isUnmapped: boolean;
-    custom?: Object;
-    baseProperty?: IStructuralProperty;
-}
+
 
 export interface EntityTypeConfig {
   shortName?: string;
@@ -892,7 +885,7 @@ export interface EntityTypeSetConfig {
   Container for all of the metadata about a specific type of Entity.
   @class EntityType
   **/
-export class EntityType implements IStructuralType {
+export class EntityType {
   _$typeName = "EntityType";
   isComplexType = false;
 
@@ -1213,7 +1206,7 @@ export class EntityType implements IStructuralType {
   @method addProperty
   @param property {DataProperty|NavigationProperty}
   **/
-  addProperty(property: DataProperty | NavigationProperty) {
+  addProperty(property: EntityProperty) {
     assertParam(property, "property").isInstanceOf(DataProperty).or().isInstanceOf(NavigationProperty).check();
 
     // true is 2nd arg to force resolve of any navigation properties.
@@ -1257,7 +1250,7 @@ export class EntityType implements IStructuralType {
     baseEntityType.subtypes.push(this);
   }
 
-  _addPropertyCore(property: DataProperty | NavigationProperty, shouldResolve: boolean = false) {
+  _addPropertyCore(property: EntityProperty, shouldResolve: boolean = false) {
     if (this.isFrozen) {
       throw new Error("The '" + this.name + "' EntityType/ComplexType has been frozen. You can only add properties to an EntityType/ComplexType before any instances of that type have been created and attached to an entityManager.");
     }
@@ -1420,7 +1413,7 @@ export class EntityType implements IStructuralType {
 
 
   // May make public later.
-  _setCtor(aCtor: FunctionConstructor, interceptor?: any) {
+  _setCtor(aCtor: { new (): any }, interceptor?: any) {
 
     let instanceProto = aCtor.prototype;
 
@@ -1470,7 +1463,7 @@ export class EntityType implements IStructuralType {
   @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
   entity level validator and is added to the EntityType's 'validators'.
   **/
-  addValidator = function (validator: Validator, property?: DataProperty | NavigationProperty | string) {
+  addValidator = function (validator: Validator, property?: EntityProperty | string) {
     assertParam(validator, "validator").isInstanceOf(Validator).check();
     assertParam(property, "property").isOptional().isString().or().isEntityProperty().check();
     if (property != null) {
@@ -1490,8 +1483,8 @@ export class EntityType implements IStructuralType {
   @method getProperties
   @return {Array of DataProperty|NavigationProperty} Array of Data and Navigation properties.
   **/
-  getProperties(): IStructuralProperty[] {
-    return (this.dataProperties as IStructuralProperty[]).concat(this.navigationProperties);
+  getProperties(): EntityProperty[] {
+    return (this.dataProperties as EntityProperty[]).concat(this.navigationProperties);
   };
 
   /**
@@ -1563,12 +1556,13 @@ export class EntityType implements IStructuralType {
     let propertyNames = (Array.isArray(propertyPath)) ? propertyPath : propertyPath.trim().split('.');
 
     let ok = true;
-    let parentType = this;
+    let parentType = this as StructuralType;
     let key = useServerName ? "nameOnServer" : "name";
-    let props = propertyNames.map(function (propName) {
-      let prop = core.arrayFirst(parentType.getProperties(), core.propEq(key, propName));
+    let props = propertyNames.map( (propName) => {
+      let prop = core.arrayFirst(parentType.getProperties(), core.propEq(key, propName)) as EntityProperty | null;
       if (prop) {
-        parentType = prop.isNavigationProperty ? prop.entityType : prop.dataType;
+        parentType = (prop instanceof NavigationProperty) ? prop.entityType : prop.dataType as ComplexType;
+        // parentType = prop.isNavigationProperty ? prop.entityType : prop.dataType;
       } else if (throwIfNotFound) {
         throw new Error("unable to locate property: " + propName + " on entityType: " + parentType.name);
       } else {
@@ -1588,7 +1582,7 @@ export class EntityType implements IStructuralType {
       });
     } else {
       let props = this.getPropertiesOnPath(propertyPath, false, true);
-      propNames = props!.map((prop) => prop.nameOnServer);
+      propNames = props!.map((prop: EntityProperty) => prop.nameOnServer);
     }
     return propNames.join(delimiter);
   }
@@ -1700,7 +1694,7 @@ export class EntityType implements IStructuralType {
     });
   };
 
-  _updateNames(property: IStructuralProperty) {
+  _updateNames(property: EntityProperty) {
     let nc = this.metadataStore.namingConvention;
     updateClientServerNames(nc, property, "name");
 
@@ -1844,7 +1838,7 @@ function createEmptyCtor(type: any) {
 }
 
 function coEquals(co1: IComplexObject, co2: IComplexObject): boolean {
-  let complexType = co1.complexAspect.parentProperty.dataType as ComplexType;
+  let complexType = co1.complexAspect!.parentProperty!.dataType as ComplexType;
   let dataProps = complexType.dataProperties;
   let areEqual = dataProps.every(function (dp) {
     if (!dp.isSettable) return true;
@@ -1860,7 +1854,7 @@ function coEquals(co1: IComplexObject, co2: IComplexObject): boolean {
   return areEqual;
 }
 
-function localPropsOnly(props: IStructuralProperty[]) {
+function localPropsOnly(props: EntityProperty[]) {
   return props.filter(function (prop) {
     return prop.baseProperty == null;
   });
@@ -1868,7 +1862,7 @@ function localPropsOnly(props: IStructuralProperty[]) {
 
 
 function resolveCp(cp: DataProperty, metadataStore: MetadataStore) {
-  let complexType = metadataStore._getEntityType(cp.complexTypeName, true);
+  let complexType = metadataStore._getStructuralType(cp.complexTypeName, true);
   if (!complexType) return false;
   if (!(complexType instanceof ComplexType)) {
     throw new Error("Unable to resolve ComplexType with the name: " + cp.complexTypeName + " for the property: " + cp.name);
@@ -1881,7 +1875,7 @@ function resolveCp(cp: DataProperty, metadataStore: MetadataStore) {
 function tryResolveNp(np: NavigationProperty, metadataStore: MetadataStore) {
   if (np.entityType) return true;
 
-  let entityType = metadataStore._getEntityType(np.entityTypeName, true);
+  let entityType = metadataStore._getStructuralType(np.entityTypeName, true) as EntityType;
   if (entityType) {
     np.entityType = entityType;
     np._resolveNp();
@@ -1894,7 +1888,7 @@ function tryResolveNp(np: NavigationProperty, metadataStore: MetadataStore) {
   return !!entityType;
 }
 
-function calcUnmappedProperties(stype: EntityType | ComplexType, instance: any) {
+function calcUnmappedProperties(stype: StructuralType, instance: any) {
   let metadataPropNames = stype.getPropertyNames();
   let modelLib = config.modelLibraryDef.getDefaultInstance();
   let trackablePropNames = modelLib.getTrackablePropertyNames(instance);
@@ -1950,7 +1944,7 @@ interface ComplexTypeConfig {
 @param [config.dataProperties] {Array of DataProperties}
 @param [config.custom] {Object}
 **/
-export class ComplexType implements IStructuralType {
+export class ComplexType  {
   _$typeName = "ComplexType";
   isComplexType = true;
 
@@ -2116,7 +2110,7 @@ export class ComplexType implements IStructuralType {
     return this._addPropertyCore(dataProperty);
   };
 
-  getProperties(): IStructuralProperty[] {
+  getProperties(): EntityProperty[] {
     return this.dataProperties;
   };
 
@@ -2183,7 +2177,7 @@ Instances of the DataProperty class are constructed automatically during Metadat
 directly via the constructor.
 @class DataProperty
 **/
-export class DataProperty implements IStructuralProperty {
+export class DataProperty  {
   _$typeName = "DataProperty";
   isDataProperty = true;
   isNavigationProperty = false;
@@ -2208,7 +2202,10 @@ export class DataProperty implements IStructuralProperty {
   rawTypeName?: string;  // occurs with undefined datatypes
   custom?: Object;
 
-  parentType: EntityType | ComplexType;
+  inverseNavigationProperty?: NavigationProperty | null;
+  relatedNavigationProperty?: NavigationProperty | null;
+
+  parentType: StructuralType;
   baseProperty?: DataProperty;
 
   /**
@@ -2570,7 +2567,7 @@ export interface NavigationPropertyConfig {
   directly via the constructor.
   @class NavigationProperty
   **/
-export class NavigationProperty implements IStructuralProperty {
+export class NavigationProperty  {
   _$typeName = "NavigationProperty";
   isDataProperty = false;
   isNavigationProperty = true;
@@ -2583,7 +2580,7 @@ export class NavigationProperty implements IStructuralProperty {
   parentType: EntityType; // ?? same as entityType
   parentEntityType: EntityType; // ?? same as above
   baseProperty?: NavigationProperty;
-  inverse: NavigationProperty;
+  inverse: NavigationProperty | null;
   name: string;
   nameOnServer: string;
   entityTypeName: string;
@@ -2809,16 +2806,13 @@ export class NavigationProperty implements IStructuralProperty {
   };
 
   setInverse(inverseNp: NavigationProperty | string) {
-    let invNp: NavigationProperty;
-    if (typeof (inverseNp) === "string") {
-      invNp = this.entityType.getNavigationProperty(inverseNp);
-    } else {
-      invNp = inverseNp;
-    }
+    // let invNp: NavigationProperty;
+    let invNp = (inverseNp instanceof NavigationProperty) ? inverseNp : this.entityType.getNavigationProperty(inverseNp);
 
     if (!invNp) {
       throw throwSetInverseError(this, "Unable to find inverse property: " + inverseNp);
     }
+
     if (this.inverse || invNp.inverse) {
       throwSetInverseError(this, "It has already been set on one side or the other.");
     }
@@ -2884,7 +2878,7 @@ export class NavigationProperty implements IStructuralProperty {
   _resolveNp() {
     let np = this;
     let entityType = np.entityType;
-    let invNp = core.arrayFirst(entityType.navigationProperties, function (altNp) {
+    let invNp = core.arrayFirst(entityType.navigationProperties, (altNp) => {
       // Can't do this because of possibility of comparing a base class np with a subclass altNp.
       // return altNp.associationName === np.associationName
       //    && altNp !== np;
@@ -2900,12 +2894,12 @@ export class NavigationProperty implements IStructuralProperty {
       // unidirectional 1-n relationship
       np.invForeignKeyNames.forEach(function (invFkName) {
         let fkProp = entityType.getDataProperty(invFkName);
-        if (!fkProp) {
+        if (fkProp == null) {
           throw new Error("EntityType '" + np.entityTypeName + "' has no foreign key matching '" + invFkName + "'");
         }
         let invEntityType = np.parentType;
-        fkProp.inverseNavigationProperty = core.arrayFirst(invEntityType.navigationProperties, function (np2) {
-          return np2.invForeignKeyNames && np2.invForeignKeyNames.indexOf(fkProp.name) >= 0 && np2.entityType === fkProp.parentType;
+        fkProp.inverseNavigationProperty = core.arrayFirst(invEntityType.navigationProperties, (np2) => {
+          return np2.invForeignKeyNames && np2.invForeignKeyNames.indexOf(fkProp!.name) >= 0 && np2.entityType === fkProp!.parentType;
         });
         core.arrayAddItemUnique(entityType.foreignKeyProperties, fkProp);
       });
@@ -2936,7 +2930,7 @@ function resolveRelated(np: NavigationProperty) {
   });
   let fkPropCollection = parentEntityType.foreignKeyProperties;
 
-  fkProps.forEach(function (dp) {
+  fkProps.forEach( (dp: DataProperty) => {
     core.arrayAddItemUnique(fkPropCollection, dp);
     dp.relatedNavigationProperty = np;
     // now update the inverse
@@ -2997,15 +2991,6 @@ class AutoGeneratedKeyTypeEnum extends TypedEnum<AutoGeneratedKeyTypeSymbol> {
 
 export const AutoGeneratedKeyType = new AutoGeneratedKeyTypeEnum();
 
-// Type guards
-function isEntityType(type: IStructuralType): type is EntityType {
-    return !type.isComplexType;
-}
-
-function isComplexType(type: IStructuralType): type is ComplexType {
-    return type.isComplexType;
-}
-
 // mixin methods
 
 declare module "./assert-param" {
@@ -3056,7 +3041,7 @@ function qualifyTypeName(shortName: string, ns?: string) {
 }
 
 // Used by both ComplexType and EntityType
-function addProperties(entityType: EntityType | ComplexType, propObj: Object | null, ctor: any) {
+function addProperties(entityType: StructuralType, propObj: Object | null, ctor: any) {
   if (propObj == null) return;
   if (Array.isArray(propObj)) {
     propObj.forEach(entityType._addPropertyCore.bind(entityType));
