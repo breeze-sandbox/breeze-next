@@ -679,6 +679,7 @@ export const core = {
 
     requireLib: requireLib,
     using: using,
+    wrapExecution: wrapExecution,
 
     memoize: memoize,
     getUuid: getUuid,

@@ -101,7 +101,7 @@ export class Param {
         });
     };
 
-    isRequired(allowNull: boolean): Param {
+    isRequired(allowNull: boolean = false): Param {
         return addContext(this, {
             fn: isRequired,
             allowNull: allowNull,

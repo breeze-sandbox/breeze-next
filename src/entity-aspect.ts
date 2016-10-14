@@ -1,4 +1,4 @@
-﻿import { EntityQuery, EntityManager } from '../typings/breeze1x'; // TODO: replace later
+﻿import { EntityQuery } from '../typings/breeze1x'; // TODO: replace later
 
 import { breeze, core } from './core-fns';
 import { config  } from './config';
@@ -8,6 +8,7 @@ import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
 import { EntityType, ComplexType, DataProperty, NavigationProperty, IStructuralProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
+import { EntityManager } from './entity-manager';
 import { Validator, ValidationError } from './validate';
 
 export interface IEntity {
@@ -55,8 +56,11 @@ export class EntityAspect {
   _pendingValidationResult: any;
   _entityKey: EntityKey;
   _loadedNps: any[];
+  _initialized?: boolean;
   validationErrorsChanged: BreezeEvent;
   propertyChanged: BreezeEvent;
+
+  _inProcessEntity: IEntity | null; // used in EntityManager
 
   static _nullInstance = new EntityAspect(null); // TODO: determine if this works
 
@@ -218,7 +222,7 @@ export class EntityAspect {
   @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
   @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
   **/
-  getKey(forceRefresh: boolean) {
+  getKey(forceRefresh: boolean = false) {
     forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
     if (forceRefresh || !this._entityKey) {
       let entityType = this.entity!.entityType;

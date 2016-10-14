@@ -46,6 +46,10 @@ breeze.config.setQ = function (q: any) {
 };
 breeze.Q = Q; // Todo: consider a "safer" way for apps to get breeze's Q. 
 
+interface IStructuralTypeMap {
+  [index: string]: EntityType | ComplexType;
+}
+
 export interface MetadataStoreConfig {
   namingConvention?: NamingConvention;
   localQueryComparisonOptions?: LocalQueryComparisonOptions;
@@ -72,7 +76,7 @@ export class MetadataStore {
 
   _resourceEntityTypeMap: {};
   _entityTypeResourceMap: {};
-  _structuralTypeMap: {}; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
+  _structuralTypeMap: IStructuralTypeMap; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
   _shortNameMap: {}; // key is shortName, value is qualified name - does not need to be serialized.
   _ctorRegistry: {}; // key is either short or qual type name - value is ctor;
   _incompleteTypeMap: {}; // key is entityTypeName; value is array of nav props
@@ -219,7 +223,8 @@ export class MetadataStore {
     if (isEntityType(structuralType)) {
       if (structuralType.baseTypeName && !structuralType.baseEntityType) {
         let baseEntityType = this._getEntityType(structuralType.baseTypeName, true);
-        structuralType._updateFromBase(baseEntityType);
+        // safe cast because we know that baseEntityType must be an EntityType if the structuralType is an EntityType
+        structuralType._updateFromBase(baseEntityType as EntityType);
       }
       if (structuralType.keyProperties.length === 0 && !structuralType.isAbstract) {
         throw new Error("Unable to add " + structuralType.name +
@@ -591,10 +596,11 @@ export class MetadataStore {
       let msg = core.formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName);
       throw new Error(msg);
     }
-    if (type.length) {
-      let typeNames = type.join(",");
-      throw new Error("There are multiple types with this 'shortName': " + typeNames);
-    }
+    // TODO: review this - don't think it can happen.
+    // if (type.length) {
+    //   let typeNames = type.join(",");
+    //   throw new Error("There are multiple types with this 'shortName': " + typeNames);
+    // }
     return type;
   };
 
@@ -651,7 +657,7 @@ export class MetadataStore {
 
     this._resourceEntityTypeMap[resourceName] = entityTypeName;
     let entityType = this._getEntityType(entityTypeName, true);
-    if (entityType && !entityType.defaultResourceName) {
+    if (entityType && entityType instanceof EntityType && !entityType.defaultResourceName) {
       entityType.defaultResourceName = resourceName;
     }
   };
@@ -700,7 +706,8 @@ export class MetadataStore {
     if (!typeName) {
       throw new Error("This entity has not been registered. See the MetadataStore.registerEntityTypeCtor method");
     }
-    let entityType = this._getEntityType(typeName);
+    // we know that it is an EntityType ( as opposed to a ComplexType)
+    let entityType =  this._getEntityType(typeName) as EntityType;
     if (entityType) {
       entity.entityType = entityType;
     }
@@ -711,8 +718,8 @@ export class MetadataStore {
 
 BreezeEvent.bubbleEvent(MetadataStore.prototype, null);
 
-function getTypesFromMap(typeMap: Object) {
-  let types: any[] = [];
+function getTypesFromMap(typeMap: IStructuralTypeMap) {
+  let types: (EntityType | ComplexType)[] = [];
   for (let key in typeMap) {
     let value = typeMap[key];
     // skip 'shortName' entries
@@ -763,7 +770,7 @@ function structuralTypeFromJson(metadataStore: MetadataStore, json: any, allowMe
   return stype;
 }
 
-function mergeStructuralType(stype: IStructuralType, json: any) {
+function mergeStructuralType(stype: EntityType | ComplexType, json: any) {
   if (json.custom) {
     stype.custom = json.custom;
   }
@@ -1959,6 +1966,7 @@ export class ComplexType implements IStructuralType {
   _mappedPropertiesCount: number;
   // navigationProperties: DataProperty[]; // not yet supported
   // keyProperties: DataPoperty[] // may be used later to enforce uniqueness on arrays of complextypes.
+  custom?: any;
 
   // copy entityType methods onto complexType
   getCtor = EntityType.prototype.getCtor;
