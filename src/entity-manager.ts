@@ -9,6 +9,7 @@ import { EntityAction } from './entity-action';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { DataService } from './data-service';
 import { DataType, DataTypeSymbol } from './data-type';
+import { ValidationError } from './validate';
 import { ValidationOptions } from './validation-options';
 import { QueryOptions, MergeStrategy, MergeStrategySymbol, FetchStrategy, FetchStrategySymbol } from './query-options';
 import { SaveOptions } from './save-options';
@@ -1146,15 +1147,15 @@ Attempts to locate an entity within this EntityManager by its key.
   getEntityByKey(...args: any[]) {
     let entityKey = createEntityKey(this, args).entityKey;
     let entityTypes = entityKey._subtypes || [entityKey.entityType];
-    let ek = null;
+    let e: IEntity | null = null;
     // hack use of some to simulate mapFirst logic.
     entityTypes.some( (et) => {
       let group = this._findEntityGroup(et);
       // group version of findEntityByKey doesn't care about entityType
-      let ek = group && group.findEntityByKey(entityKey);
-      return ek != null;
+      e = group && group.findEntityByKey(entityKey);
+      return e != null;
     });
-    return ek;
+    return e as IEntity | null;
   };
 
   /**
@@ -1702,11 +1703,11 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]) {
     }
   }
   if (foundIt) {
-    return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
   } else {
     return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data) {
       entity = (data.results.length === 0) ? null : data.results[0];
-      return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
+      return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
     });
   }
 };
@@ -1832,7 +1833,7 @@ function exportEntityGroups(em: EntityManager, entitiesOrEntityTypes: IEntity[] 
     entityGroupMap = em._entityGroupMap;
   }
 
-  let tempKeys = [];
+  let tempKeys:  ITempKey[] = [];
   let newGroupMap = {};
   core.objectForEach(entityGroupMap, (entityTypeName, entityGroup) => {
     newGroupMap[entityTypeName] = exportEntityGroup(entityGroup, tempKeys);
@@ -1841,7 +1842,7 @@ function exportEntityGroups(em: EntityManager, entitiesOrEntityTypes: IEntity[] 
   return { entityGroupMap: newGroupMap, tempKeys: tempKeys };
 }
 
-function exportEntityGroup(entityGroup: EntityGroup, tempKeys) {
+function exportEntityGroup(entityGroup: EntityGroup, tempKeys: ITempKey[]) {
   let resultGroup = {} as { entities: any[] };
   let entityType = entityGroup.entityType;
   let dps = entityType.dataProperties;
@@ -1857,7 +1858,7 @@ function exportEntityGroup(entityGroup: EntityGroup, tempKeys) {
   return resultGroup;
 }
 
-function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[], serializerFn: (dp: DataProperty, value: any) => any, tempKeys?: any) {
+function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[], serializerFn: (dp: DataProperty, value: any) => any, tempKeys?: ITempKey[]) {
 
   let result = {};
   dps.forEach(function (dp) {
@@ -1955,7 +1956,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, config) {
 
     let entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, rawValueFn);
     let entityState = EntityState.fromName(newAspect.entityState);
-    if (!entityState || entityState == EntityState.Detached) {
+    if (!entityState || entityState === EntityState.Detached) {
       throw new Error("Only entities with a non detached entity state may be imported.");
     }
 
@@ -2015,7 +2016,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, config) {
   return entitiesToLink;
 }
 
-function getMappedKey(tempKeyMap, entityKey: EntityKey) {
+function getMappedKey(tempKeyMap: ITempKeyMap, entityKey: EntityKey) {
   let newKey = tempKeyMap[entityKey.toString()];
   if (newKey) return newKey;
   let subtypes = entityKey._subtypes;
@@ -2110,8 +2111,6 @@ function validateEntityStates(em: EntityManager, entityStates?: EntityStateSymbo
   });
   return entStates;
 }
-
-
 
 function attachRelatedEntities(em: EntityManager, entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
   let navProps = entity.entityType.navigationProperties;
@@ -2517,7 +2516,6 @@ class UnattachedChildrenMap {
     return tuple;
   };
 
-
   getTuples(parentEntityKey: EntityKey) {
     let tuples = this.map[parentEntityKey.toString()];
     let entityType = parentEntityKey.entityType;
@@ -2528,7 +2526,6 @@ class UnattachedChildrenMap {
     }
     return tuples;
   };
-
 
 }
 
