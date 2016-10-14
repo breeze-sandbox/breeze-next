@@ -8,10 +8,17 @@ import { EntityKey } from './entity-key';
 import { EntityAction } from './entity-action';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { DataService } from './data-service';
+import { DataType, DataTypeSymbol } from './data-type';
 import { ValidationOptions } from './validation-options';
 import { QueryOptions, MergeStrategy, MergeStrategySymbol, FetchStrategy, FetchStrategySymbol } from './query-options';
 import { SaveOptions } from './save-options';
 import { KeyGenerator } from './key-generator';
+import { EntityGroup } from './entity-group';
+
+interface ITempKey {
+    entityType: string;
+    values: any[];
+}
 
 export interface EntityManagerConfig {
   serviceName?: string;
@@ -48,8 +55,14 @@ export class EntityManager {
   _pendingPubs: any[] | null; // TODO: refine later
   _hasChangesAction?: (() => boolean) | null; // TODO refine later
   _hasChanges: boolean;
-  _entityGroupMap: {};
+  _entityGroupMap: { [index: string]: EntityGroup };
   _unattachedChildrenMap: UnattachedChildrenMap;
+
+   helper = {
+     unwrapInstance: unwrapInstance,
+     unwrapOriginalValues: unwrapOriginalValues,
+     unwrapChangedValues: unwrapChangedValues
+   };
 
   /**
   At its most basic an EntityManager can be constructed with just a service name
@@ -564,9 +577,9 @@ export class EntityManager {
   @method clear
   **/
   clear() {
-    core.objectMap(this._entityGroupMap, function (key, entityGroup) {
-      return entityGroup._checkOperation();
-    }).forEach(function (entityGroup) {
+    core.objectMap(this._entityGroupMap, function (key: string, entityGroup: EntityGroup) {
+      return entityGroup._checkOperation('clear');
+    }).forEach((entityGroup: EntityGroup) => {
       entityGroup._clear();
     });
 
@@ -631,8 +644,8 @@ export class EntityManager {
   attachEntity(entity: IEntity, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol) {
     assertParam(entity, "entity").isRequired().check();
     this.metadataStore._checkEntityType(entity);
-    entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
-    mergeStrategy = assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check(MergeStrategy.Disallowed);
+    let esSymbol = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged) as EntityStateSymbol;
+    let msSymbol = assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check(MergeStrategy.Disallowed) as MergeStrategySymbol;
 
     if (entity.entityType.metadataStore !== this.metadataStore) {
       throw new Error("Cannot attach this entity because the EntityType (" + entity.entityType.name +
@@ -658,15 +671,15 @@ export class EntityManager {
     let that = this;
     let attachedEntity = {} as IEntity;
     core.using(this, "isLoading", true, function () {
-      if (entityState.isAdded()) {
+      if (esSymbol.isAdded()) {
         checkEntityKey(that, entity);
       }
       // attachedEntity === entity EXCEPT in the case of a merge.
-      attachedEntity = that._attachEntityCore(entity, entityState, mergeStrategy);
+      attachedEntity = that._attachEntityCore(entity, esSymbol, msSymbol);
       aspect._inProcessEntity = attachedEntity;
       try {
         // entity ( not attachedEntity) is deliberate here.
-        attachRelatedEntities(that, entity, entityState, mergeStrategy);
+        attachRelatedEntities(that, entity, esSymbol, msSymbol);
       } finally {
         // insure that _inProcessEntity is cleared.
         aspect._inProcessEntity = null;
@@ -675,7 +688,7 @@ export class EntityManager {
     if (this.validationOptions.validateOnAttach) {
       attachedEntity.entityAspect.validateEntity();
     }
-    if (!entityState.isUnchanged()) {
+    if (!esSymbol.isUnchanged()) {
       this._notifyStateChange(attachedEntity, true);
     }
     this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: attachedEntity });
@@ -948,7 +961,7 @@ export class EntityManager {
   
   @return {Promise} Promise
   **/
-  saveChanges(entities?: IEntity[] | null, saveOptions: SaveOptions, callback: Function, errorCallback: Function) {
+  saveChanges(entities?: IEntity[] | null, saveOptions?: SaveOptions, callback?: Function, errorCallback?: Function) {
     assertParam(entities, "entities").isOptional().isArray().isEntity().check();
     assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
     assertParam(callback, "callback").isFunction().isOptional().check();
@@ -1121,17 +1134,17 @@ Attempts to locate an entity within this EntityManager by its key.
   @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
   @return {Entity} An Entity or null;
   **/
-  getEntityByKey() {
-    let entityKey = createEntityKey(this, arguments).entityKey;
+  getEntityByKey(...args: any[]) {
+    let entityKey = createEntityKey(this, args).entityKey;
     let entityTypes = entityKey._subtypes || [entityKey.entityType];
     let ek = null;
     // hack use of some to simulate mapFirst logic.
-    entityTypes.some(function (et) {
+    entityTypes.some( (et) => {
       let group = this._findEntityGroup(et);
       // group version of findEntityByKey doesn't care about entityType
-      ek = group && group.findEntityByKey(entityKey);
-      return ek;
-    }, this);
+      let ek = group && group.findEntityByKey(entityKey);
+      return ek != null;
+    });
     return ek;
   };
 
@@ -1281,9 +1294,10 @@ an option to check the local cache first.
 
 
   // backdoor to "really" check for changes.
-  _hasChangesCore(entityTypes) {
-    entityTypes = checkEntityTypes(this, entityTypes);
-    let entityGroups = getEntityGroups(this, entityTypes);
+  _hasChangesCore(entityTypes?: EntityType | EntityType[] | string | string[]) {
+    let ets = checkEntityTypes(this, entityTypes);
+    if (!ets) return false;
+    let entityGroups = getEntityGroups(this, ets);
     return entityGroups.some(function (eg) {
       return eg && eg.hasChanges();
     });
@@ -1375,12 +1389,12 @@ an option to check the local cache first.
   If this parameter is omitted, entities of all EntityStates are returned.
   @return {Array of Entity} Array of Entities
   **/
-  getEntities(entityTypes: EntityType | EntityType[] | string | string[], entityStates: EntityStateSymbol | EntityStateSymbol[]) {
-    entityTypes = checkEntityTypes(this, entityTypes);
+  getEntities(entityTypes?: EntityType | EntityType[] | string | string[], entityStates?: EntityStateSymbol | EntityStateSymbol[]) {
+    let entTypes = checkEntityTypes(this, entityTypes);
     assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
 
     entityStates = entityStates && validateEntityStates(this, entityStates);
-    return getEntitiesCore(this, entityTypes, entityStates);
+    return getEntitiesCore(this, entTypes, entityStates);
   };
 
 
@@ -1541,7 +1555,9 @@ an option to check the local cache first.
 
   }
 
-  private _attachEntityCore(entity, entityState, mergeStrategy) {
+
+
+  private _attachEntityCore(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
     let group = findOrCreateEntityGroup(this, entity.entityType);
     let attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
     this._linkRelatedEntities(attachedEntity);
@@ -1726,7 +1742,7 @@ function getChangesCore(em: EntityManager, entityTypes: EntityType | EntityType[
   return selected || [];
 }
 
-function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null , entityStates: ) {
+function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null , entityStates ) {
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
@@ -1744,15 +1760,16 @@ function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType
   return selected || [];
 }
 
-function createEntityKey(em: EntityManager, args) {
+function createEntityKey(em: EntityManager, ...args: any[]) {
   try {
     if (args[0] instanceof EntityKey) {
-      return { entityKey: args[0], remainingArgs: core.arraySlice(args, 1) };
+      return { entityKey: args[0] as EntityKey, remainingArgs: core.arraySlice(args, 1) };
     } else if (args.length >= 2) {
       let entityType = (typeof args[0] === 'string') ? em.metadataStore._getEntityType(args[0], false) : args[0];
       return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: core.arraySlice(args, 2) };
     }
   } catch (e) {/* throw below */
+    // throw new Error("Must supply an EntityKey OR an EntityType name or EntityType followed by a key value or an array of key values.");
   }
   throw new Error("Must supply an EntityKey OR an EntityType name or EntityType followed by a key value or an array of key values.");
 }
@@ -1763,22 +1780,24 @@ function markIsBeingSaved(entities: IEntity[], flag: boolean) {
   });
 }
 
-function exportEntityGroups(em: EntityManager, entities: IEntity[]) {
-  let entityGroupMap;
-  let first = entities && entities[0];
+function exportEntityGroups(em: EntityManager, entitiesOrEntityTypes: IEntity[] | EntityType[] | string[]) {
+  let entityGroupMap: { [index: string]: EntityGroup };
+  let first = entitiesOrEntityTypes && entitiesOrEntityTypes[0];
+  // check if array
   if (first) {
     // group entities by entityType and
     // create 'groups' that look like entityGroups.
     entityGroupMap = {};
-    if (first.entityType) {
+    if ((first as any).entityType) {
+      let entities = entitiesOrEntityTypes as IEntity[];
       // assume "entities" is an array of entities;
       entities.forEach(function (e) {
-        if (e.entityAspect.entityState == EntityState.Detached) {
+        if (e.entityAspect.entityState === EntityState.Detached) {
           throw new Error("Unable to export an entity with an EntityState of 'Detached'");
         }
         let group = entityGroupMap[e.entityType.name];
         if (!group) {
-          group = {};
+          group = {} as EntityGroup;
           group.entityType = e.entityType;
           group._entities = [];
           entityGroupMap[e.entityType.name] = group;
@@ -1787,15 +1806,17 @@ function exportEntityGroups(em: EntityManager, entities: IEntity[]) {
       });
     } else {
       // assume "entities" is an array of EntityTypes (or names)
-      let entityTypes = checkEntityTypes(em, entities)
-      entityTypes.forEach(function (et) {
-        let group = em._entityGroupMap[et.name];
-        if (group && group._entities.length) {
-          entityGroupMap[et.name] = group;
-        }
-      })
+      let entityTypes = checkEntityTypes(em, entitiesOrEntityTypes as EntityType[] | string[]) as EntityType[];
+      if (entityTypes != null) {
+        entityTypes.forEach( (et) => {
+          let group = em._entityGroupMap[et.name];
+          if (group && group._entities.length) {
+            entityGroupMap[et.name] = group;
+          }
+        });
+      };
     }
-  } else if (entities && entities.length === 0) {
+  } else if (entitiesOrEntityTypes && entitiesOrEntityTypes.length === 0) {
     // empty array = export nothing
     entityGroupMap = {};
   } else {
@@ -1804,20 +1825,20 @@ function exportEntityGroups(em: EntityManager, entities: IEntity[]) {
 
   let tempKeys = [];
   let newGroupMap = {};
-  __objectForEach(entityGroupMap, function (entityTypeName, entityGroup) {
+  core.objectForEach(entityGroupMap, (entityTypeName, entityGroup) => {
     newGroupMap[entityTypeName] = exportEntityGroup(entityGroup, tempKeys);
   });
 
   return { entityGroupMap: newGroupMap, tempKeys: tempKeys };
 }
 
-function exportEntityGroup(entityGroup, tempKeys) {
-  let resultGroup = {};
+function exportEntityGroup(entityGroup: EntityGroup, tempKeys) {
+  let resultGroup = {} as { entities: any[] };
   let entityType = entityGroup.entityType;
   let dps = entityType.dataProperties;
   let serializerFn = getSerializerFn(entityType);
-  let rawEntities = [];
-  entityGroup._entities.forEach(function (entity) {
+  let rawEntities: any[] = [];
+  entityGroup._entities.forEach( (entity) => {
     if (entity) {
       let rawEntity = structuralObjectToJson(entity, dps, serializerFn, tempKeys);
       rawEntities.push(rawEntity);
@@ -1827,7 +1848,7 @@ function exportEntityGroup(entityGroup, tempKeys) {
   return resultGroup;
 }
 
-function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
+function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[], serializerFn: (dp: DataProperty, value: any) => any, tempKeys?: any) {
 
   let result = {};
   dps.forEach(function (dp) {
@@ -1836,24 +1857,25 @@ function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
     if (value == null && dp.defaultValue == null) return;
 
     if (value && dp.isComplexProperty) {
-      let coDps = dp.dataType.dataProperties;
-      value = __map(value, function (v) {
+      let coDps = (dp.dataType as ComplexType).dataProperties;
+      value = core.map(value, function (v: IComplexObject) {
         return structuralObjectToJson(v, coDps, serializerFn);
       });
     } else {
       value = serializerFn ? serializerFn(dp, value) : value;
       if (dp.isUnmapped) {
-        value = __toJSONSafe(value);
+        value = core.toJSONSafe(value);
       }
     }
     if (value === undefined) return;
     result[dpName] = value;
   });
-  let aspect, newAspect;
-  if (so.entityAspect) {
-    aspect = so.entityAspect;
+
+  // if (so.entityAspect) {
+  if (isEntity(so)) {
+    let aspect = so.entityAspect;
     let entityState = aspect.entityState;
-    newAspect = {
+    let newAspect = {
       tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
       entityState: entityState.name
     };
@@ -1865,9 +1887,9 @@ function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
     }
     result.entityAspect = newAspect;
   } else {
-    aspect = so.complexAspect;
-    newAspect = {};
-    if (aspect.originalValues && !__isEmpty(aspect.originalValues)) {
+    let aspect = so.complexAspect;
+    let newAspect = {};
+    if (aspect.originalValues && !core.isEmpty(aspect.originalValues)) {
       newAspect.originalValuesMap = aspect.originalValues;
     }
 
@@ -1877,7 +1899,12 @@ function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
   return result;
 }
 
-function exportTempKeyInfo(entityAspect, tempKeys) {
+// type-guard
+function isEntity(obj: IEntity | IComplexObject): obj is IEntity {
+  return (obj as any).entityAspect != null;
+}
+
+function exportTempKeyInfo(entityAspect: EntityAspect, tempKeys: EntityKey[]) {
   let entity = entityAspect.entity;
   if (entityAspect.hasTempKey) {
     tempKeys.push(entityAspect.getKey().toJSON());
@@ -1998,8 +2025,8 @@ function promiseWithCallbacks(promise, callback, errorCallback) {
   return promise;
 }
 
-function getEntitiesToSave(em, entities) {
-  let entitiesToSave;
+function getEntitiesToSave(em: EntityManager, entities?: IEntity[] | null) {
+  let entitiesToSave: IEntity[];
   if (entities) {
     entitiesToSave = entities.filter(function (e) {
       if (e.entityAspect.entityManager !== em) {
@@ -2013,7 +2040,7 @@ function getEntitiesToSave(em, entities) {
   return entitiesToSave;
 }
 
-function fixupKeys(em, keyMappings) {
+function fixupKeys(em: EntityManager, keyMappings) {
   em._inKeyFixup = true;
   keyMappings.forEach(function (km) {
     let group = em._entityGroupMap[km.entityTypeName];
@@ -2060,20 +2087,20 @@ function checkEntityKey(em: EntityManager, entity: IEntity) {
   }
 }
 
-function validateEntityStates(em, entityStates) {
+function validateEntityStates(em: EntityManager, entityStates?: EntityStateSymbol | EntityStateSymbol[]) {
   if (!entityStates) return null;
-  entityStates = __toArray(entityStates);
-  entityStates.forEach(function (es) {
+  let entStates = core.toArray(entityStates) as EntityStateSymbol[];
+  entStates.forEach((es) => {
     if (!EntityState.contains(es)) {
       throw new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
     }
   });
-  return entityStates;
+  return entStates;
 }
 
 
 
-function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
+function attachRelatedEntities(em: EntityManager, entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
   let navProps = entity.entityType.navigationProperties;
   navProps.forEach(function (np) {
     let related = entity.getProperty(np.name);
@@ -2081,7 +2108,7 @@ function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
       if (!related) return;
       em.attachEntity(related, entityState, mergeStrategy);
     } else {
-      related.forEach(function (e) {
+      related.forEach(function (e: IEntity) {
         em.attachEntity(e, entityState, mergeStrategy);
       });
     }
@@ -2089,7 +2116,7 @@ function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
 }
 
 // returns a promise
-function executeQueryCore(em, query, queryOptions, dataService) {
+function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: QueryOptions, dataService: DataService) {
   try {
     let results;
     let metadataStore = em.metadataStore;
@@ -2121,7 +2148,7 @@ function executeQueryCore(em, query, queryOptions, dataService) {
     let validateOnQuery = em.validationOptions.validateOnQuery;
 
     return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
-      let result = __wrapExecution(function () {
+      let result = core.wrapExecution(function () {
         let state = { isLoading: em.isLoading };
         em.isLoading = true;
         em._pendingPubs = [];
@@ -2145,7 +2172,7 @@ function executeQueryCore(em, query, queryOptions, dataService) {
 
       }, function () {
         let nodes = dataService.jsonResultsAdapter.extractResults(data);
-        nodes = __toArray(nodes);
+        nodes = core.toArray(nodes);
 
         results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
         if (validateOnQuery) {
@@ -2157,7 +2184,7 @@ function executeQueryCore(em, query, queryOptions, dataService) {
         mappingContext.processDeferred();
         // if query has expand clauses walk each of the 'results' and mark the expanded props as loaded.
         markLoadedNavProps(results, query);
-        let retrievedEntities = __objectMap(mappingContext.refMap);
+        let retrievedEntities = core.objectMap(mappingContext.refMap);
         return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount, retrievedEntities: retrievedEntities };
       });
       return Q.resolve(result);
@@ -2177,7 +2204,7 @@ function executeQueryCore(em, query, queryOptions, dataService) {
   }
 }
 
-function markLoadedNavProps(entities, query) {
+function markLoadedNavProps(entities: IEntity[], query: EntityQuery) {
   if (query.noTrackingEnabled) return;
   let expandClause = query.expandClause;
   if (expandClause == null) return;
@@ -2187,9 +2214,9 @@ function markLoadedNavProps(entities, query) {
   });
 }
 
-function markLoadedNavPath(entities, propNames) {
+function markLoadedNavPath(entities: IEntity[], propNames: string[]) {
   let propName = propNames[0];
-  entities.forEach(function (entity) {
+  entities.forEach((entity) => {
     let ea = entity.entityAspect;
     if (!ea) return; // entity may not be a 'real' entity in the case of a projection.
     ea._markAsLoaded(propName);
@@ -2203,8 +2230,8 @@ function markLoadedNavPath(entities, propNames) {
   });
 }
 
-function updateConcurrencyProperties(entities) {
-  let candidates = entities.filter(function (e) {
+function updateConcurrencyProperties(entities: IEntity[]) {
+  let candidates = entities.filter( (e) => {
     e.entityAspect.isBeingSaved = true;
     return e.entityAspect.entityState.isModified()
       && e.entityType.concurrencyProperties.length > 0;
@@ -2218,18 +2245,19 @@ function updateConcurrencyProperties(entities) {
   });
 }
 
-function updateConcurrencyProperty(entity, property) {
+function updateConcurrencyProperty(entity: IEntity, property: DataProperty) {
   // check if property has already been updated
   if (entity.entityAspect.originalValues[property.name]) return;
   let value = entity.getProperty(property.name);
-  if (!value) value = property.dataType.defaultValue;
-  if (property.dataType.isNumeric) {
+  let dataType = property.dataType as DataTypeSymbol;
+  if (!value) value = dataType.defaultValue;
+  if (dataType.isNumeric) {
     entity.setProperty(property.name, value + 1);
-  } else if (property.dataType.getConcurrencyValue) {
+  } else if (dataType.getConcurrencyValue) {
     // DataType has its own implementation
-    let nextValue = property.dataType.getConcurrencyValue(value);
+    let nextValue = dataType.getConcurrencyValue(value);
     entity.setProperty(property.name, nextValue);
-  } else if (property.dataType === DataType.Binary) {
+  } else if (dataType === DataType.Binary) {
     // best guess - that this is a timestamp column and is computed on the server during save
     // - so no need to set it here.
     return;
@@ -2242,7 +2270,7 @@ function updateConcurrencyProperty(entity, property) {
 }
 
 
-function findOrCreateEntityGroup(em, entityType) {
+function findOrCreateEntityGroup(em: EntityManager, entityType: EntityType) {
   let group = em._entityGroupMap[entityType.name];
   if (!group) {
     group = new EntityGroup(em, entityType);
@@ -2251,30 +2279,26 @@ function findOrCreateEntityGroup(em, entityType) {
   return group;
 }
 
-function findOrCreateEntityGroups(em, entityType) {
+function findOrCreateEntityGroups(em: EntityManager, entityType: EntityType) {
   let entityTypes = entityType.getSelfAndSubtypes();
-  return entityTypes.map(function (et) {
+  return entityTypes.map( (et) => {
     return findOrCreateEntityGroup(em, et);
   });
 }
 
 
-proto.helper = {
-  unwrapInstance: unwrapInstance,
-  unwrapOriginalValues: unwrapOriginalValues,
-  unwrapChangedValues: unwrapChangedValues
-};
 
 
-function unwrapInstance(structObj, transformFn) {
+
+function unwrapInstance(structObj: IEntity | IComplexObject, transformFn: (dp: DataProperty, val: any) => any) {
 
   let rawObject = {};
-  let stype = structObj.entityType || structObj.complexType;
+  let stype = isEntity(structObj) ? structObj.entityType : structObj.complexType;
   let serializerFn = getSerializerFn(stype);
   let unmapped = {};
   stype.dataProperties.forEach(function (dp) {
     if (dp.isComplexProperty) {
-      rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
+      rawObject[dp.nameOnServer] = core.map(structObj.getProperty(dp.name), function (co) {
         return unwrapInstance(co, transformFn);
       });
     } else {
@@ -2284,7 +2308,7 @@ function unwrapInstance(structObj, transformFn) {
       val = serializerFn ? serializerFn(dp, val) : val;
       if (val !== undefined) {
         if (dp.isUnmapped) {
-          unmapped[dp.nameOnServer] = __toJSONSafe(val);
+          unmapped[dp.nameOnServer] = core.toJSONSafe(val);
         } else {
           rawObject[dp.nameOnServer] = val;
         }
@@ -2292,8 +2316,9 @@ function unwrapInstance(structObj, transformFn) {
     }
   });
 
-  if (!__isEmpty(unmapped)) {
-    rawObject.__unmapped = unmapped;
+  if (!core.isEmpty(unmapped)) {
+    // TODO: review this.
+    (rawObject as any).__unmapped = unmapped;
   }
   return rawObject;
 }
@@ -2356,14 +2381,14 @@ function unwrapChangedValues(entity, metadataStore, transformFn) {
   return result;
 }
 
-function cpHasOriginalValues(structuralObject, cp) {
+function cpHasOriginalValues(structuralObject: IEntity | IComplexObject, cp: DataProperty): boolean {
   let coOrCos = structuralObject.getProperty(cp.name);
   if (cp.isScalar) {
     return coHasOriginalValues(coOrCos);
   } else {
     // this occurs when a nonscalar co array has had cos added or removed.
     if (coOrCos._origValues) return true;
-    return coOrCos.some(function (co) {
+    return coOrCos.some(function (co: IComplexObject) {
       return coHasOriginalValues(co);
     });
   }
@@ -2421,16 +2446,16 @@ function executeQueryLocallyCore(em, query) {
   return { results: result, inlineCount: inlineCount };
 };
 
-function coHasOriginalValues(co) {
+function coHasOriginalValues(co: IComplexObject) {
   // next line checks all non complex properties of the co.
-  if (!__isEmpty(co.complexAspect.originalValues)) return true;
+  if (!core.isEmpty(co.complexAspect.originalValues)) return true;
   // now need to recursively check each of the cps
   return co.complexType.complexProperties.some(function (cp) {
     return cpHasOriginalValues(co, cp);
   });
 }
 
-function getSerializerFn(stype) {
+function getSerializerFn(stype: EntityType | ComplexType) {
   return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
 }
 

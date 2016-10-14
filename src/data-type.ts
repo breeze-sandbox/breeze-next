@@ -8,6 +8,14 @@ export class DataTypeSymbol extends EnumSymbol {
   validatorCtor?:  (context?: any) => Validator ;
   normalize?: Function;
   parseRawValue?: Function;
+  defaultValue?: any;
+  isNumeric?: boolean;
+  isInteger?: boolean;
+  quoteJsonOData?: boolean;
+  parse?: Function;
+  fmtOData?: Function;
+  getNext?: Function;
+  getConcurrencyValue?: Function;
 }
 
 /**

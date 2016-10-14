@@ -660,10 +660,11 @@ export const core = {
     getPropertyDescriptor: getPropDescriptor,
     objectForEach:  objectForEach,
     objectFirst: objectFirst,
-    objectMap: objectMap,
+    objectMap: objectMap, // TODO: replace this with something strongly typed.
     extend: extend,
     propEq: propEq,
     pluck: pluck,
+    map: map,
     resolveProperties: resolveProperties,
     setAsDefault: setAsDefault,
     updateWithDefaults: updateWithDefaults,
