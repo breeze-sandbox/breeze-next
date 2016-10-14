@@ -1,4 +1,11 @@
 ﻿// import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
+export interface ErrorCallback {
+    (error: Error): void;
+}
+
+export interface Callback {
+    (data: any): void;
+}
 
 let hasOwnProperty: (obj: Object, key: string) => boolean = uncurry(Object.prototype.hasOwnProperty);
 let arraySlice: (ar: any[], start?: number, end?: number) => any[] = uncurry(Array.prototype.slice);

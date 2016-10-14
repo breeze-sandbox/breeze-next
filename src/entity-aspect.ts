@@ -1,12 +1,12 @@
 ﻿import { EntityQuery } from '../typings/breeze1x'; // TODO: replace later
 
-import { breeze, core } from './core-fns';
+import { breeze, core, Callback, ErrorCallback } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
-import { EntityType, ComplexType, DataProperty, NavigationProperty, IStructuralProperty } from './entity-metadata';
+import { EntityType, ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
 import { EntityManager } from './entity-manager';
 import { Validator, ValidationError } from './validate';
@@ -52,7 +52,7 @@ export class EntityAspect {
   originalValues: {};
   hasValidationErrors: boolean;
   hasTempKey: boolean;
-  _validationErrors: Object;
+  _validationErrors: { [index: string]: ValidationError };
   _pendingValidationResult: any;
   _entityKey: EntityKey;
   _loadedNps: any[];
@@ -439,7 +439,7 @@ export class EntityAspect {
       - query {EntityQuery} The original query
       - httpResponse {httpResponse} The HttpResponse returned from the server.
   **/
-  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: any, errorCallback: any) {
+  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: Callback, errorCallback: ErrorCallback) {
     if (!this.entity || this.entity.entityAspect || this.entity.entityAspect!.entityManager) return;
     let entity = this.entity;
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
@@ -450,10 +450,10 @@ export class EntityAspect {
     return promise.then(function (data) {
       that._markAsLoaded(navProperty.name);
       if (callback) callback(data);
-      return Q.resolve(data);
+      return Promise.resolve(data);
     }, function (error) {
       if (errorCallback) errorCallback(error);
-      return Q.reject(error);
+      return Promise.reject(error);
     });
 
   };
@@ -547,7 +547,7 @@ export class EntityAspect {
   @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
   @return {Boolean} Whether the entity passed validation.
   **/
-  validateProperty = function (property: DataProperty | NavigationProperty | String, context: any) {
+  validateProperty(property: EntityProperty | string, context: any) {
     let value = this.getPropertyValue(property); // performs validations
     if (value && value.complexAspect) {
       return validateTarget(value);
@@ -555,11 +555,11 @@ export class EntityAspect {
     context = context || {};
     context.entity = this.entity;
     if (typeof property === "string") {
-      context.property = this.entity.entityType.getProperty(property, true);
+      context.property = this.entity!.entityType.getProperty(property, true);
       context.propertyName = property;
     } else {
       context.property = property;
-      context.propertyName = (property as IStructuralProperty).name;
+      context.propertyName = property.name;
     }
 
     return this._validateProperty(value, context);

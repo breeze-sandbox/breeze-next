@@ -15,50 +15,33 @@ import { DataService } from './data-service';
 import { NamingConvention } from './naming-convention';
 import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate this later;
 
-// Get the promises library called Q
-// define a quick failing version if not found.
-let Q = core.requireLib("Q;q");
+export type EntityProperty = DataProperty | NavigationProperty;
 
-
-if (!Q) {
-  // No Q.js! Substitute a placeholder Q which always fails
-  // Should be replaced by the app via breeze.config.setQ
-  // For example, see Breeze Labs "breeze.angular"
-  Q = function () {
-    let eMsg = 'Q is undefined. Are you missing Q.js? See https://github.com/kriskowal/q';
-    throw new Error(eMsg);
-  };
-
-  // all Q methods called by Breeze should fail
-  Q.defer = Q.resolve = Q.reject = Q;
-}
-
-/**
- (Re)set Q with a promises implementation suitable for Breeze internal use.  Note: This API is likely to change.
- @method setQ
- @param q {Object} - a  "thenable" promises implementation like Q.js with the API that Breeze requires internally.
- @param [q.defer] {Function} A function returning a deferred.
- @param [q.resolve] {Function} A function returning a resolved promise.
- @param [q.reject] {Function} A function returning a rejected promise.
- **/
-breeze.config.setQ = function (q: any) {
-  breeze.Q = Q = q;
-};
-breeze.Q = Q; // Todo: consider a "safer" way for apps to get breeze's Q. 
-
-type EntityProperty = DataProperty | NavigationProperty;
-
-type StructuralType = EntityType | ComplexType;
+export type StructuralType = EntityType | ComplexType;
 
 interface IStructuralTypeMap {
   [index: string]: StructuralType;
 }
 
+// TODO: consider
+export interface IMetadataJson {
+     metadataVersion: string;
+     name: string;
+     namingConvention: string;
+     localQueryComparisonOptions: string;
+     dataServices: Object[]; // IDataServiceJson[]
+     structuralTypes: Object[]; // IStructuralTypeJson[]; 
+     resourceEntityTypeMap: Object[]; // IResourceEntityTypeJson[]
+     incompleteTypeMap: Object[];
+}
+
 export interface MetadataStoreConfig {
   namingConvention?: NamingConvention;
   localQueryComparisonOptions?: LocalQueryComparisonOptions;
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
 }
+
+
 /**
 An instance of the MetadataStore contains all of the metadata about a collection of {{#crossLink "EntityType"}}{{/crossLink}}'s.
 MetadataStores may be shared across {{#crossLink "EntityManager"}}{{/crossLink}}'s.  If an EntityManager is created without an
@@ -75,7 +58,7 @@ export class MetadataStore {
   dataServices: DataService[];
   namingConvention: NamingConvention;
   localQueryComparisonOptions: LocalQueryComparisonOptions;
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
   metadataFetched: BreezeEvent;
 
   _resourceEntityTypeMap: {};
@@ -324,12 +307,13 @@ export class MetadataStore {
   importMetadata(exportedMetadata: string | Object, allowMerge: boolean = false) {
     assertParam(allowMerge, "allowMerge").isOptional().isBoolean().check();
     this._deferredTypes = {};
-    let json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
+    let metadataJson = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
 
-    if (json.schema) {
-      return CsdlMetadataParser.parse(this, json.schema, json.altMetadata);
+    if (metadataJson.schema) {
+      return CsdlMetadataParser.parse(this, metadataJson.schema, metadataJson.altMetadata);
     }
 
+    let json = metadataJson as IMetadataJson;
     if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
       let msg = core.formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
         json.metadataVersion, breeze.metadataVersion);
@@ -469,7 +453,6 @@ export class MetadataStore {
 
       dataService = DataService.resolve([dataService]);
 
-
       if (this.hasMetadataFor(dataService.serviceName)) {
         throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
       }
@@ -477,13 +460,13 @@ export class MetadataStore {
       return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata: any) {
         that.metadataFetched.publish({ metadataStore: that, dataService: dataService, rawMetadata: rawMetadata });
         if (callback) callback(rawMetadata);
-        return Q.resolve(rawMetadata);
+        return Promise.resolve(rawMetadata);
       }, function (error: any) {
         if (errorCallback) errorCallback(error);
-        return Q.reject(error);
+        return Promise.reject(error);
       });
     } catch (e) {
-      return Q.reject(e);
+      return Promise.reject(e);
     }
   };
 
@@ -870,14 +853,14 @@ export interface EntityTypeConfig {
   defaultResourceName?: string;
   dataProperties?: DataProperty[];
   navigationProperties?: NavigationProperty[];
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
   custom?: Object;
 }
 
 export interface EntityTypeSetConfig {
   autoGeneratedKeyType?: AutoGeneratedKeyTypeSymbol;
   defaultResourceName?: string;
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
   custom?: Object;
 }
 
@@ -903,7 +886,7 @@ export class EntityType {
   autoGeneratedKeyType: AutoGeneratedKeyTypeSymbol;
   defaultResourceName: string;
 
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
   custom?: Object;
   unmappedProperties: DataProperty[];
   validators: Validator[];
@@ -1978,7 +1961,7 @@ export class ComplexType  {
   // note the name change.
   createInstance = EntityType.prototype.createEntity;  // name change
   warnings: any[];
-  serializerFn?: Function;
+  serializerFn?: (prop: EntityProperty, val: any) => any;
 
 
   constructor(config: ComplexTypeConfig) {
