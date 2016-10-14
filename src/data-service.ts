@@ -1,6 +1,8 @@
 ﻿import { breeze, core } from './core-fns';
 import { config } from './config';
 import { assertConfig } from './assert-param';
+import { EntityType } from './entity-metadata';
+import { MappingContext } from './mapping-context';
 
 export interface DataServiceConfig {
   serviceName?: string;
@@ -210,13 +212,26 @@ function updateWithConfig(obj: DataService, dsConfig: DataServiceConfig) {
   return obj;
 }
 
+export interface INodeMeta {
+  entityType?: EntityType;
+  nodeId?: string;
+  nodeRefId?: string;
+  ignore?: boolean;
+  passThru?: boolean;
+  extraMetadata?: any;
+}
+
+export interface INodeContext {
+  nodeType: string;
+}
+
 export interface JsonResultsAdapterConfig {
   name?: string;
 
   extractResults?: Function;
   extractSaveResults?: Function;
   extractKeyMappings?: Function;
-  visitNode?: Function;
+  visitNode?: (v: any, mc: MappingContext, nodeContext: INodeContext) => INodeMeta;
 }
 
 /**

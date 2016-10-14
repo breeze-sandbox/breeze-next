@@ -130,7 +130,7 @@ export class EntityGroup {
     return changes;
   };
 
-  getEntities(entityStates?: EntityStateSymbol[]) {
+  getEntities(entityStates: EntityStateSymbol[]) {
     let filter = getFilter(entityStates);
     return this._entities.filter(filter);
   };
@@ -192,8 +192,8 @@ export class EntityGroup {
 
 }
 
-function getFilter(entityStates?: EntityStateSymbol[]) {
-  if (!entityStates) {
+function getFilter(entityStates: EntityStateSymbol[]) {
+  if (entityStates.length === 0) {
     return function (e: IEntity) {
       return !!e;
     };

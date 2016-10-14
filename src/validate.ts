@@ -932,7 +932,7 @@ Constructs a new ValidationError
 @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here.
 **/
 export class ValidationError {
-  validator: Validator;
+  validator: Validator | null;
   key: string;
   context: any;
   errorMessage: string;
@@ -940,7 +940,7 @@ export class ValidationError {
   propertyName: string;
   isServerError: boolean;
 
-  constructor(validator: Validator, context: any, errorMessage: string, key?: string) {
+  constructor(validator: Validator | null, context: any, errorMessage: string, key?: string) {
     // Error is with isInstanceOf(Validator)
     assertParam(validator, "validator").isOptional().isInstanceOf(Validator).check();
     assertParam(errorMessage, "errorMessage").isNonEmptyString().check();

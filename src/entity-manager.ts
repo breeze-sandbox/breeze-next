@@ -2,7 +2,7 @@
 import { assertParam, assertConfig } from './assert-param';
 import { config } from './config';
 import { BreezeEvent } from './event';
-import { EntityAspect, ComplexAspect, IEntity, IComplexObject } from './entity-aspect';
+import { EntityAspect, ComplexAspect, IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
 import {
   MetadataStore, EntityType, ComplexType, StructuralType,
   DataProperty, NavigationProperty, EntityProperty,
@@ -19,6 +19,15 @@ import { QueryOptions, MergeStrategy, MergeStrategySymbol, FetchStrategy, FetchS
 import { SaveOptions } from './save-options';
 import { KeyGenerator } from './key-generator';
 import { EntityGroup } from './entity-group';
+import { MappingContext} from './mapping-context';
+
+interface IEntityError {
+  entity: IEntity;
+  errorName: string;
+  errorMessage: string;
+  propertyName: string;
+  isServerError: boolean;
+}
 
 
 
@@ -36,6 +45,19 @@ interface IImportConfig {
   mergeStrategy?: MergeStrategySymbol;
   metadataVersionFn?: (arg: { metadataVersion: any, metadataStoreName: any }) => void;
   tempKeyMap?: ITempKeyMap;
+}
+
+interface ISaveResult {
+  entities: IEntity[];
+  keyMappings: IKeyMapping[];
+  // XHR: XMLHttpRequest;
+}
+
+interface ISaveContext {
+   entityManager: EntityManager;
+   dataService: DataService;
+   processSavedEntities: (saveResult: ISaveResult) => IEntity[];
+   resourceName: string;
 }
 
 export interface EntityManagerConfig {
@@ -1018,7 +1040,7 @@ export class EntityManager {
     }
 
     let dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
-    let saveContext = {
+    let saveContext: ISaveContext = {
       entityManager: this,
       dataService: dataService,
       processSavedEntities: processSavedEntities,
@@ -1042,10 +1064,11 @@ export class EntityManager {
       return Promise.reject(err);
     }
 
-    function saveSuccess(saveResult) {
+    function saveSuccess(saveResult: ISaveResult) {
       let em = saveContext.entityManager;
       markIsBeingSaved(entitiesToSave, false);
-      let savedEntities = saveResult.entities = saveContext.processSavedEntities(saveResult);
+      let savedEntities =  saveContext.processSavedEntities(saveResult);
+      saveResult.entities = savedEntities;
 
       // update _hasChanges after save.
       em._setHasChanges(null);
@@ -1058,7 +1081,7 @@ export class EntityManager {
       return Promise.resolve(saveResult);
     }
 
-    function processSavedEntities(saveResult) {
+    function processSavedEntities(saveResult: ISaveResult) {
 
       let savedEntities = saveResult.entities;
 
@@ -1120,7 +1143,7 @@ export class EntityManager {
       });
       if (failedEntities.length > 0) {
         let valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
-        valError.entityErrors = createEntityErrors(failedEntities);
+        (valError as any).entityErrors = createEntityErrors(failedEntities);
         return valError;
       }
     }
@@ -1412,7 +1435,7 @@ an option to check the local cache first.
     let entTypes = checkEntityTypes(this, entityTypes);
     assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
 
-    let states = entityStates && validateEntityStates(this, entityStates);
+    let states = validateEntityStates(this, entityStates);
     return getEntitiesCore(this, entTypes, states);
   };
 
@@ -1471,7 +1494,8 @@ an option to check the local cache first.
             return e.entityAspect.entityState !== EntityState.Detached;
           });
 
-          let childToParentNp, parentToChildNp;
+          let childToParentNp: NavigationProperty;
+          let parentToChildNp: NavigationProperty;
 
           // np is usually childToParentNp
           // except with unidirectional 1-n where it is parentToChildNp;
@@ -1493,6 +1517,7 @@ an option to check the local cache first.
                 child.setProperty(childToParentNp.name, entity);
               });
             }
+            unattachedMap.removeChildren(entityKey, childToParentNp);
           } else {
             // unidirectional
             // if (np.isScalar || np.parentType !== entity.entityType) {
@@ -1503,6 +1528,7 @@ an option to check the local cache first.
               unattachedChildren.forEach(function (child) {
                 child.setProperty(childToParentNp.name, entity);
               });
+              unattachedMap.removeChildren(entityKey, childToParentNp);
             } else {
               // 1 -> n  eg: parent: Region child: Terr
               // TODO: need to remove unattached children from the map after this; only a perf issue.
@@ -1514,7 +1540,6 @@ an option to check the local cache first.
               });
             }
           }
-          unattachedMap.removeChildren(entityKey, childToParentNp);
         });
       }
 
@@ -1574,9 +1599,7 @@ an option to check the local cache first.
 
   }
 
-
-
-  private _attachEntityCore(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
+  _attachEntityCore(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
     let group = findOrCreateEntityGroup(this, entity.entityType);
     let attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
     this._linkRelatedEntities(attachedEntity);
@@ -1592,7 +1615,7 @@ an option to check the local cache first.
 
 function clearServerErrors(entities: IEntity[]) {
   entities.forEach(function (entity) {
-    let serverKeys = [];
+    let serverKeys: string[] = [];
     let aspect = entity.entityAspect;
     core.objectForEach(aspect._validationErrors, function (key, ve) {
       if (ve.isServerError) serverKeys.push(key);
@@ -1607,13 +1630,13 @@ function clearServerErrors(entities: IEntity[]) {
 }
 
 function createEntityErrors(entities: IEntity[]) {
-  let entityErrors = [];
+  let entityErrors: IEntityError[] = [];
   entities.forEach( (entity) => {
     core.objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
       let cfg = core.extend({
         entity: entity,
         errorName: ve.validator.name
-      }, ve, ["errorMessage", "propertyName", "isServerError"]);
+      }, ve, ["errorMessage", "propertyName", "isServerError"]) as IEntityError;
       entityErrors.push(cfg);
     });
   });
@@ -1621,20 +1644,21 @@ function createEntityErrors(entities: IEntity[]) {
 }
 
 
-function processServerErrors(saveContext, error) {
-  let serverErrors = error.entityErrors;
+function processServerErrors(saveContext: ISaveContext, saveError) {
+  let serverErrors = saveError.entityErrors;
   if (!serverErrors) return;
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
-  error.entityErrors = serverErrors.map(function (serr) {
-    let entity = null;
+  saveError.entityErrors = serverErrors.map(function (serr) {
+    let entity: IEntity | null = null;
+    let entityType: EntityType | null = null;
     if (serr.keyValues) {
-      let entityType = metadataStore._getEntityType(serr.entityTypeName);
+      entityType = metadataStore._getStructuralType(serr.entityTypeName) as EntityType;
       let ekey = new EntityKey(entityType, serr.keyValues);
       entity = entityManager.findEntityByKey(ekey);
     }
 
-    if (entity) {
+    if (entityType && entity) {
       let context = serr.propertyName ?
         {
           propertyName: serr.propertyName,
@@ -1648,25 +1672,13 @@ function processServerErrors(saveContext, error) {
       entity.entityAspect.addValidationError(ve);
     }
 
-    let entityError = __extend({
+    let entityError = core.extend({
       entity: entity,
       isServerError: true
-    }, serr, ["errorName", "errorMessage", "propertyName"]);
+    }, serr, ["errorName", "errorMessage", "propertyName"]) as IEntityError;
     return entityError;
   });
 }
-
-// No longer used
-//  function haveSameContents(arr1, arr2) {
-//    if (arr1.length !== arr2.length) {
-//      return false;
-//    }
-//    for (let i = 0, c = arr1.length; i < c; i++) {
-//      if (arr1[i] !== arr2[i]) return false;
-//    }
-//    return true;
-//  }
-
 
 /**
 Attempts to fetch an entity from the server by its key with
@@ -1697,12 +1709,12 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]) {
   let tpl = createEntityKey(em, args);
   let entityKey = tpl.entityKey;
   let checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
-  let entity: IEntity | null;
+  let entity: IEntity | null = null;
   let foundIt = false;
   if (checkLocalCacheFirst) {
     entity = em.getEntityByKey(entityKey);
     foundIt = entity != null;
-    if (foundIt &&
+    if (entity != null &&
       // null the entity if it is deleted and we should exclude deleted entities
       !em.queryOptions.includeDeleted && entity.entityAspect.entityState.isDeleted()) {
       entity = null;
@@ -1761,7 +1773,7 @@ function getChangesCore(em: EntityManager, entityTypes: EntityType | EntityType[
   return selected || [];
 }
 
-function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null, entityStates) {
+function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null, entityStates: EntityStateSymbol[]) {
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
@@ -1867,7 +1879,7 @@ function exportEntityGroup(entityGroup: EntityGroup, tempKeys: ITempKey[]) {
   return resultGroup;
 }
 
-function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[], serializerFn?: (dp: DataProperty, value: any) => any, tempKeys?: ITempKey[]) {
+function structuralObjectToJson(so: IStructuralObject, dps: DataProperty[], serializerFn?: (dp: DataProperty, value: any) => any, tempKeys?: ITempKey[]) {
 
   let result = {};
   dps.forEach(function (dp) {
@@ -1891,11 +1903,11 @@ function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[
   });
 
   // if (so.entityAspect) {
-  if (isEntity(so)) {
+  if (EntityAspect.isEntity(so)) {
     let aspect = so.entityAspect;
     let entityState = aspect.entityState;
     let newAspect = {
-      tempNavPropNames: exportTempKeyInfo(aspect, tempKeys),
+      tempNavPropNames: exportTempKeyInfo(aspect, tempKeys || []),
       entityState: entityState.name
     };
     if (aspect.extraMetadata) {
@@ -1916,11 +1928,6 @@ function structuralObjectToJson(so: IEntity | IComplexObject, dps: DataProperty[
   }
 
   return result;
-}
-
-// type-guard
-function isEntity(obj: IEntity | IComplexObject): obj is IEntity {
-  return (obj as any).entityAspect != null;
 }
 
 interface ITempKey {
@@ -2111,7 +2118,7 @@ function checkEntityKey(em: EntityManager, entity: IEntity) {
 }
 
 function validateEntityStates(em: EntityManager, entityStates?: EntityStateSymbol | EntityStateSymbol[]) {
-  if (!entityStates) return null;
+  if (!entityStates) return [] as EntityStateSymbol[];
   let entStates = core.toArray(entityStates) as EntityStateSymbol[];
   entStates.forEach((es) => {
     if (!EntityState.contains(es)) {
@@ -2155,7 +2162,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
       }
     }
 
-    let mappingContext = new MappingContext({
+    let mappingContext: MappingContext | null = new MappingContext({
       query: query,
       entityManager: em,
       dataService: dataService,
@@ -2195,17 +2202,17 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
         let nodes = dataService.jsonResultsAdapter.extractResults(data);
         nodes = core.toArray(nodes);
 
-        results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
+        results = mappingContext!.visitAndMerge(nodes, { nodeType: "root" });
         if (validateOnQuery) {
-          results.forEach(function (r) {
+          results.forEach(function (r: any) {
             // anon types and simple types will not have an entityAspect.
             r.entityAspect && r.entityAspect.validateEntity();
           });
         }
-        mappingContext.processDeferred();
+        mappingContext!.processDeferred();
         // if query has expand clauses walk each of the 'results' and mark the expanded props as loaded.
         markLoadedNavProps(results, query);
-        let retrievedEntities = core.objectMap(mappingContext.refMap);
+        let retrievedEntities = core.objectMap(mappingContext!.refMap);
         return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount, retrievedEntities: retrievedEntities };
       });
       return Promise.resolve(result);
@@ -2307,10 +2314,10 @@ function findOrCreateEntityGroups(em: EntityManager, entityType: EntityType) {
   });
 }
 
-function unwrapInstance(structObj: IEntity | IComplexObject, transformFn: (dp: DataProperty, val: any) => any) {
+function unwrapInstance(structObj: IStructuralObject, transformFn?: (dp: DataProperty, val: any) => any) {
 
   let rawObject = {};
-  let stype = isEntity(structObj) ? structObj.entityType : structObj.complexType;
+  let stype = EntityAspect.isEntity(structObj) ? structObj.entityType : structObj.complexType;
   let serializerFn = getSerializerFn(stype);
   let unmapped = {};
   stype.dataProperties.forEach(function (dp) {
@@ -2340,9 +2347,9 @@ function unwrapInstance(structObj: IEntity | IComplexObject, transformFn: (dp: D
   return rawObject;
 }
 
-function unwrapOriginalValues(target: IEntity | IComplexObject, metadataStore: MetadataStore, transformFn: (dp: DataProperty, val: any) => any) {
-  let stype = isEntity(target) ? target.entityType : target.complexType;
-  let aspect = isEntity(target) ? target.entityAspect : target.complexAspect;
+function unwrapOriginalValues(target: IStructuralObject, metadataStore: MetadataStore, transformFn: (dp: DataProperty, val: any) => any) {
+  let stype = EntityAspect.isEntity(target) ? target.entityType : target.complexType;
+  let aspect = EntityAspect.isEntity(target) ? target.entityAspect : target.complexAspect;
   let fn = metadataStore.namingConvention.clientPropertyNameToServer;
   let result = {};
   core.objectForEach(aspect.originalValues, function (propName, val) {
@@ -2398,7 +2405,7 @@ function unwrapChangedValues(entity: IEntity, metadataStore: MetadataStore, tran
   return result;
 }
 
-function cpHasOriginalValues(structuralObject: IEntity | IComplexObject, cp: DataProperty): boolean {
+function cpHasOriginalValues(structuralObject: IStructuralObject, cp: DataProperty): boolean {
   let coOrCos = structuralObject.getProperty(cp.name);
   if (cp.isScalar) {
     return coHasOriginalValues(coOrCos);

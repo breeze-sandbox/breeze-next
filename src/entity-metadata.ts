@@ -7,7 +7,7 @@ import { assertParam, assertConfig, Param } from './assert-param';
 import { DataType, DataTypeSymbol } from './data-type';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
-import { EntityAspect, ComplexAspect, IEntity, IComplexObject  } from './entity-aspect';
+import { EntityAspect, ComplexAspect, IEntity, IComplexObject, IStructuralObject  } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { Validator, ValidationError } from './validate';
 import { Enum, EnumSymbol, TypedEnum } from './enum';
@@ -740,7 +740,7 @@ function structuralTypeFromJson(metadataStore: MetadataStore, json: any, allowMe
   stype = json.isComplexType ? new ComplexType(config) : new EntityType(config);
 
   // baseType may not have been imported yet so we need to defer handling this type until later.
-  if (json.baseTypeName) {
+  if (json.baseTypeName && stype instanceof EntityType) {
     stype.baseTypeName = json.baseTypeName;
     let baseEntityType = metadataStore._getStructuralType(json.baseTypeName, true);
     if (baseEntityType) {
@@ -780,7 +780,7 @@ function mergeProps(stype: StructuralType, jsonProps: any[]) {
     }
     if (jsonProp.custom) {
       let prop = stype.getProperty(propName, true);
-      prop.custom = jsonProp.custom;
+      prop!.custom = jsonProp.custom;
     }
   });
 }
@@ -905,7 +905,7 @@ export class EntityType {
   isAnonymous: boolean;
   isFrozen: boolean;
   _extra: any;
-  _ctor: Function;
+  _ctor: { new (): IStructuralObject };
   initFn: Function | string;
   noTrackingFn: Function;
 
@@ -1322,9 +1322,9 @@ export class EntityType {
   };
 
   _createInstanceCore() {
-    let aCtor = this.getEntityCtor();
+    let aCtor = this.getCtor();
     let instance = new aCtor();
-    new EntityAspect(instance);
+    new EntityAspect(instance as IEntity);
     return instance;
   };
 
@@ -1361,7 +1361,7 @@ export class EntityType {
   @method getCtor ( or obsolete getEntityCtor)
   @return {Function} The constructor for this EntityType.
   **/
-  getCtor(forceRefresh: boolean = false) {
+  getCtor(forceRefresh: boolean = false): { new (): IStructuralObject  } {
     if (this._ctor && !forceRefresh) return this._ctor;
 
     let ctorRegistry = this.metadataStore._ctorRegistry;
@@ -1396,7 +1396,7 @@ export class EntityType {
 
 
   // May make public later.
-  _setCtor(aCtor: { new (): any }, interceptor?: any) {
+  _setCtor(aCtor: { new (): IStructuralObject }, interceptor?: any) {
 
     let instanceProto = aCtor.prototype;
 
@@ -1578,7 +1578,7 @@ export class EntityType {
     return new EntityKey(this, keyValues);
   };
 
-  _updateTargetFromRaw(target: any, raw: any, rawValueFn: Function) {
+  _updateTargetFromRaw(target: IStructuralObject, raw: any, rawValueFn: Function) {
     // called recursively for complex properties
     this.dataProperties.forEach(function (dp) {
       if (!dp.isSettable) return;
@@ -1641,7 +1641,8 @@ export class EntityType {
     // if merging from an import then raw will have an entityAspect or a complexAspect
     let rawAspect = raw.entityAspect || raw.complexAspect;
     if (rawAspect) {
-      let targetAspect = target.entityAspect || target.complexAspect;
+
+      let targetAspect = EntityAspect.isEntity(target) ? target.entityAspect : target.complexAspect;
       if (rawAspect.originalValuesMap) {
         targetAspect.originalValues = rawAspect.originalValuesMap;
       }
@@ -2079,9 +2080,9 @@ export class ComplexType  {
   @param initialValues {Object} Configuration object containing initial values for the instance.
   **/
   // This method is actually the EntityType.createEntity method renamed 
-  _createInstanceCore(parent: IEntity | IComplexObject, parentProperty: DataProperty) {
+  _createInstanceCore(parent: IStructuralObject, parentProperty: DataProperty) {
     let aCtor = this.getCtor();
-    let instance = new aCtor();
+    let instance = new aCtor() as IComplexObject;
     new ComplexAspect(instance, parent, parentProperty);
     // initialization occurs during either attach or in createInstance call.
     return instance;
@@ -2767,7 +2768,12 @@ export class NavigationProperty  {
   @param [config.inverse] {String}
   @param [config.custom] {Object}
   **/
-  setProperties = function (config: { displayName?: string, foreignKeyNames?: string[], invForeignKeyNames?: string[], custom?: Object }) {
+  setProperties(config: {
+      displayName?: string,
+      foreignKeyNames?: string[],
+      invForeignKeyNames?: string[],
+      inverse?: NavigationProperty | string,
+      custom?: Object }) {
     if (!this.parentType) {
       throw new Error("Cannot call NavigationProperty.setProperties until the parent EntityType of the NavigationProperty has been set.");
     }
@@ -2892,6 +2898,8 @@ export class NavigationProperty  {
   }
 
 }
+
+
 
 function throwSetInverseError(np: NavigationProperty, message: string) {
   throw new Error("Cannot set the inverse property for: " + np.formatName() + ". " + message);

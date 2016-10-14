@@ -1,12 +1,12 @@
 import { breeze, core  } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
-import { IEntity, IComplexObject } from './entity-aspect';
+import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
 interface IComplexArray extends IObservableArray {
   [index: number]: IComplexObject;
-  parent: IEntity | IComplexObject | null;
+  parent: IStructuralObject | null;
   parentProperty: DataProperty | null;
 }
 
@@ -128,7 +128,7 @@ function setAspect(co: IComplexObject, arr: IComplexArray) {
   return coAspect;
 }
 
-function makeComplexArray(arr: IObservableArray, parent: IEntity | IComplexObject, parentProperty: DataProperty) {
+function makeComplexArray(arr: IObservableArray, parent: IStructuralObject, parentProperty: DataProperty) {
 
   observableArray.initializeParent(arr, parent, parentProperty);
   arr.arrayChanged = new BreezeEvent("arrayChanged", arr);

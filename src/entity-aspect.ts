@@ -8,6 +8,7 @@ import { EntityState, EntityStateSymbol } from './entity-state';
 import { EntityAction } from './entity-action';
 import { EntityType, ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
+import { EntityGroup } from './entity-group';
 import { EntityManager } from './entity-manager';
 import { Validator, ValidationError } from './validate';
 
@@ -28,6 +29,8 @@ export interface IComplexObject {
   prototype: { _$typeName: string };
 }
 
+export type IStructuralObject = IEntity | IComplexObject;
+
 /**
   An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property.
 
@@ -46,7 +49,7 @@ export interface IComplexObject {
 export class EntityAspect {
   entity: IEntity | null;
   entityManager: EntityManager | null;
-  entityGroup: Object | null; // TODO: make EntityGroup later
+  entityGroup: EntityGroup | null;
   entityState: EntityStateSymbol;
   isBeingSaved: boolean;
   originalValues: {};
@@ -57,8 +60,10 @@ export class EntityAspect {
   _entityKey: EntityKey;
   _loadedNps: any[];
   _initialized?: boolean;
+  wasLoaded?: boolean;
   validationErrorsChanged: BreezeEvent;
   propertyChanged: BreezeEvent;
+  extraMetadata?: any;
 
   _inProcessEntity: IEntity | null; // used in EntityManager
 
@@ -104,6 +109,11 @@ export class EntityAspect {
       config.modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
     }
   };
+
+  // type-guard
+  static isEntity(obj: IStructuralObject): obj is IEntity {
+    return (obj as any).entityAspect != null;
+  }
 
   static createFrom(entity: IEntity): EntityAspect {
     if (entity === null) {
@@ -803,11 +813,11 @@ function removeFromRelationsCore(entity: IEntity) {
         entity.setProperty(np.name, null);
       }
     } else {
-      if (inverseNp) {
+      if (inverseNp != null) {
         // npValue is a live list so we need to copy it first.
-        npValue.slice(0).forEach(function (v: any) {
-          if (inverseNp.isScalar) {
-            v.setProperty(inverseNp.name, null);
+        npValue.slice(0).forEach( (v: any) => {
+          if (inverseNp!.isScalar) {
+            v.setProperty(inverseNp!.name, null);
           } else {
             // TODO: many to many - not yet handled.
           }
@@ -889,10 +899,11 @@ function validateTarget(target: any, coIndex?: number) {
 export class ComplexAspect {
   complexObject: IComplexObject;
   originalValues: {};
-  parent: IEntity | IComplexObject | null;
+  parent: IStructuralObject | null;
   parentProperty: DataProperty | null;
+  extraMetadata?: any;
 
-  constructor(complexObject: IComplexObject, parent: IEntity | IComplexObject, parentProperty: DataProperty) {
+  constructor(complexObject: IComplexObject, parent: IStructuralObject, parentProperty: DataProperty) {
     if (!complexObject) {
       throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
     }

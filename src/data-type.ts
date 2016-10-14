@@ -24,7 +24,7 @@ export class DataTypeSymbol extends EnumSymbol {
   @class DataType
   @static
   **/
-export class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
+class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
 
   constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
   // for internal testing only
@@ -376,7 +376,7 @@ export class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
 
   parseDateFromServer = DataType.parseDateAsUTC;
 
-  parseRawValue(val: any, dataType: DataTypeSymbol) {
+  parseRawValue(val: any, dataType?: DataTypeSymbol) {
     // undefined values will be the default for most unmapped properties EXCEPT when they are set
     // in a jsonResultsAdapter ( an unusual use case).
     if (val === undefined) return undefined;

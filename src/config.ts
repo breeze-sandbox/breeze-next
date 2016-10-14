@@ -59,6 +59,7 @@ interface IModelLibraryAdapter extends IBaseAdapter {
 }
 
 interface IDataServiceAdapter extends IBaseAdapter {
+    saveChanges(saveContext: any, saveBundle: any): Promise<any>; // Promise<ISaveResult>
 
 }
 
