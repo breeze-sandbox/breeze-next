@@ -4,13 +4,13 @@ import { BreezeEvent } from './event';
 import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
-interface IComplexArray extends IObservableArray {
+export interface IComplexArray extends IObservableArray {
   [index: number]: IComplexObject;
   parent: IStructuralObject | null;
   parentProperty: DataProperty | null;
 }
 
-let  complexArrayMixin = {
+let complexArrayMixin = {
 
   // complexArray will have the following props
   //    parent
@@ -128,12 +128,12 @@ function setAspect(co: IComplexObject, arr: IComplexArray) {
   return coAspect;
 }
 
-function makeComplexArray(arr: IObservableArray, parent: IStructuralObject, parentProperty: DataProperty) {
+export function makeComplexArray(arr: IObservableArray, parent: IStructuralObject, parentProperty: DataProperty) {
 
   observableArray.initializeParent(arr, parent, parentProperty);
   arr.arrayChanged = new BreezeEvent("arrayChanged", arr);
   core.extend(arr, observableArray.mixin);
-  return core.extend(arr, complexArrayMixin);
+  return core.extend(arr, complexArrayMixin) as IComplexArray;
 }
 
 breeze.makeComplexArray = makeComplexArray; 
