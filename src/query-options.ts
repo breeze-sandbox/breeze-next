@@ -151,7 +151,7 @@ export class QueryOptions {
   @param [config.mergeStrategy] {MergeStrategy}
   @param [config.includeDeleted] {Boolean} Whether query should return cached deleted entities (false by default)
   **/
-  constructor(config: QueryOptionsConfig) {
+  constructor(config?: QueryOptionsConfig) {
     QueryOptions._updateWithConfig(this, config);
   };
 
@@ -242,7 +242,7 @@ export class QueryOptions {
     });
   };
 
-  private static _updateWithConfig(obj: QueryOptions, config: QueryOptionsConfig) {
+  private static _updateWithConfig(obj: QueryOptions, config?: QueryOptionsConfig) {
     if (config) {
       assertConfig(config)
         .whereParam("fetchStrategy").isEnumOf(FetchStrategy).isOptional()

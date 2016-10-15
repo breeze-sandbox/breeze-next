@@ -65,7 +65,7 @@ export class DataService {
   @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
   @param [config.useJsonp] {Boolean}  Whether to use JSONP when making a 'get' request against this service.
   **/
-  constructor(config: DataServiceConfig) {
+  constructor(config?: DataServiceConfig) {
     // this.uriBuilder = uriBuilderForOData;
     updateWithConfig(this, config);
   };
@@ -195,7 +195,7 @@ export class DataService {
 
 }
 
-function updateWithConfig(obj: DataService, dsConfig: DataServiceConfig) {
+function updateWithConfig(obj: DataService, dsConfig?: DataServiceConfig) {
   if (dsConfig) {
     assertConfig(dsConfig)
         .whereParam("serviceName").isOptional()

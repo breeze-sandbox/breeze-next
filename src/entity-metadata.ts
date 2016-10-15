@@ -1,6 +1,4 @@
-﻿import {  EntityQuery, EntityManager, LocalQueryComparisonOptions  } from '../typings/breeze1x'; // TODO: replace later
-
-import { breeze, core, ErrorCallback } from './core-fns';
+﻿import { breeze, core, ErrorCallback } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
@@ -14,6 +12,8 @@ import { Enum, EnumSymbol, TypedEnum } from './enum';
 import { DataService } from './data-service';
 import { NamingConvention } from './naming-convention';
 import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate this later;
+import { LocalQueryComparisonOptions } from './local-query-comparison-options';
+import { EntityQuery } from './entity-query'; 
 
 export type EntityProperty = DataProperty | NavigationProperty;
 
@@ -1707,7 +1707,8 @@ export class EntityType {
 
     if (typeof (navigationProperty) === 'string') {
       let np = this.getProperty(navigationProperty);
-      if (np && np.isNavigationProperty) return np;
+      // if (np && np.isNavigationProperty) return np;
+      if ( np && np instanceof NavigationProperty) return np;
     }
     throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
   };

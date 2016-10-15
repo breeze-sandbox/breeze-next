@@ -51,6 +51,10 @@ function objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolea
     return null;
 }
 
+function arrayFlatMap<T, U>(arr: T[], mapFn: (arg: T) => U[]) {
+    return Array.prototype.concat.apply([], this.map(mapFn)) as U[];
+}
+
 function isSettable(obj: Object, propertyName: string): boolean {
     let pd = getPropDescriptor(obj, propertyName);
     if (pd == null) return true;
@@ -559,9 +563,9 @@ function isFunction(o: any) {
     return classof(o) === "function";
 }
 
-function isString(o: any) {
-    return (typeof o === "string");
-}
+// function isString(o: any) {
+//     return (typeof o === "string");
+// }
 
 function isObject(o: any) {
     return (typeof o === "object");
@@ -686,6 +690,7 @@ export const core = {
     arrayRemoveItem: arrayRemoveItem,
     arrayZip: arrayZip,
     arrayAddItemUnique: arrayAddItemUnique,
+    arrayFlatMap: arrayFlatMap,
 
     requireLib: requireLib,
     using: using,
@@ -704,6 +709,8 @@ export const core = {
     isFunction: isFunction,
     isEmpty: isEmpty,
     isNumeric: isNumeric,
+
+    identity: identity,
 
     stringStartsWith: stringStartsWith,
     stringEndsWith: stringEndsWith,
