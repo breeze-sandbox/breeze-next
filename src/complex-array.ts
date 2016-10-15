@@ -4,6 +4,8 @@ import { BreezeEvent } from './event';
 import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
+// TODO: mixin impl is not very typesafe
+
 export interface IComplexArray extends IObservableArray {
   [index: number]: IComplexObject;
   parent: IStructuralObject | null;

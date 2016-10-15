@@ -5,6 +5,8 @@ import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
 import { DataProperty, NavigationProperty } from './entity-metadata';
 import { EntityState } from './entity-state';
 
+// TODO: mixin impl is not very typesafe
+
 interface IRelationArray extends IObservableArray {
   [index: number]: IEntity;
   parentEntity: IEntity;
