@@ -41,6 +41,7 @@ interface IExpressionContext {
   **/
 
 export class Predicate {
+  op: IOp | null;
   _entityType: EntityType | null;
   aliasMap: IOpMap;
   visitorMethodName: string;
@@ -206,7 +207,7 @@ export class Predicate {
         } else {
           return baseVisitorFn(context, expr1Val, expr2Val);
         }
-      }
+      };
       toFunctionVisitor.isExtended = true;
     }
   };
@@ -645,7 +646,7 @@ class LitExpr extends PredicateExpression {
   dataType: DataTypeSymbol;
   hasExplicitDataType: boolean;
   // 2 public props: value, dataType
-  constructor(value: any, dataType: string | DataTypeSymbol | null, hasExplicitDataType: boolean = false) {
+  constructor(value: any, dataType: string | DataTypeSymbol | null, hasExplicitDataType?: boolean) {
     super("litExpr");
     // dataType may come is an a string
     let dt1 = resolveDataType(dataType);
@@ -664,7 +665,7 @@ class LitExpr extends PredicateExpression {
       this.value = value;
     }
     this.dataType = dt2;
-    this.hasExplicitDataType = hasExplicitDataType;
+    this.hasExplicitDataType = !!hasExplicitDataType;
   }
 
   toString() {
@@ -949,7 +950,7 @@ function parseLitOrPropExpr(value: string, exprContext: IExpressionContext): Pre
       let mayBeIdentifier = RX_IDENTIFIER.test(value);
       if (mayBeIdentifier) {
         // if (entityType.getProperty(value, false) != null) {
-        if (entityType.getPropertiesOnPath(value, exprContext.usesNameOnServer, false) != null) {
+        if (entityType.getPropertiesOnPath(value, exprContext.usesNameOnServer || false, false) != null) {
           return new PropExpr(value);
         }
       }
@@ -957,7 +958,7 @@ function parseLitOrPropExpr(value: string, exprContext: IExpressionContext): Pre
     // we don't really know the datatype here because even though it comes in as a string
     // its usually a string BUT it might be a number  i.e. the "1" or the "2" from an expr
     // like "toUpper(substring(companyName, 1, 2))"
-    return new LitExpr(value, exprContext.dataType);
+    return new LitExpr(value, exprContext.dataType || null);
   }
 }
 
@@ -1089,12 +1090,12 @@ let toFunctionVisitor = (function () {
         });
         let result = that.localFn.apply(null, values);
         return result;
-      }
+      };
     }
 
   };
 
-  function getAnyAllPredicateFn(op) {
+  function getAnyAllPredicateFn(op: IOp): (v1: any[], v2: any) => boolean {
     switch (op.key) {
       case "any":
         return function (v1, v2) {
@@ -1113,7 +1114,7 @@ let toFunctionVisitor = (function () {
     }
   }
 
-  function getBinaryPredicateFn(binaryPredicate, dataType, lqco) {
+  function getBinaryPredicateFn(binaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
     let op = binaryPredicate.op;
     let mc = DataType.getComparableFn(dataType);
     let predFn: (v1: any, v2: any) => boolean;
@@ -1174,7 +1175,7 @@ let toFunctionVisitor = (function () {
       case 'in':
         predFn = function (v1, v2) {
           v1 = mc(v1);
-          v2 = v2.map(function (v) { return mc(v) });
+          v2 = v2.map(function (v) { return mc(v); });
           return v2.indexOf(v1) >= 0;
         };
         break;
@@ -1290,7 +1291,7 @@ let toJSONVisitor = (function () {
 
     litExpr: function (context) {
       if (this.hasExplicitDataType || context.useExplicitDataType) {
-        return { value: this.value, dataType: this.dataType.name }
+        return { value: this.value, dataType: this.dataType.name };
       } else {
         return this.value;
       }
@@ -1334,9 +1335,6 @@ let toJSONVisitor = (function () {
 } ());
 
 
-
-
-})();
 
 breeze.Predicate = Predicate;
 
