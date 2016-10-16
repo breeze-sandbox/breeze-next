@@ -1008,9 +1008,13 @@ function buildNavigationPredicate(entity: IEntity, navigationProperty: Navigatio
   }
 }
 
+export interface IQueryOp {
+  operator: string;
+}
 
-
-export class FilterQueryOpSymbol extends EnumSymbol { };
+export class FilterQueryOpSymbol extends EnumSymbol implements IQueryOp {
+  operator: string;
+};
 
 /**
    FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink "Predicate"}}{{/crossLink}}
@@ -1121,7 +1125,9 @@ class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
 
 export const FilterQueryOp = new FilterQueryOpEnum();
 
-export class BooleanQueryOpSymbol extends EnumSymbol { };
+export class BooleanQueryOpSymbol extends EnumSymbol implements IQueryOp {
+  operator: string;
+};
 
 /**
    BoolleanQueryOp is an 'Enum' containing all of the valid  boolean

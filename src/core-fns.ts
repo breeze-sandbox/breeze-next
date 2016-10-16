@@ -711,6 +711,7 @@ export const core = {
     isNumeric: isNumeric,
 
     identity: identity,
+    noop: noop,
 
     stringStartsWith: stringStartsWith,
     stringEndsWith: stringEndsWith,
