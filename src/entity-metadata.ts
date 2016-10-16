@@ -1542,7 +1542,7 @@ export class EntityType {
     let parentType = this as StructuralType;
     let key = useServerName ? "nameOnServer" : "name";
     let props = propertyNames.map( (propName) => {
-      let prop = core.arrayFirst(parentType.getProperties(), core.propEq(key, propName)) as EntityProperty | null;
+      let prop = core.arrayFirst(parentType.getProperties(), core.propEq(key, propName)) ;
       if (prop) {
         parentType = (prop instanceof NavigationProperty) ? prop.entityType : prop.dataType as ComplexType;
         // parentType = prop.isNavigationProperty ? prop.entityType : prop.dataType;
@@ -1552,7 +1552,7 @@ export class EntityType {
         ok = false;
       }
       return prop;
-    });
+    }) as EntityProperty[];
     return ok ? props : null;
   }
 

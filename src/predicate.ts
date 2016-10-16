@@ -1,6 +1,7 @@
 ﻿import { breeze, core } from './core-fns';
 import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { FilterQueryOp, BooleanQueryOp, IQueryOp } from './entity-query';
+import { DataType, DataTypeSymbol } from './data-type';
 
 interface IOp {
   key?: string;
@@ -464,7 +465,7 @@ class BinaryPredicate extends Predicate {
   op: IOp;
   expr1Source: any;
   expr2Source: any;
-  expr1: IExpr;
+  expr1: IExpression;
   constructor(op: string | IQueryOp, expr1: any, expr2: any) {
     super();
     // 5 public props op, expr1Source, expr2Source, expr1, expr2
@@ -490,7 +491,7 @@ class BinaryPredicate extends Predicate {
     if (this.op.key == 'in' && !Array.isArray(this.expr2Source)) {
       throw new Error("The 'in' operator requires that its right hand argument be an array");
     }
-    let expr2Context = __extend(expr1Context, { isRHS: true, dataType: this.expr1.dataType });
+    let expr2Context = core.extend(expr1Context, { isRHS: true, dataType: this.expr1.dataType });
     this.expr2 = createExpr(this.expr2Source, expr2Context);
     if (this.expr2 == null) {
       throw new Error("Unable to validate 2nd expression: " + this.expr2Source);
@@ -602,14 +603,12 @@ let AnyAllPredicate = (function () {
   return ctor;
 })();
 
-interface IExpression {
 
-}
 
-class PredicateExpression implements IExpression {
+class PredicateExpression {
   visitorMethodName: string;
   visit: Function; // TODO
-  _validate: Function; // TODO
+
   constructor(visitorMethodName: string) {
     this.visitorMethodName = visitorMethodName;
     // give expressions the Predicate prototype method
@@ -617,11 +616,16 @@ class PredicateExpression implements IExpression {
     // default impls - may be overridden
     this._validate = core.noop;
   }
+
+
 }
 
-class LitExpr implements IExpression {
+class LitExpr extends PredicateExpression {
+  value: any;
+  dataType: DataTypeSymbol;
   // 2 public props: value, dataType
-  constructor(value, dataType, hasExplicitDataType) {
+  constructor(value: any, dataType: string | DataTypeSymbol, hasExplicitDataType: boolean = false) {
+    super("litExpr");
     // dataType may come is an a string
     dataType = resolveDataType(dataType);
     // if the DataType comes in as Undefined this means
@@ -648,12 +652,13 @@ class LitExpr implements IExpression {
 
 }
 
-function resolveDataType(dataType) {
+function resolveDataType(dataType: DataTypeSymbol | string | null) {
   if (dataType == null) return dataType;
-  if (DataType.contains(dataType)) {
+  // if (DataType.contains(dataType)) {
+  if (dataType instanceof DataTypeSymbol) {
     return dataType;
   }
-  if (__isString(dataType)) {
+  if (typeof dataType === 'string') {
     let dt = DataType.fromName(dataType);
     if (dt) return dt;
     throw new Error("Unable to resolve a dataType named: " + dataType);
@@ -663,168 +668,174 @@ function resolveDataType(dataType) {
 }
 
 
-let PropExpr = (function () {
+class PropExpr extends PredicateExpression {
+  propertyPath: string;
+  dataType: DataTypeSymbol;
   // two public props: propertyPath, dateType
-  let ctor = function PropExpr(propertyPath) {
+  constructor(propertyPath: string) {
+    super('propExpr');
     this.propertyPath = propertyPath;
     //this.dataType = DataType.Undefined;
     // this.dataType resolved after validate ( if not on an anon type }
   };
-  let proto = ctor.prototype = new PredicateExpression('propExpr');
-  proto.toString = function () {
+
+  toString() {
     return " PropExpr - " + this.propertyPath;
   };
 
-  proto._validate = function (entityType, usesNameOnServer) {
+  _validate = function(entityType: EntityType, usesNameOnServer: boolean) {
 
     if (entityType == null || entityType.isAnonymous) return;
     let props = entityType.getPropertiesOnPath(this.propertyPath, usesNameOnServer, false);
 
     if (!props) {
-      let msg = __formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
+      let msg = core.formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
       throw new Error(msg);
     }
     // get the last property
     let prop = props[props.length - 1];
-    if (prop.isDataProperty) {
+    if (prop instanceof DataProperty) {
       this.dataType = prop.dataType;
     } else {
       this.dataType = prop.entityType;
     }
   }
 
-  return ctor;
-})();
+}
 
-let FnExpr = (function () {
-
-  let ctor = function FnExpr(fnName, exprs) {
+class FnExpr extends PredicateExpression {
+  fnName: string;
+  exprs: any; // TODO:
+  localFn: any; // TODO:
+  dataType: DataTypeSymbol;
+  constructor(fnName: string, exprs) {
+    super('fnExpr');
     // 4 public props: fnName, exprs, localFn, dataType
     this.fnName = fnName;
     this.exprs = exprs;
-    let qf = _funcMap[fnName];
+    let qf = FnExpr._funcMap[fnName];
     if (qf == null) {
       throw new Error("Unknown function: " + fnName);
     }
     this.localFn = qf.fn;
     this.dataType = qf.dataType;
   };
-  let proto = ctor.prototype = new PredicateExpression('fnExpr');
 
-  proto.toString = function () {
+  toString() {
     let exprStr = this.exprs.map(function (expr) {
       expr.toString();
     }).toString();
     return "FnExpr - " + this.fnName + "(" + exprStr + ")";
   };
 
-  proto._validate = function (entityType, usesNameOnServer) {
+  _validate = function(entityType: EntityType, usesNameOnServer: boolean) {
     this.exprs.forEach(function (expr) {
       expr._validate(entityType, usesNameOnServer);
     });
   };
 
-  // TODO: add dataTypes for the args next - will help to infer other dataTypes.
-  let _funcMap = ctor.funcMap = {
+  static _funcMap = {
     toupper: {
-      fn: function (source) {
+      fn: function (source: string) {
         return source.toUpperCase();
       }, dataType: DataType.String
     },
     tolower: {
-      fn: function (source) {
+      fn: function (source: string) {
         return source.toLowerCase();
       }, dataType: DataType.String
     },
     substring: {
-      fn: function (source, pos, length) {
+      fn: function (source: string, pos: number, length: number) {
         return source.substring(pos, length);
       }, dataType: DataType.String
     },
     substringof: {
-      fn: function (find, source) {
+      fn: function (find: string, source: string) {
         return source.indexOf(find) >= 0;
       }, dataType: DataType.Boolean
     },
     length: {
-      fn: function (source) {
+      fn: function (source: any) {
         return source.length;
       }, dataType: DataType.Int32
     },
     trim: {
-      fn: function (source) {
+      fn: function (source: string) {
         return source.trim();
       }, dataType: DataType.String
     },
     concat: {
-      fn: function (s1, s2) {
+      fn: function (s1: string, s2: string) {
         return s1.concat(s2);
       }, dataType: DataType.String
     },
     replace: {
-      fn: function (source, find, replace) {
+      fn: function (source: string, find: string, replace: string) {
         return source.replace(find, replace);
       }, dataType: DataType.String
     },
     startswith: {
-      fn: function (source, find) {
-        return __stringStartsWith(source, find);
+      fn: function (source: string, find: string) {
+        return core.stringStartsWith(source, find);
       }, dataType: DataType.Boolean
     },
     endswith: {
-      fn: function (source, find) {
-        return __stringEndsWith(source, find);
+      fn: function (source: string, find: string) {
+        return core.stringEndsWith(source, find);
       }, dataType: DataType.Boolean
     },
     indexof: {
-      fn: function (source, find) {
+      fn: function (source: any, find: any) {
         return source.indexOf(find);
       }, dataType: DataType.Int32
     },
     round: {
-      fn: function (source) {
+      fn: function (source: number) {
         return Math.round(source);
       }, dataType: DataType.Int32
     },
     ceiling: {
-      fn: function (source) {
+      fn: function (source: number) {
         return Math.ceil(source);
       }, dataType: DataType.Int32
     },
     floor: {
-      fn: function (source) {
+      fn: function (source: number) {
         return Math.floor(source);
       }, dataType: DataType.Int32
     },
     second: {
-      fn: function (source) {
+      fn: function (source: Date) {
         return source.getSeconds();
       }, dataType: DataType.Int32
     },
     minute: {
-      fn: function (source) {
+      fn: function (source: Date) {
         return source.getMinutes();
       }, dataType: DataType.Int32
     },
     day: {
-      fn: function (source) {
+      fn: function (source: Date) {
         return source.getDate();
       }, dataType: DataType.Int32
     },
     month: {
-      fn: function (source) {
+      fn: function (source: Date) {
         return source.getMonth() + 1;
       }, dataType: DataType.Int32
     },
     year: {
-      fn: function (source) {
+      fn: function (source: Date) {
         return source.getFullYear();
       }, dataType: DataType.Int32
     }
   };
 
-  return ctor;
-})();
+}
+
+// TODO: add dataTypes for the args next - will help to infer other dataTypes.
+
 
 let RX_IDENTIFIER = /^[a-z_][\w.$]*$/i;
 // comma delimited expressions ignoring commas inside of both single and double quotes.
