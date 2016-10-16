@@ -68,13 +68,17 @@ export class Predicate {
   **/
 
   constructor(...args: any[]) {
+    return Predicate.create(args);
+  }
+
+  static create(...args: any[]) {
     // can be called from std javascript without new ( legacy )
     if (!(this instanceof Predicate)) {
       return new Predicate(args);
     }
 
     // empty ctor is used by all subclasses.
-    if (args.length === 0) return;
+    if (args.length === 0) return this;
     if (args.length === 1) {
       // possibilities:
       //      Predicate([ aPredicate ]) or  Predicate(["freight", ">", 100"]) - an array
@@ -128,7 +132,7 @@ export class Predicate {
 
   @static
   **/
-  static create = Predicate;
+  // static create = Predicate;
 
   /**
   Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.
@@ -560,7 +564,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 class AndOrPredicate extends Predicate {
   op: IOp | null;
   preds: Predicate[];
-  constructor(op: string | IQueryOp, preds) {
+  constructor(op: string | IQueryOp, preds: any[]) {
     super();
     this.op = this._resolveOp(op);
     if (preds.length === 1 && Array.isArray(preds[0])) {

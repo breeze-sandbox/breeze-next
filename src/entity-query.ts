@@ -13,7 +13,13 @@ import { DataService } from './data-service';
 import { EntityManager } from './entity-manager';
 import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { QueryOptions } from './query-options';
+import { Predicate } from './predicate';
 
+interface IEntityQueryJsonContext {
+  entityType?: EntityType | null;
+  propertyPathFn?: Function; // TODO
+  toNameOnServer?: boolean;
+}
 /**
   An EntityQuery instance is used to query entities either from a remote datasource or from a local {{#crossLink "EntityManager"}}{{/crossLink}}.
 
@@ -26,7 +32,7 @@ export class EntityQuery {
   _$typeName = "EntityQuery";
   // top = this.take; // TODO: consider
 
-  resourceName: string;
+  resourceName: string | null;
   fromEntityType: EntityType | null;
   wherePredicate: any; // TODO
   orderByClause: OrderByClause | null;
@@ -64,7 +70,7 @@ export class EntityQuery {
       return fromJSON(this, resourceName);
     }
 
-    this.resourceName = resourceName;
+    this.resourceName = resourceName || null;
     this.fromEntityType = null;
     this.wherePredicate = null;
     this.orderByClause = null;
@@ -261,9 +267,10 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
-  where(wherePredicate) {
-    if (wherePredicate != null) {
-      wherePredicate = Predicate.create(core.arraySlice(arguments));
+  where(...args: any[]) {
+    let wherePredicate: Predicate | null = null;
+    if (args.length > 0) {
+      wherePredicate = Predicate.create(...args);
       if (this.fromEntityType) wherePredicate._validate(this.fromEntityType);
       if (this.wherePredicate) {
         wherePredicate = this.wherePredicate.and(wherePredicate);
@@ -577,7 +584,7 @@ export class EntityQuery {
         eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val);
       },
       jsonResultsAdapter: (eq: EntityQuery, val: any) => {
-        eq.dataService = (eq.dataService || new DataService()).using({ jsonResultsAdapter: val })
+        eq.dataService = (eq.dataService || new DataService()).using({ jsonResultsAdapter: val });
       }
     }, obj);
     return eq;
@@ -671,19 +678,19 @@ export class EntityQuery {
     return this.toJSONExt();
   }
 
-  toJSONExt(context?: Object) {
+  toJSONExt(context?: IEntityQueryJsonContext) {
     context = context || {};
     context.entityType = context.entityType || this.fromEntityType;
-    context.propertyPathFn = context.toNameOnServer ? context.entityType.clientPropertyPathToServer.bind(context.entityType) : core.identity;
+    context.propertyPathFn = context.toNameOnServer ? context.entityType!.clientPropertyPathToServer.bind(context.entityType) : core.identity;
 
     let that = this;
 
-    let toJSONExtFn = function (v) {
+    let toJSONExtFn = function (v: any) {
       return v ? v.toJSONExt(context) : undefined;
     };
     return core.toJson(this, {
       "from,resourceName": null,
-      "toType,resultEntityType": function (v) {
+      "toType,resultEntityType": function (v: any) {
         // resultEntityType can be either a string or an entityType
         return v ? (typeof v === 'string' ? v : v.name) : undefined;
       },
@@ -731,19 +738,18 @@ export class EntityQuery {
   **/
   static fromEntities(entities: IEntity | IEntity[]) {
     assertParam(entities, "entities").isEntity().or().isNonEmptyArray().isEntity().check();
-    if (!Array.isArray(entities)) {
-      entities = core.arraySlice(arguments);
-    }
-    let firstEntity = entities[0];
+    let ents = (Array.isArray(entities)) ? entities : [entities];
+
+    let firstEntity = ents[0];
     let type = firstEntity.entityType;
-    if (entities.some(function (e) {
+    if (ents.some(function (e) {
       return e.entityType !== type;
     })) {
       throw new Error("All 'fromEntities' must be the same type; at least one is not of type " +
         type.name);
     }
     let q = new EntityQuery(type.defaultResourceName);
-    let preds = entities.map(function (entity) {
+    let preds = ents.map(function (entity) {
       return buildPredicate(entity);
     });
     let pred = Predicate.or(preds);
@@ -829,7 +835,7 @@ export class EntityQuery {
 
     let entityTypeName = metadataStore.getEntityTypeNameForResourceName(resourceName);
     if (entityTypeName) {
-      entityType = metadataStore._getStructuralType(entityTypeName);
+      entityType = metadataStore._getStructuralType(entityTypeName) as EntityType;
     } else {
       entityType = this._getToEntityType(metadataStore, true);
     }
@@ -849,7 +855,7 @@ export class EntityQuery {
 
   };
 
-  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean) {
+  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | null  {
     // skipFromCheck is to avoid recursion if called from _getFromEntityType;
     if (this.resultEntityType instanceof EntityType) {
       return this.resultEntityType;
@@ -861,7 +867,9 @@ export class EntityQuery {
       // resolve it, if possible, via the resourceName
       // do not cache this value in this case
       // cannot determine the resultEntityType if a selectClause is present.
-      return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+      // return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
+      if (skipFromCheck || !this.selectClause) return null;
+      return this._getFromEntityType(metadataStore, false);
     }
   };
 
@@ -880,26 +888,26 @@ function fromJSON(eq: EntityQuery, json: Object) {
     "resourceName,from": null,
     // just the name comes back and will be resolved later
     "resultEntityType,toType": null,
-    "wherePredicate,where": function (v) {
+    "wherePredicate,where": function (v: any) {
       return v ? new Predicate(v) : undefined;
     },
-    "orderByClause,orderBy": function (v) {
+    "orderByClause,orderBy": function (v: any) {
       return v ? new OrderByClause(v) : undefined;
     },
-    "selectClause,select": function (v) {
+    "selectClause,select": function (v: any) {
       return v ? new SelectClause(v) : undefined;
     },
-    "expandClause,expand": function (v) {
+    "expandClause,expand": function (v: any) {
       return v ? new ExpandClause(v) : undefined;
     },
     "skipCount,skip": null,
     "takeCount,take": null,
-    parameters: function (v) {
+    parameters: function (v: any) {
       return core.isEmpty(v) ? undefined : v;
     },
     "inlineCountEnabled,inlineCount": false,
     "noTrackingEnabled,noTracking": false,
-    queryOptions: function (v) {
+    queryOptions: function (v: any) {
       return v ? QueryOptions.fromJSON(v) : undefined;
     }
   }, eq);
@@ -1208,9 +1216,9 @@ class OrderByClause {
     };
   };
 
-  toJSONExt(context) {
+  toJSONExt(context: IEntityQueryJsonContext) {
     return this.items.map(function (item) {
-      return context.propertyPathFn(item.propertyPath) + (item.isDesc ? " desc" : "");
+      return context.propertyPathFn!(item.propertyPath) + (item.isDesc ? " desc" : "");
     });
   };
 
@@ -1318,9 +1326,9 @@ class SelectClause {
     };
   };
 
-  toJSONExt(context) {
+  toJSONExt(context: IEntityQueryJsonContext) {
     return this.propertyPaths.map(function (pp) {
-      return context.propertyPathFn(pp);
+      return context.propertyPathFn!(pp);
     });
   };
 }
@@ -1333,10 +1341,10 @@ class ExpandClause {
     this.propertyPaths = propertyPaths;
   }
 
-  toJSONExt(context) {
+  toJSONExt(context: IEntityQueryJsonContext) {
     return this.propertyPaths.map(function (pp) {
-      return context.propertyPathFn(pp);
-    })
+      return context.propertyPathFn!(pp);
+    });
   }
 
 }
