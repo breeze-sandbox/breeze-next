@@ -567,9 +567,9 @@ function isFunction(o: any) {
 //     return (typeof o === "string");
 // }
 
-function isObject(o: any) {
-    return (typeof o === "object");
-}
+// function isObject(o: any) {
+//     return (typeof o === "object");
+// }
 
 function isGuid(value: any) {
     return (typeof value === "string") && /[a-fA-F\d]{8}-(?:[a-fA-F\d]{4}-){3}[a-fA-F\d]{12}/.test(value);

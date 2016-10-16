@@ -2,6 +2,7 @@
 import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { FilterQueryOp, BooleanQueryOp, IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';
+import { IEntity } from './entity-aspect';
 
 interface IOp {
   key?: string;
@@ -11,12 +12,25 @@ interface IOp {
 
 interface IOpMap {
   [key: string]: IOp;
+}
 
-  // 'eq': {
-  //     aliases: ["==", "equals"]
-  //   },
+interface IVisitor {
 
 }
+
+interface IVisitContext {
+  visitor: IVisitor | null;
+  entityType: EntityType | null;
+}
+
+interface IExpressionContext {
+  entityType: EntityType;
+  dataType: DataTypeSymbol | string;
+  isRHS: boolean;
+  usesNameOnServer: boolean;
+  isFnArg?: boolean;
+}
+
 /**
   Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any
   method that would modify a Predicate actually returns a new Predicate.
@@ -278,12 +292,12 @@ export class Predicate {
     return JSON.stringify(this);
   };
 
-  visit(context, visitor) {
+  visit(context: IVisitContext, visitor: IVisitor | null) {
     if (core.isEmpty(context)) {
       context = { entityType: null };
     } else if (context instanceof EntityType) {
       context = { entityType: context };
-    } else if (!__hasOwnProperty(context, "entityType")) {
+    } else if (!core.hasOwnProperty(context, "entityType")) {
       throw new Error("All visitor methods must be called with a context object containing at least an 'entityType' property");
     }
 
@@ -299,7 +313,7 @@ export class Predicate {
 
 
     let entityType = context.entityType;
-    // don't both validating if already done so ( or if no _validate method
+    // don't bother validating if already done so ( or if no _validate method
     if (this._validate && entityType == null || this._entityType !== entityType) {
       // don't need to capture return value because validation fn doesn't have one.
       this._validate(entityType, context.usesNameOnServer);
@@ -333,9 +347,9 @@ export class Predicate {
 function argsForAndOrPredicates(obj: {}, args: any[]) {
   let preds = args[0];
   if (preds instanceof Predicate) {
-    preds = __arraySlice(args);
+    preds = core.arraySlice(args);
   } else if (!Array.isArray(preds)) {
-    preds = [Predicate(__arraySlice(args))];
+    preds = [ new Predicate(core.arraySlice(args))];
   }
   return [obj].concat(preds);
 }
@@ -383,7 +397,7 @@ function createPredicateFromObject(obj: Object) {
   return (preds.length === 1) ? preds[0] : new AndOrPredicate("and", preds);
 }
 
-function createPredicateFromKeyValue(key: string, value: any) {
+function createPredicateFromKeyValue(key: string, value: any): Predicate {
   // { and: [a,b] } key='and', value = [a,b]
   if (AndOrPredicate.prototype._resolveOp(key, true)) {
     return new AndOrPredicate(key, value);
@@ -394,10 +408,10 @@ function createPredicateFromKeyValue(key: string, value: any) {
     return new UnaryPredicate(key, value);
   }
 
-  if ((typeof value !== 'object') || value == null || __isDate(value)) {
+  if ((typeof value !== 'object') || value == null || core.isDate(value)) {
     // { foo: bar } key='foo', value = bar ( where bar is a literal i.e. a string, a number, a boolean or a date.
     return new BinaryPredicate("eq", key, value);
-  } else if (__hasOwnProperty(value, 'value')) {
+  } else if (core.hasOwnProperty(value, 'value')) {
     // { foo: { value: bar, dataType: xxx} } key='foo', value = bar ( where bar is an object representing a literal
     return new BinaryPredicate("eq", key, value);
   }
@@ -418,7 +432,7 @@ function createPredicateFromKeyValue(key: string, value: any) {
     if (BinaryPredicate.prototype._resolveOp(op, true)) {
       // { a: { ">": b }} op = ">", expr=a, value[op] = b
       return new BinaryPredicate(op, expr, value[op]);
-    } else if (__hasOwnProperty(value[op], 'value')) {
+    } else if (core.hasOwnProperty(value[op], 'value')) {
       // { a: { ">": { value: b, dataType: 'Int32' }} expr = a value[op] = { value: b, dataType: 'Int32' }
       return new BinaryPredicate("eq", expr, value[op]);
     }
@@ -465,7 +479,8 @@ class BinaryPredicate extends Predicate {
   op: IOp;
   expr1Source: any;
   expr2Source: any;
-  expr1: IExpression;
+  expr1: PredicateExpression | null;
+  expr2: PredicateExpression | null;
   constructor(op: string | IQueryOp, expr1: any, expr2: any) {
     super();
     // 5 public props op, expr1Source, expr2Source, expr1, expr2
@@ -540,59 +555,61 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 });
 
 
-let AndOrPredicate = (function () {
-  // two public props: op, preds
-  let ctor = function AndOrPredicate(op, preds) {
+class AndOrPredicate extends Predicate {
+  op: IOp | null;
+  preds: Predicate[];
+  constructor(op: string | IQueryOp, preds) {
+    super();
     this.op = this._resolveOp(op);
-    if (preds.length == 1 && Array.isArray(preds[0])) {
+    if (preds.length === 1 && Array.isArray(preds[0])) {
       preds = preds[0];
     }
     this.preds = preds.filter(function (pred) {
       return pred != null;
     }).map(function (pred) {
-      return Predicate(pred);
+      return new Predicate(pred);
     });
-    if (this.preds.length == 0) {
+    if (this.preds.length === 0) {
       // marker for an empty predicate
       this.op = null;
     }
-    if (this.preds.length == 1) {
+    if (this.preds.length === 1) {
       return this.preds[0];
     }
   };
 
-  let proto = ctor.prototype = new Predicate();
-  proto._initialize("andOrPredicate", {
-    'and': { aliases: ['&&'] },
-    'or': { aliases: ['||'] }
-  });
 
-  proto._validate = function (entityType, usesNameOnServer) {
+  _validate(entityType: EntityType, usesNameOnServer: boolean) {
     this.preds.every(function (pred) {
       pred._validate(entityType, usesNameOnServer);
     });
   }
 
-  return ctor;
-})();
 
-let AnyAllPredicate = (function () {
+}
+
+AndOrPredicate.prototype._initialize("andOrPredicate", {
+  'and': { aliases: ['&&'] },
+  'or': { aliases: ['||'] }
+});
+
+
+class AnyAllPredicate extends Predicate {
+  op: IOp;
+  expr: PredicateExpression;
+  exprSource: string;
+  pred: Predicate;
   // 4 public props: op, exprSource, expr, pred
-  let ctor = function AnyAllPredicate(op, expr, pred) {
+  constructor(op: string | IQueryOp, expr: string, pred) {
+    super();
     this.op = this._resolveOp(op);
     this.exprSource = expr;
     // this.expr will not be resolved until validate is called
-    this.pred = Predicate(pred);
+    this.pred = new Predicate(pred);
   };
 
-  let proto = ctor.prototype = new Predicate();
-  proto._initialize("anyAllPredicate", {
-    'any': { aliases: ['some'] },
-    'all': { aliases: ["every"] }
-  });
-
-  proto._validate = function (entityType, usesNameOnServer) {
-    this.expr = createExpr(this.exprSource, { entityType: entityType, usesNameOnServer: usesNameOnServer });
+  _validate(entityType: EntityType, usesNameOnServer: boolean) {
+    this.expr = createExpr(this.exprSource, { entityType: entityType, usesNameOnServer: usesNameOnServer } as IExpressionContext);
     // can't really know the predicateEntityType unless the original entity type was known.
     if (entityType == null || entityType.isAnonymous) {
       this.expr.dataType = null;
@@ -600,15 +617,18 @@ let AnyAllPredicate = (function () {
     this.pred._validate(this.expr.dataType, usesNameOnServer);
   }
 
-  return ctor;
-})();
 
+}
 
+AnyAllPredicate.prototype._initialize("anyAllPredicate", {
+    'any': { aliases: ['some'] },
+    'all': { aliases: ["every"] }
+  });
 
 class PredicateExpression {
   visitorMethodName: string;
   visit: Function; // TODO
-
+  dataType: DataTypeSymbol | StructuralType | null;
   constructor(visitorMethodName: string) {
     this.visitorMethodName = visitorMethodName;
     // give expressions the Predicate prototype method
@@ -617,32 +637,35 @@ class PredicateExpression {
     this._validate = core.noop;
   }
 
-
+  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
+    // noop;
+  }
 }
 
 class LitExpr extends PredicateExpression {
   value: any;
   dataType: DataTypeSymbol;
+  hasExplicitDataType: boolean;
   // 2 public props: value, dataType
   constructor(value: any, dataType: string | DataTypeSymbol, hasExplicitDataType: boolean = false) {
     super("litExpr");
     // dataType may come is an a string
-    dataType = resolveDataType(dataType);
+    let dt1 = resolveDataType(dataType);
     // if the DataType comes in as Undefined this means
     // that we should NOT attempt to parse it but just leave it alone
     // for now - this is usually because it is part of a Func expr.
-    dataType = dataType || DataType.fromValue(value);
+    let dt2 = dt1 || DataType.fromValue(value);
 
-    if (dataType && dataType.parse) {
+    if (dt2.parse) {
       if (Array.isArray(value)) {
-        this.value = value.map(function (v) { return dataType.parse(v, typeof v) });
+        this.value = value.map( (v) => { return dt2.parse!(v, typeof v); });
       } else {
-        this.value = dataType.parse(value, typeof value);
+        this.value = dt2.parse(value, typeof value);
       }
     } else {
       this.value = value;
     }
-    this.dataType = dataType;
+    this.dataType = dt2;
     this.hasExplicitDataType = hasExplicitDataType;
   }
 
@@ -659,7 +682,7 @@ function resolveDataType(dataType: DataTypeSymbol | string | null) {
     return dataType;
   }
   if (typeof dataType === 'string') {
-    let dt = DataType.fromName(dataType);
+    let dt = DataType.fromName(dataType) as DataTypeSymbol;
     if (dt) return dt;
     throw new Error("Unable to resolve a dataType named: " + dataType);
   }
@@ -670,7 +693,7 @@ function resolveDataType(dataType: DataTypeSymbol | string | null) {
 
 class PropExpr extends PredicateExpression {
   propertyPath: string;
-  dataType: DataTypeSymbol;
+  dataType: DataTypeSymbol | StructuralType;
   // two public props: propertyPath, dateType
   constructor(propertyPath: string) {
     super('propExpr');
@@ -683,7 +706,7 @@ class PropExpr extends PredicateExpression {
     return " PropExpr - " + this.propertyPath;
   };
 
-  _validate = function(entityType: EntityType, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
 
     if (entityType == null || entityType.isAnonymous) return;
     let props = entityType.getPropertiesOnPath(this.propertyPath, usesNameOnServer, false);
@@ -699,16 +722,16 @@ class PropExpr extends PredicateExpression {
     } else {
       this.dataType = prop.entityType;
     }
-  }
+  };
 
 }
 
 class FnExpr extends PredicateExpression {
   fnName: string;
-  exprs: any; // TODO:
+  exprs: PredicateExpression[];
   localFn: any; // TODO:
   dataType: DataTypeSymbol;
-  constructor(fnName: string, exprs) {
+  constructor(fnName: string, exprs: PredicateExpression[]) {
     super('fnExpr');
     // 4 public props: fnName, exprs, localFn, dataType
     this.fnName = fnName;
@@ -728,7 +751,7 @@ class FnExpr extends PredicateExpression {
     return "FnExpr - " + this.fnName + "(" + exprStr + ")";
   };
 
-  _validate = function(entityType: EntityType, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
     this.exprs.forEach(function (expr) {
       expr._validate(entityType, usesNameOnServer);
     });
@@ -843,7 +866,7 @@ let RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g;
 let RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g;
 let DELIM = String.fromCharCode(191);
 
-function createExpr(source, exprContext) {
+function createExpr(source, exprContext: IExpressionContext) {
   let entityType = exprContext.entityType;
 
   // the right hand side of an 'in' clause
@@ -854,8 +877,8 @@ function createExpr(source, exprContext) {
     return new LitExpr(source, exprContext.dataType);
   }
 
-  if (!__isString(source)) {
-    if (source != null && __isObject(source) && !source.toISOString) {
+  if (!(typeof source === 'string')) {
+    if (source != null && typeof source === 'object' && !source.toISOString) {
       // source is an object but not a Date-like thing such as a JS or MomentJS Date
       if (source.value === undefined) {
         throw new Error("Unable to resolve an expression for: " + source + " on entityType: " + entityType.name);
@@ -883,8 +906,8 @@ function createExpr(source, exprContext) {
     }
   } else {
     let regex = /\([^()]*\)/;
-    let m;
-    let tokens = [];
+    let m: RegExpExecArray | null;
+    let tokens: string[] = [];
     let i = 0;
     while (m = regex.exec(source)) {
       let token = m[0];
@@ -899,7 +922,7 @@ function createExpr(source, exprContext) {
   }
 }
 
-function parseExpr(source, tokens, exprContext) {
+function parseExpr(source: string, tokens: string[], exprContext: IExpressionContext): PredicateExpression  {
   let parts = source.split(DELIM);
   if (parts.length === 1) {
     return parseLitOrPropExpr(parts[0], exprContext);
@@ -908,7 +931,7 @@ function parseExpr(source, tokens, exprContext) {
   }
 }
 
-function parseLitOrPropExpr(value, exprContext) {
+function parseLitOrPropExpr(value: string, exprContext: IExpressionContext): PredicateExpression {
   value = value.trim();
   // value is either a string, a quoted string, a number, a bool value, or a date
   // if a string ( not a quoted string) then this represents a property name ( 1st ) or a lit string ( 2nd)
@@ -940,27 +963,30 @@ function parseLitOrPropExpr(value, exprContext) {
   }
 }
 
-function parseFnExpr(source, parts, tokens, exprContext) {
+function parseFnExpr(source: string, parts: string[], tokens: string[], exprContext: IExpressionContext) {
   try {
     let fnName = parts[0].trim().toLowerCase();
 
-    let argSource = tokens[parts[1]].trim();
+    let argSource = tokens[parts[1]].trim() as string;
     if (argSource.substr(0, 1) === "(") {
       argSource = argSource.substr(1, argSource.length - 2);
     }
     let commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
     let args = argSource.match(commaMatchStr);
-    let newContext = __extend({}, exprContext);
+    let newContext = core.extend({}, exprContext) as IExpressionContext;
     // a dataType of Undefined on a context basically means not to try parsing
     // the value if the expr is a literal
     newContext.dataType = DataType.Undefined;
     newContext.isFnArg = true;
-    let exprs = args.map(function (a) {
+    let exprs = args!.map(function (a) {
       return parseExpr(a, tokens, newContext);
     });
     return new FnExpr(fnName, exprs);
   } catch (e) {
-    return null;
+    // TODO: removed old code here
+    // return null;
+    // and replaced with 
+    throw e;
   }
 }
 
@@ -992,7 +1018,7 @@ let toFunctionVisitor = (function () {
       if (predFn == null) {
         throw new Error("Invalid binaryPredicate operator:" + this.op.key);
       }
-      return function (entity) {
+      return function (entity: IEntity) {
         return predFn(expr1Fn(entity), expr2Fn(entity));
       };
     },
@@ -1003,7 +1029,7 @@ let toFunctionVisitor = (function () {
       });
       switch (this.op.key) {
         case "and":
-          return function (entity) {
+          return function (entity: any) {
             let result = predFns.reduce(function (prev, cur) {
               return prev && cur(entity);
             }, true);
