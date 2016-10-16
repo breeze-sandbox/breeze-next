@@ -3,6 +3,7 @@ import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, N
 import { FilterQueryOp, BooleanQueryOp, IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';
 import { IEntity } from './entity-aspect';
+import { LocalQueryComparisonOptions} from './local-query-comparison-options';
 
 interface IOp {
   key?: string;
@@ -19,15 +20,17 @@ interface IVisitor {
 }
 
 interface IVisitContext {
-  visitor: IVisitor | null;
   entityType: EntityType | null;
+  usesNameOnServer?: boolean;
+
+  visitor?: IVisitor | null;
 }
 
 interface IExpressionContext {
-  entityType: EntityType;
-  dataType: DataTypeSymbol | string;
-  isRHS: boolean;
-  usesNameOnServer: boolean;
+  entityType?: EntityType;
+  usesNameOnServer?: boolean;
+  dataType?: DataTypeSymbol | string;
+  isRHS?: boolean;
   isFnArg?: boolean;
 }
 
@@ -38,7 +41,7 @@ interface IExpressionContext {
   **/
 
 export class Predicate {
-  _entityType: EntityType;
+  _entityType: EntityType | null;
   aliasMap: IOpMap;
   visitorMethodName: string;
 
@@ -100,7 +103,7 @@ export class Predicate {
     }
   };
 
-  _validate(entityType: EntityType, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
     // noop here;
   }
 
@@ -193,7 +196,7 @@ export class Predicate {
     for (let op in (opMap || {})) {
       let config = opMap[op];
       config.visitorFn = visitorFn;
-      updateAliasMap(BinaryPredicate.prototype.aliasMap, op, opMap[op])
+      updateAliasMap(BinaryPredicate.prototype.aliasMap, op, opMap[op]);
     }
     if (!toFunctionVisitor.isExtended) {
       toFunctionVisitor.binaryPredicate = function (context, expr1Val, expr2Val) {
@@ -280,11 +283,11 @@ export class Predicate {
     return this.toJSONExt({ entityType: this._entityType });
   }
 
-  toJSONExt(context) {
+  toJSONExt(context: IVisitContext) {
     return this.visit(context, toJSONVisitor);
   }
 
-  toFunction(context) {
+  toFunction(context: IVisitContext) {
     return this.visit(context, toFunctionVisitor);
   }
 
@@ -292,7 +295,7 @@ export class Predicate {
     return JSON.stringify(this);
   };
 
-  visit(context: IVisitContext, visitor: IVisitor | null) {
+  visit(context: IVisitContext, visitor?: IVisitor) {
     if (core.isEmpty(context)) {
       context = { entityType: null };
     } else if (context instanceof EntityType) {
@@ -303,14 +306,12 @@ export class Predicate {
 
     if (visitor) {
       context.visitor = visitor;
-    } else {
-      visitor = context.visitor;
     }
-    let fn = visitor[this.visitorMethodName];
+    let tVisitor = visitor || context.visitor!;
+    let fn = tVisitor[this.visitorMethodName];
     if (fn == null) {
       throw new Error("Unable to locate method: " + this.visitorMethodName + " on visitor");
     }
-
 
     let entityType = context.entityType;
     // don't bother validating if already done so ( or if no _validate method
@@ -465,7 +466,7 @@ class UnaryPredicate extends Predicate {
     this.pred = new Predicate(args);
   };
 
-  _validate(entityType: EntityType, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType, usesNameOnServer?: boolean) {
     this.pred._validate(entityType, usesNameOnServer);
   };
 }
@@ -492,7 +493,7 @@ class BinaryPredicate extends Predicate {
   };
 
 
-  _validate(entityType: EntityType, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType, usesNameOnServer?: boolean) {
     let expr1Context = { entityType: entityType, usesNameOnServer: usesNameOnServer };
     this.expr1 = createExpr(this.expr1Source, expr1Context);
     if (this.expr1 == null) {
@@ -503,7 +504,7 @@ class BinaryPredicate extends Predicate {
       throw new Error("The left hand side of a binary predicate cannot be a literal expression, it must be a valid property or functional predicate expression: " + this.expr1Source);
     }
 
-    if (this.op.key == 'in' && !Array.isArray(this.expr2Source)) {
+    if (this.op.key === 'in' && !Array.isArray(this.expr2Source)) {
       throw new Error("The 'in' operator requires that its right hand argument be an array");
     }
     let expr2Context = core.extend(expr1Context, { isRHS: true, dataType: this.expr1.dataType });
@@ -578,13 +579,11 @@ class AndOrPredicate extends Predicate {
     }
   };
 
-
-  _validate(entityType: EntityType, usesNameOnServer: boolean) {
-    this.preds.every(function (pred) {
+  _validate(entityType: EntityType, usesNameOnServer?: boolean) {
+    this.preds.forEach((pred) => {
       pred._validate(entityType, usesNameOnServer);
     });
   }
-
 
 }
 
@@ -614,9 +613,8 @@ class AnyAllPredicate extends Predicate {
     if (entityType == null || entityType.isAnonymous) {
       this.expr.dataType = null;
     }
-    this.pred._validate(this.expr.dataType, usesNameOnServer);
+    this.pred._validate(this.expr.dataType as EntityType | null, usesNameOnServer);
   }
-
 
 }
 
@@ -637,7 +635,7 @@ class PredicateExpression {
     this._validate = core.noop;
   }
 
-  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
     // noop;
   }
 }
@@ -647,7 +645,7 @@ class LitExpr extends PredicateExpression {
   dataType: DataTypeSymbol;
   hasExplicitDataType: boolean;
   // 2 public props: value, dataType
-  constructor(value: any, dataType: string | DataTypeSymbol, hasExplicitDataType: boolean = false) {
+  constructor(value: any, dataType: string | DataTypeSymbol | null, hasExplicitDataType: boolean = false) {
     super("litExpr");
     // dataType may come is an a string
     let dt1 = resolveDataType(dataType);
@@ -706,10 +704,10 @@ class PropExpr extends PredicateExpression {
     return " PropExpr - " + this.propertyPath;
   };
 
-  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
 
     if (entityType == null || entityType.isAnonymous) return;
-    let props = entityType.getPropertiesOnPath(this.propertyPath, usesNameOnServer, false);
+    let props = entityType.getPropertiesOnPath(this.propertyPath, usesNameOnServer || false, false);
 
     if (!props) {
       let msg = core.formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
@@ -751,7 +749,7 @@ class FnExpr extends PredicateExpression {
     return "FnExpr - " + this.fnName + "(" + exprStr + ")";
   };
 
-  _validate(entityType: EntityType | null, usesNameOnServer: boolean) {
+  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
     this.exprs.forEach(function (expr) {
       expr._validate(entityType, usesNameOnServer);
     });
@@ -874,14 +872,14 @@ function createExpr(source, exprContext: IExpressionContext) {
     if (!exprContext.isRHS) {
       throw new Error("Array expressions are only permitted on the right hand side of a BinaryPredicate");
     }
-    return new LitExpr(source, exprContext.dataType);
+    return new LitExpr(source, exprContext.dataType!);
   }
 
   if (!(typeof source === 'string')) {
     if (source != null && typeof source === 'object' && !source.toISOString) {
       // source is an object but not a Date-like thing such as a JS or MomentJS Date
       if (source.value === undefined) {
-        throw new Error("Unable to resolve an expression for: " + source + " on entityType: " + entityType.name);
+        throw new Error("Unable to resolve an expression for: " + source + " on entityType: " + (entityType ? entityType.name : 'null'));
       }
       if (source.isProperty) {
         return new PropExpr(source.value);
@@ -893,14 +891,14 @@ function createExpr(source, exprContext: IExpressionContext) {
         return new LitExpr(source.value, source.dataType || exprContext.dataType, true);
       }
     } else {
-      return new LitExpr(source, exprContext.dataType);
+      return new LitExpr(source, exprContext.dataType || null);
     }
   }
 
   if (exprContext.isRHS) {
     if (entityType == null || entityType.isAnonymous) {
       // if entityType is unknown then assume that the rhs is a literal
-      return new LitExpr(source, exprContext.dataType);
+      return new LitExpr(source, exprContext.dataType || null);
     } else {
       return parseLitOrPropExpr(source, exprContext);
     }
@@ -917,7 +915,7 @@ function createExpr(source, exprContext: IExpressionContext) {
     }
 
     let expr = parseExpr(source, tokens, exprContext);
-    expr._validate(entityType, exprContext.usesNameOnServer);
+    expr._validate(entityType || null, exprContext.usesNameOnServer);
     return expr;
   }
 }
@@ -1118,14 +1116,14 @@ let toFunctionVisitor = (function () {
   function getBinaryPredicateFn(binaryPredicate, dataType, lqco) {
     let op = binaryPredicate.op;
     let mc = DataType.getComparableFn(dataType);
-    let predFn;
+    let predFn: (v1: any, v2: any) => boolean;
     switch (op.key) {
       case 'eq':
         predFn = function (v1, v2) {
           if (v1 && typeof v1 === 'string') {
             return stringEquals(v1, v2, lqco);
           } else {
-            return mc(v1) == mc(v2);
+            return mc(v1) === mc(v2);
           }
         };
         break;
@@ -1134,7 +1132,7 @@ let toFunctionVisitor = (function () {
           if (v1 && typeof v1 === 'string') {
             return !stringEquals(v1, v2, lqco);
           } else {
-            return mc(v1) != mc(v2);
+            return mc(v1) !== mc(v2);
           }
         };
         break;
@@ -1186,7 +1184,7 @@ let toFunctionVisitor = (function () {
     return predFn;
   }
 
-  function stringEquals(a, b, lqco) {
+  function stringEquals(a: any, b: any, lqco: LocalQueryComparisonOptions) {
     if (b == null) return false;
     if (typeof b !== 'string') {
       b = b.toString();
@@ -1202,23 +1200,23 @@ let toFunctionVisitor = (function () {
     return a === b;
   }
 
-  function stringStartsWith(a, b, lqco) {
+  function stringStartsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
     if (!lqco.isCaseSensitive) {
       a = (a || "").toLowerCase();
       b = (b || "").toLowerCase();
     }
-    return __stringStartsWith(a, b);
+    return core.stringStartsWith(a, b);
   }
 
-  function stringEndsWith(a, b, lqco) {
+  function stringEndsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
     if (!lqco.isCaseSensitive) {
       a = (a || "").toLowerCase();
       b = (b || "").toLowerCase();
     }
-    return __stringEndsWith(a, b);
+    return core.stringEndsWith(a, b);
   }
 
-  function stringContains(a, b, lqco) {
+  function stringContains(a: any, b: any, lqco: LocalQueryComparisonOptions) {
     if (!lqco.isCaseSensitive) {
       a = (a || "").toLowerCase();
       b = (b || "").toLowerCase();
@@ -1280,7 +1278,7 @@ let toJSONVisitor = (function () {
 
     anyAllPredicate: function (context) {
       let exprVal = this.expr.visit(context);
-      let newContext = __extend({}, context);
+      let newContext = core.extend({}, context);
       newContext.entityType = this.expr.dataType;
       let predVal = this.pred.visit(newContext);
       let json = {};
@@ -1317,7 +1315,7 @@ let toJSONVisitor = (function () {
   function combine(j1, j2) {
     let ok = Object.keys(j2).every(function (key) {
       if (j1.hasOwnProperty(key)) {
-        if (typeof (j2[key]) != 'object') {
+        if (typeof (j2[key]) !== 'object') {
           // exit and indicate that we can't combine
           return false;
         }
