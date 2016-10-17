@@ -68,17 +68,18 @@ export class Predicate {
   **/
 
   constructor(...args: any[]) {
-    return Predicate.create(args);
+    if (args.length === 0) return;
+    if (!(this instanceof Predicate)) {
+      return new Predicate(...args);
+    }
+    return Predicate.create(...args);
   }
 
   static create(...args: any[]) {
     // can be called from std javascript without new ( legacy )
-    if (!(this instanceof Predicate)) {
-      return new Predicate(args);
-    }
 
     // empty ctor is used by all subclasses.
-    if (args.length === 0) return this;
+    if (args.length === 0) return new Predicate();
     if (args.length === 1) {
       // possibilities:
       //      Predicate([ aPredicate ]) or  Predicate(["freight", ">", 100"]) - an array
@@ -1120,7 +1121,7 @@ let toFunctionVisitor = (function () {
     }
   }
 
-  function getBinaryPredicateFn(binaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
+  function getBinaryPredicateFn(binaryPredicate: BinaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
     let op = binaryPredicate.op;
     let mc = DataType.getComparableFn(dataType);
     let predFn: (v1: any, v2: any) => boolean;

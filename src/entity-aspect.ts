@@ -1,6 +1,4 @@
-﻿import { EntityQuery } from '../typings/breeze1x'; // TODO: replace later
-
-import { breeze, core, Callback, ErrorCallback } from './core-fns';
+﻿import { breeze, core, Callback, ErrorCallback } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
@@ -11,6 +9,7 @@ import { EntityKey } from './entity-key';
 import { EntityGroup } from './entity-group';
 import { EntityManager } from './entity-manager';
 import { Validator, ValidationError } from './validate';
+import { EntityQuery } from './entity-query';
 
 export interface IEntity {
   entityAspect: EntityAspect;

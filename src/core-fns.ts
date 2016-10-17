@@ -1,4 +1,4 @@
-﻿// import { Entity, EntityAspect, EntityType } from '../typings/breeze1x'; // TODO: replace later
+﻿
 export interface ErrorCallback {
     (error: Error): void;
 }

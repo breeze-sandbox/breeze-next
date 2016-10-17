@@ -244,7 +244,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   Time = this.addSymbol({
     defaultValue: "PT0S",
     fmtOData: fmtTime,
-    parseRawValue: DataType.parseTimeFromServer
+    parseRawValue: this.parseTimeFromServer
   });
   /**
   @property Boolean {DataType}
@@ -374,7 +374,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
     return source;
   };
 
-  parseDateFromServer = DataType.parseDateAsUTC;
+  parseDateFromServer = this.parseDateAsUTC;
 
   parseRawValue(val: any, dataType?: DataTypeSymbol) {
     // undefined values will be the default for most unmapped properties EXCEPT when they are set
