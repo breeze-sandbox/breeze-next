@@ -301,7 +301,7 @@ export class Predicate {
     return JSON.stringify(this);
   };
 
-  visit(context: IVisitContext, visitor?: IVisitor) {
+  visit(context: IVisitContext, visitor: IVisitor) {
     if (core.isEmpty(context)) {
       context = { entityType: null };
     } else if (context instanceof EntityType) {
@@ -607,7 +607,7 @@ class AnyAllPredicate extends Predicate {
   exprSource: string;
   pred: Predicate;
   // 4 public props: op, exprSource, expr, pred
-  constructor(op: string | IQueryOp, expr: string, pred) {
+  constructor(op: string | IQueryOp, expr: string, pred: any) {
     super();
     this.op = this._resolveOp(op);
     this.exprSource = expr;
@@ -1003,7 +1003,7 @@ let toFunctionVisitor = (function () {
       throw new Error("Cannot execute an PassthruPredicate expression against the local cache: " + this.value);
     },
 
-    unaryPredicate: function (context) {
+    unaryPredicate: function (context: IVisitContext) {
       let predFn = this.pred.visit(context);
       switch (this.op.key) {
         case "not":
@@ -1015,22 +1015,22 @@ let toFunctionVisitor = (function () {
       }
     },
 
-    binaryPredicate: function (context) {
+    binaryPredicate: function (context: IVisitContext) {
       let expr1Fn = this.expr1.visit(context);
       let expr2Fn = this.expr2.visit(context);
       let dataType = this.expr1.dataType || this.expr2.dataType;
-      let lqco = context.entityType.metadataStore.localQueryComparisonOptions;
+      let lqco = context.entityType!.metadataStore.localQueryComparisonOptions;
       let predFn = getBinaryPredicateFn(this, dataType, lqco);
       if (predFn == null) {
         throw new Error("Invalid binaryPredicate operator:" + this.op.key);
       }
       return function (entity: IEntity) {
-        return predFn(expr1Fn(entity), expr2Fn(entity));
+        return predFn!(expr1Fn(entity), expr2Fn(entity));
       };
     },
 
-    andOrPredicate: function (context) {
-      let predFns = this.preds.map(function (pred) {
+    andOrPredicate: function (context: IVisitContext) {
+      let predFns = this.preds.map((pred) => {
         return pred.visit(context);
       });
       switch (this.op.key) {
