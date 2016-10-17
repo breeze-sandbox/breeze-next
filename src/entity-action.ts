@@ -1,5 +1,5 @@
 ﻿import { breeze } from './core-fns';
-import { Enum, EnumSymbol, TypedEnum } from './enum';
+import { EnumSymbol, TypedEnum } from './enum';
 
 export class EntityActionSymbol extends EnumSymbol {
   _isAttach?: boolean;

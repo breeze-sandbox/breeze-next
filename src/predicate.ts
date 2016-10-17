@@ -567,7 +567,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 
 
 class AndOrPredicate extends Predicate {
-  op: IOp; // TODO - this was removed ... | null;
+  op: IOp | null;
   preds: Predicate[];
   constructor(op: string | IQueryOp, preds: any[]) {
     super();
@@ -1039,7 +1039,7 @@ let toFunctionVisitor = {
     let predFns = this.preds.map((pred) => {
       return pred.visit(context);
     });
-    switch (this.op.key) {
+    switch (this.op!.key) {
       case "and":
         return function (entity: any) {
           let result = predFns.reduce(function (prev, cur) {
@@ -1055,7 +1055,7 @@ let toFunctionVisitor = {
           return result;
         };
       default:
-        throw new Error("Invalid boolean operator:" + this.op.key);
+        throw new Error("Invalid boolean operator:" + this.op!.key);
     }
   },
 
@@ -1277,13 +1277,13 @@ let toJSONVisitor = {
     let json: Object | null = null;
     // normalizeAnd clauses if possible.
     // passthru predicate will appear as string and their 'ands' can't be 'normalized'
-    if (this.op.key === 'and' && predVals.length === 2 && !predVals.some((v) => typeof(v) === 'string')) {
+    if (this.op!.key === 'and' && predVals.length === 2 && !predVals.some((v) => typeof(v) === 'string')) {
       // normalize 'and' clauses - will return null if can't be combined.
       json = predVals.reduce(combine);
     }
     if (json == null) {
       json = {};
-      json[this.op.key!] = predVals;
+      json[this.op!.key!] = predVals;
     }
     return json;
   },
