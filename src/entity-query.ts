@@ -649,7 +649,7 @@ export class EntityQuery {
 
   @return {Promise}
   **/
-  execute(callback: Callback, errorCallback: ErrorCallback) {
+  execute(callback?: Callback, errorCallback?: ErrorCallback) {
     if (!this.entityManager) {
       throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'");
     }

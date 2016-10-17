@@ -132,7 +132,7 @@ export class EntityGroup {
 
   getEntities(entityStates: EntityStateSymbol[]) {
     let filter = getFilter(entityStates);
-    return this._entities.filter(filter);
+    return this._entities.filter(filter) as IEntity[];
   };
 
   _checkOperation(operationName: string) {

@@ -22,13 +22,6 @@ import { EntityGroup } from './entity-group';
 import { MappingContext} from './mapping-context';
 import { EntityQuery } from './entity-query';
 
-interface IEntityError {
-  entity: IEntity;
-  errorName: string;
-  errorMessage: string;
-  propertyName: string;
-  isServerError: boolean;
-}
 
 
 
@@ -53,6 +46,32 @@ interface ISaveResult {
   keyMappings: IKeyMapping[];
   // XHR: XMLHttpRequest;
 }
+
+export interface IEntityError {
+  entity: IEntity;
+  errorName: string;
+  errorMessage: string;
+  propertyName: string;
+  isServerError: boolean;
+}
+
+interface IServerEntityError {
+  entityTypeName: string;
+  keyValues: any[];
+
+  errorName: string;
+  errorMessage: string;
+  propertyName: string;
+}
+
+export interface ISaveError {
+  entityErrors: IEntityError[];
+}
+
+interface IServerSaveError {
+  entityErrors: IServerEntityError[];
+}
+
 
 interface ISaveContext {
    entityManager: EntityManager;
@@ -1645,12 +1664,13 @@ function createEntityErrors(entities: IEntity[]) {
 }
 
 
-function processServerErrors(saveContext: ISaveContext, saveError) {
+function processServerErrors(saveContext: ISaveContext, saveError: IServerSaveError) {
+  // replace IServerEntityError with IEntityErrors
   let serverErrors = saveError.entityErrors;
   if (!serverErrors) return;
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
-  saveError.entityErrors = serverErrors.map(function (serr) {
+  let entityErrors = serverErrors.map( (serr) => {
     let entity: IEntity | null = null;
     let entityType: EntityType | null = null;
     if (serr.keyValues) {
@@ -1679,6 +1699,8 @@ function processServerErrors(saveContext: ISaveContext, saveError) {
     }, serr, ["errorName", "errorMessage", "propertyName"]) as IEntityError;
     return entityError;
   });
+  // replacing IServerEntityError with IEntityErrors 
+  saveError.entityErrors = entityErrors as any;
 }
 
 /**
@@ -1727,7 +1749,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]) {
   if (foundIt) {
     return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
   } else {
-    return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data) {
+    return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data: any) {
       entity = (data.results.length === 0) ? null : data.results[0];
       return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
     });
@@ -1760,36 +1782,36 @@ function getChangesCore(em: EntityManager, entityTypes: EntityType | EntityType[
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
-  let selected: IEntity[];
+  let selected: IEntity[] = [];
   entityGroups.forEach(function (eg) {
     // eg may be undefined or null
     if (!eg) return;
     let entities = eg.getChanges();
-    if (selected) {
+    if (selected.length > 0) {
       selected.push.apply(selected, entities);
     } else {
       selected = entities;
     }
   });
-  return selected || [];
+  return selected;
 }
 
 function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null, entityStates: EntityStateSymbol[]) {
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
-  let selected: IEntity[];
+  let selected: IEntity[] = [];
   entityGroups.forEach(function (eg) {
     // eg may be undefined or null
     if (!eg) return;
     let entities = eg.getEntities(entityStates);
-    if (selected) {
+    if (selected.length > 0) {
       selected.push.apply(selected, entities);
     } else {
       selected = entities;
     }
   });
-  return selected || [];
+  return selected;
 }
 
 function createEntityKey(em: EntityManager, ...args: any[]) {
@@ -1955,7 +1977,7 @@ function exportTempKeyInfo(entityAspect: EntityAspect, tempKeys: ITempKey[]) {
   return tempNavPropNames;
 }
 
-function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: IImportConfig) {
+function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: IImportConfig) {
 
   let tempKeyMap = importConfig.tempKeyMap;
 
@@ -2025,7 +2047,6 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: II
       if (!entityState.isUnchanged()) {
         em._notifyStateChange(targetEntity, true);
       }
-
     }
 
     entitiesToLink.push(targetEntity);
@@ -2147,7 +2168,7 @@ function attachRelatedEntities(em: EntityManager, entity: IEntity, entityState: 
 // returns a promise
 function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: QueryOptions, dataService: DataService) {
   try {
-    let results;
+    let results: any[];
     let metadataStore = em.metadataStore;
 
     if (metadataStore.isEmpty() && dataService.hasServerMetadata) {
@@ -2176,7 +2197,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
 
     let validateOnQuery = em.validationOptions.validateOnQuery;
 
-    return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
+    return dataService.adapterInstance.executeQuery(mappingContext).then(function (data: any) {
       let result = core.wrapExecution(function () {
         let state = { isLoading: em.isLoading };
         em.isLoading = true;
@@ -2190,8 +2211,9 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
         });
         em._pendingPubs = null;
         em._hasChangesAction && em._hasChangesAction();
-        // HACK for GC
-        query = null;
+        // TODO: removed - not sure why needed in first place...
+        // // HACK for GC
+        // query = null;
         mappingContext = null;
         // HACK: some errors thrown in next function do not propogate properly - this catches them.
 
@@ -2425,7 +2447,7 @@ function executeQueryLocallyCore(em: EntityManager, query: EntityQuery) {
   let metadataStore = em.metadataStore;
   let entityType = query._getFromEntityType(metadataStore, true);
   // there may be multiple groups is this is a base entity type.
-  let groups = findOrCreateEntityGroups(em, entityType);
+  let groups = findOrCreateEntityGroups(em, entityType!);
   // filter then order then skip then take
   let filterFunc = query.wherePredicate && query.wherePredicate.toFunction({ entityType: entityType });
 
@@ -2445,7 +2467,7 @@ function executeQueryLocallyCore(em: EntityManager, query: EntityQuery) {
     }
   });
 
-  let orderByComparer = query.orderByClause && query.orderByClause.getComparer(entityType);
+  let orderByComparer = query.orderByClause && query.orderByClause.getComparer(entityType!);
   if (orderByComparer) {
     result.sort(orderByComparer);
   }
