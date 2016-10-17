@@ -1,7 +1,7 @@
 ﻿import { core } from './core-fns';
 import { BreezeEvent } from './event';
 import { EntityAspect } from './entity-aspect';
-import { EntityType, DataProperty } from './entity-metadata';
+import { DataProperty } from './entity-metadata';
 
 export interface IObservableArray {
   push: (...args: any[]) => number;

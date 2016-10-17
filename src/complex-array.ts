@@ -1,7 +1,7 @@
 import { breeze, core  } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
-import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
+import { IComplexObject, IStructuralObject } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
 // TODO: mixin impl is not very typesafe

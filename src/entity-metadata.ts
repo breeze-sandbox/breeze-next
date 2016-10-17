@@ -3,17 +3,14 @@ import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
 import { DataType, DataTypeSymbol } from './data-type';
-import { EntityState, EntityStateSymbol } from './entity-state';
-import { EntityAction } from './entity-action';
 import { EntityAspect, ComplexAspect, IEntity, IComplexObject, IStructuralObject  } from './entity-aspect';
 import { EntityKey } from './entity-key';
-import { Validator, ValidationError } from './validate';
-import { Enum, EnumSymbol, TypedEnum } from './enum';
+import { Validator } from './validate';
+import { EnumSymbol, TypedEnum } from './enum';
 import { DataService } from './data-service';
 import { NamingConvention } from './naming-convention';
 import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate this later;
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
-import { EntityQuery } from './entity-query';
 
 export type EntityProperty = DataProperty | NavigationProperty;
 
@@ -341,7 +338,6 @@ export class MetadataStore {
       let realDs = DataService.fromJSON(ds);
       that.addDataService(realDs, true);
     });
-    let structuralTypeMap = this._structuralTypeMap;
 
     json.structuralTypes && json.structuralTypes.forEach(function (stype: any) {
       structuralTypeFromJson(that, stype, allowMerge);
@@ -1612,7 +1608,6 @@ export class EntityType {
           }
         }
       } else {
-        let val: any;
         if (dp.isScalar) {
           let newVal = this.parseRawValue(rawVal, dataType as DataTypeSymbol);
           target.setProperty(dp.name, newVal);
@@ -2906,9 +2901,10 @@ function throwSetInverseError(np: NavigationProperty, message: string) {
   throw new Error("Cannot set the inverse property for: " + np.formatName() + ". " + message);
 }
 
-function throwCreateInverseError(np: NavigationProperty, message: string) {
-  throw new Error("Cannot create inverse for: " + np.formatName() + ". The entityType for this navigation property " + message);
-}
+// Not current used.
+// function throwCreateInverseError(np: NavigationProperty, message: string) {
+//   throw new Error("Cannot create inverse for: " + np.formatName() + ". The entityType for this navigation property " + message);
+// }
 
 // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
 function resolveRelated(np: NavigationProperty) {

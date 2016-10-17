@@ -1,5 +1,8 @@
 ﻿import { core } from './core-fns';
 
+declare function setTimeout(handler: any, timeout?: any, ...args: any[]): number;
+
+
 // TODO: think about CompositeEnum (flags impl).
 
 /**
@@ -244,7 +247,7 @@ export class EnumSymbol {
             let that = this;
             this.name = core.arrayFirst(this.parentEnum.getNames(), function (name: string) {
                 return that.parentEnum[name] === that;
-            });
+            }) || '';
         }
         return this.name;
     };

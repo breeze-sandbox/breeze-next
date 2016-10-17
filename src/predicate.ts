@@ -1,6 +1,6 @@
 ﻿import { breeze, core } from './core-fns';
-import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
-import { FilterQueryOp, BooleanQueryOp, IQueryOp } from './entity-query';
+import { EntityType, StructuralType, DataProperty  } from './entity-metadata';
+import { IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';
 import { EntityAspect, IEntity } from './entity-aspect';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
@@ -331,8 +331,6 @@ export class Predicate {
       this._entityType = entityType;
     }
 
-    // args = context, arg1, args2, ...
-    let args = Array.prototype.slice.call(arguments, 1);
     return fn.call(this, context);
   }
 

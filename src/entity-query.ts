@@ -1,17 +1,12 @@
 ﻿import { breeze, core, Callback, ErrorCallback } from './core-fns';
-import { config } from './config';
-import { BreezeEvent } from './event';
-import { assertParam, assertConfig, Param } from './assert-param';
-import { DataType, DataTypeSymbol } from './data-type';
-import { EntityState, EntityStateSymbol } from './entity-state';
-import { EntityAction } from './entity-action';
-import { EntityAspect, ComplexAspect, IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
+import { assertParam } from './assert-param';
+import { DataType } from './data-type';
+import { EntityAspect, IEntity  } from './entity-aspect';
 import { EntityKey } from './entity-key';
-import { Validator, ValidationError } from './validate';
-import { Enum, EnumSymbol, TypedEnum } from './enum';
+import { EnumSymbol, TypedEnum } from './enum';
 import { DataService } from './data-service';
 import { EntityManager } from './entity-manager';
-import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
+import { MetadataStore, EntityType, NavigationProperty, EntityProperty } from './entity-metadata';
 import { QueryOptions } from './query-options';
 import { Predicate } from './predicate';
 
@@ -682,8 +677,6 @@ export class EntityQuery {
     context = context || {};
     context.entityType = context.entityType || this.fromEntityType;
     context.propertyPathFn = context.toNameOnServer ? context.entityType!.clientPropertyPathToServer.bind(context.entityType) : core.identity;
-
-    let that = this;
 
     let toJSONExtFn = function (v: any) {
       return v ? v.toJSONExt(context) : undefined;

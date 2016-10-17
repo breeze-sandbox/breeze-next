@@ -1,9 +1,10 @@
-import { breeze, core, Callback, ErrorCallback } from './core-fns';
+import { core, Callback, ErrorCallback } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
-import { IEntity, IComplexObject, IStructuralObject } from './entity-aspect';
+import { IEntity  } from './entity-aspect';
 import { DataProperty, NavigationProperty } from './entity-metadata';
 import { EntityState } from './entity-state';
+import { EntityQuery } from './entity-query';
 
 // TODO: mixin impl is not very typesafe
 

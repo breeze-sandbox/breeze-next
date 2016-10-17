@@ -1,5 +1,5 @@
 ﻿import { breeze, core } from './core-fns';
-import { Enum, EnumSymbol, TypedEnum } from './enum';
+import { EnumSymbol, TypedEnum } from './enum';
 import { Validator } from './validate';
 
 let _localTimeRegex = /.\d{3}$/;

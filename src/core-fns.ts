@@ -595,14 +595,7 @@ function isNumeric(n: any) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-// returns true for booleans, numbers, strings and dates
-// false for null, and non-date objects, functions, and arrays
-function isPrimitive(obj: any) {
-    if (obj == null) return false;
-    // true for numbers, strings, booleans and null, false for objects
-    if (obj != Object(obj)) return true;
-    return isDate(obj);
-}
+
 
 // end of is Functions
 
@@ -729,3 +722,20 @@ export interface ErrorCallback {
 
 breeze.core = core;
 
+// Unused
+/*
+// returns true for booleans, numbers, strings and dates
+// false for null, and non-date objects, functions, and arrays
+function isPrimitive(obj: any) {
+    if (obj == null) return false;
+    // true for numbers, strings, booleans and null, false for objects
+    if (obj != Object(obj)) return true;
+    return isDate(obj);
+}
+
+
+
+
+
+
+*/

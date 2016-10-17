@@ -1,8 +1,8 @@
 ﻿import { core } from './core-fns';
 import { DataType, DataTypeSymbol } from './data-type';
 import { DataService, JsonResultsAdapter, INodeContext, INodeMeta } from './data-service';
-import { EntityState, EntityStateSymbol } from './entity-state';
-import { EntityAction, EntityActionSymbol } from './entity-action';
+import { EntityState  } from './entity-state';
+import { EntityAction } from './entity-action';
 import { MetadataStore, EntityType, StructuralType, DataProperty, NavigationProperty } from './entity-metadata';
 import { EntityManager } from './entity-manager';
 import { MergeStrategy, MergeStrategySymbol } from './query-options';

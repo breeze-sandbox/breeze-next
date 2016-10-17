@@ -1,4 +1,4 @@
-import { breeze, core  } from './core-fns';
+import { core  } from './core-fns';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 import { IStructuralObject } from './entity-aspect';
@@ -6,11 +6,12 @@ import { DataProperty } from './entity-metadata';
 
 // TODO: mixin impl is not very typesafe
 
-interface IPrimitiveArray extends IObservableArray {
-  [index: number]: any;
-  parent: IStructuralObject | null;
-  parentProperty: DataProperty | null;
-}
+// Not needed
+// interface IPrimitiveArray extends IObservableArray {
+//   [index: number]: any;
+//   parent: IStructuralObject | null;
+//   parentProperty: DataProperty | null;
+// }
 
 let primitiveArrayMixin = {
 

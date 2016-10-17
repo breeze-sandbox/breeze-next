@@ -1,6 +1,5 @@
 ﻿import { breeze, core } from './core-fns';
-import { Enum, EnumSymbol, TypedEnum } from './enum';
-import { config } from './config';
+import { EnumSymbol, TypedEnum } from './enum';
 import { assertConfig } from './assert-param';
 
 export class MergeStrategySymbol extends EnumSymbol {

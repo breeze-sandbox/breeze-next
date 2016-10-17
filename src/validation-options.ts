@@ -1,5 +1,5 @@
 ﻿import { breeze, core  } from './core-fns';
-import { assertParam, assertConfig } from './assert-param';
+import { assertConfig } from './assert-param';
 
 export interface IValidationOptionsConfig {
   validateOnAttach: boolean;

@@ -167,12 +167,13 @@ This object will be passed into the Validator's validation function whenever 'va
 of additional properties that will be automatically added to this object if not otherwise specified.
 **/
 export class Validator {
+  _$typeName = "Validator";
+
   name: string;
   valFn: IValidationFn;
   context: IValidationContext;
   currentContext: any;
   private _baseContext: any;
-  private _$typeName = "Validator";
 
   constructor(name: string, valFn: IValidationFn, context?: any) {
     // _baseContext is what will get serialized
