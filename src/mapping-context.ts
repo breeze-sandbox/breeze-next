@@ -7,6 +7,7 @@ import { MetadataStore, EntityType, StructuralType, DataProperty, NavigationProp
 import { EntityManager } from './entity-manager';
 import { MergeStrategy, MergeStrategySymbol } from './query-options';
 import { IEntity } from './entity-aspect';
+import { EntityQuery } from './entity-query';
 
 
 // Internal helper class
@@ -17,10 +18,10 @@ export interface IMergeOptions {
 }
 
 interface IMappingContextConfig {
-  query: EntityQuery | string;
+  dataService: DataService;
+  query: EntityQuery | string | null;
   entityManager: EntityManager;
   mergeOptions: IMergeOptions;
-  dataService: DataService;
 }
 
 export class MappingContext {
@@ -29,13 +30,14 @@ export class MappingContext {
   rawValueFn = DataProperty.getRawValueFromServer; // think about passing this in later.
 
   dataService: DataService;
+  query: EntityQuery | string;
   entityManager: EntityManager;
+  mergeOptions: IMergeOptions;
+
   refMap: Object; // TODO
   deferredFns: Function[]; // TODO
   jsonResultsAdapter: JsonResultsAdapter;
   metadataStore: MetadataStore;
-  query: EntityQuery | string;
-  mergeOptions: IMergeOptions;
 
   constructor(config: IMappingContextConfig) {
 
@@ -86,7 +88,7 @@ export class MappingContext {
       let meta = jra.visitNode(node, that, nodeContext) || {};
       node = meta.node || node;
       if (query && nodeContext.nodeType === "root" && !meta.entityType) {
-        meta.entityType = query._getToEntityType && query._getToEntityType(that.metadataStore);
+        meta.entityType = query instanceof EntityQuery &&  query._getToEntityType && query._getToEntityType(that.metadataStore);
       }
       return processMeta(that, node, meta);
     }, this.mergeOptions.includeDeleted);

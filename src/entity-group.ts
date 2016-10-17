@@ -32,7 +32,7 @@ export class EntityGroup {
   };
 
 
-  attachEntity(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
+  attachEntity(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol) {
     // entity should already have an aspect.
     let aspect = entity.entityAspect;
 

@@ -20,6 +20,7 @@ import { SaveOptions } from './save-options';
 import { KeyGenerator } from './key-generator';
 import { EntityGroup } from './entity-group';
 import { MappingContext} from './mapping-context';
+import { EntityQuery } from './entity-query';
 
 interface IEntityError {
   entity: IEntity;
@@ -893,7 +894,7 @@ export class EntityManager {
     // Thought about creating a 'normalized' query with these 'resolved' objects
     // but decided not to because the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
     let queryOptions = QueryOptions.resolve([query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
-    let dataService = DataService.resolve([query.dataService, this.dataService]);
+    let dataService = DataService.resolve([query.dataService!, this.dataService]);
 
     if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
       promise = executeQueryCore(this, query, queryOptions, dataService);
@@ -1909,22 +1910,22 @@ function structuralObjectToJson(so: IStructuralObject, dps: DataProperty[], seri
     let newAspect = {
       tempNavPropNames: exportTempKeyInfo(aspect, tempKeys || []),
       entityState: entityState.name
-    };
+    } as any;
     if (aspect.extraMetadata) {
       newAspect.extraMetadata = aspect.extraMetadata;
     }
     if (entityState.isModified() || entityState.isDeleted()) {
       newAspect.originalValuesMap = aspect.originalValues;
     }
-    result.entityAspect = newAspect;
+    (result as any).entityAspect = newAspect;
   } else {
     let aspect = so.complexAspect;
-    let newAspect = {};
+    let newAspect = {} as any;
     if (aspect.originalValues && !core.isEmpty(aspect.originalValues)) {
       newAspect.originalValuesMap = aspect.originalValues;
     }
 
-    result.complexAspect = newAspect;
+    (result as any).complexAspect = newAspect;
   }
 
   return result;
@@ -1961,17 +1962,17 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: II
   let entityType = entityGroup.entityType;
   let mergeStrategy = importConfig.mergeStrategy;
 
-  let targetEntity = null;
+  let targetEntity: IEntity | null = null;
 
   let em = entityGroup.entityManager;
   let entityChanged = em.entityChanged;
-  let entitiesToLink = [];
+  let entitiesToLink: IEntity[] = [];
   let rawValueFn = DataProperty.getRawValueFromClient;
-  jsonGroup.entities.forEach(function (rawEntity) {
+  jsonGroup.entities.forEach(function (rawEntity: any) {
     let newAspect = rawEntity.entityAspect;
 
     let entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, rawValueFn);
-    let entityState = EntityState.fromName(newAspect.entityState);
+    let entityState = EntityState.fromName(newAspect.entityState) as EntityStateSymbol;
     if (!entityState || entityState === EntityState.Detached) {
       throw new Error("Only entities with a non detached entity state may be imported.");
     }
@@ -1980,7 +1981,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: II
     // UNLESS this is a new entity w/ a temp key
     // Cannot safely merge such entities even
     // if could match temp key to an entity in cache.
-    let newTempKey = entityState.isAdded() && getMappedKey(tempKeyMap, entityKey);
+    let newTempKey = entityState.isAdded() && getMappedKey(tempKeyMap!, entityKey);
     targetEntity = newTempKey ? null : entityGroup.findEntityByKey(entityKey);
 
     if (targetEntity) {
@@ -1998,7 +1999,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: II
         }
       }
     } else {
-      targetEntity = entityType._createInstanceCore();
+      targetEntity = entityType._createInstanceCore() as IEntity;
       entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
       if (newTempKey) {
         targetEntity.entityAspect.hasTempKey = true;
@@ -2008,13 +2009,13 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup, importConfig: II
         // fixup foreign keys
         // This is safe because the entity is detached here and therefore originalValues will not be updated.
         if (newAspect.tempNavPropNames) {
-          newAspect.tempNavPropNames.forEach(function (npName) {
+          newAspect.tempNavPropNames.forEach(function (npName: string) {
             let np = entityType.getNavigationProperty(npName);
-            let fkPropName = np.relatedDataProperties[0].name;
-            let oldFkValue = targetEntity.getProperty(fkPropName);
-            let fk = new EntityKey(np.entityType, [oldFkValue]);
-            let newFk = getMappedKey(tempKeyMap, fk);
-            targetEntity.setProperty(fkPropName, newFk.values[0]);
+            let fkPropName = np!.relatedDataProperties[0].name;
+            let oldFkValue = targetEntity!.getProperty(fkPropName);
+            let fk = new EntityKey(np!.entityType, [oldFkValue]);
+            let newFk = getMappedKey(tempKeyMap!, fk);
+            targetEntity!.setProperty(fkPropName, newFk!.values[0]);
           });
         }
       }

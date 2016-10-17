@@ -127,6 +127,22 @@ export class EntityAspect {
 
   }
 
+  // used by EntityQuery and Predicate
+  static getPropertyPathValue(obj: IEntity, propertyPath: string | string[]) {
+  let properties = Array.isArray(propertyPath) ? propertyPath : propertyPath.split(".");
+  if (properties.length === 1) {
+    return obj.getProperty(propertyPath as string);
+  } else {
+    let nextValue = obj;
+    // hack use of some to perform mapFirst operation.
+    properties.some((prop) => {
+      nextValue = nextValue.getProperty(prop);
+      return nextValue == null;
+    });
+    return nextValue;
+  }
+}
+
   /**
   The Entity that this aspect is associated with.
 

@@ -1268,8 +1268,8 @@ class OrderByItem {
     let isDesc = this.isDesc;
 
     return function (entity1: any, entity2: any) {
-      let value1 = getPropertyPathValue(entity1, propertyPath);
-      let value2 = getPropertyPathValue(entity2, propertyPath);
+      let value1 = EntityAspect.getPropertyPathValue(entity1, propertyPath);
+      let value2 = EntityAspect.getPropertyPathValue(entity2, propertyPath);
       let dataType = propDataType || (value1 && DataType.fromValue(value1)) || DataType.fromValue(value2);
       if (dataType === DataType.String) {
         if (isCaseSensitive) {
@@ -1320,7 +1320,7 @@ class SelectClause {
     return function (entity: IEntity) {
       let result = {};
       that.propertyPaths.forEach(function (path, i) {
-        result[that._pathNames[i]] = getPropertyPathValue(entity, path);
+        result[that._pathNames[i]] = EntityAspect.getPropertyPathValue(entity, path);
       });
       return result;
     };
@@ -1349,21 +1349,7 @@ class ExpandClause {
 
 }
 
-// used by EntityQuery and Predicate
-function getPropertyPathValue(obj: IEntity, propertyPath: string | string[]) {
-  let properties = Array.isArray(propertyPath) ? propertyPath : propertyPath.split(".");
-  if (properties.length === 1) {
-    return obj.getProperty(propertyPath as string);
-  } else {
-    let nextValue = obj;
-    // hack use of some to perform mapFirst operation.
-    properties.some((prop) => {
-      nextValue = nextValue.getProperty(prop);
-      return nextValue == null;
-    });
-    return nextValue;
-  }
-}
+
 
 // expose
 breeze.FilterQueryOp = FilterQueryOp;

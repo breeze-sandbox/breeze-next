@@ -2,8 +2,8 @@
 import { MetadataStore, EntityType, ComplexType, StructuralType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { FilterQueryOp, BooleanQueryOp, IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';
-import { IEntity } from './entity-aspect';
-import { LocalQueryComparisonOptions} from './local-query-comparison-options';
+import { EntityAspect, IEntity } from './entity-aspect';
+import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 
 interface IOp {
   key?: string;
@@ -21,8 +21,9 @@ interface IVisitor {
 
 interface IVisitContext {
   entityType: EntityType | null;
-  usesNameOnServer?: boolean;
-
+  // usesNameOnServer?: boolean;
+  toNameOnServer?: boolean;
+  useExplicitDataType?: boolean;
   visitor?: IVisitor | null;
 }
 
@@ -197,25 +198,26 @@ export class Predicate {
     return pred.not();
   };
 
-  static extendBinaryPredicateFn(opMap: IOpMap, visitorFn) {
-    let baseVisitorFn = toFunctionVisitor.binaryPredicate;
-    for (let op in (opMap || {})) {
-      let config = opMap[op];
-      config.visitorFn = visitorFn;
-      updateAliasMap(BinaryPredicate.prototype.aliasMap, op, opMap[op]);
-    }
-    if (!toFunctionVisitor.isExtended) {
-      toFunctionVisitor.binaryPredicate = function (context, expr1Val, expr2Val) {
-        let visitorFn = this.aliasMap[this.op.key].visitorFn;
-        if (visitorFn) {
-          return visitorFn(context, expr1Val, expr2Val);
-        } else {
-          return baseVisitorFn(context, expr1Val, expr2Val);
-        }
-      };
-      toFunctionVisitor.isExtended = true;
-    }
-  };
+  // TODO: determine if/where this is used.
+  // static extendBinaryPredicateFn(opMap: IOpMap, visitorFn: any) {
+  //   let baseVisitorFn = toFunctionVisitor.binaryPredicate;
+  //   for (let op in (opMap || {})) {
+  //     let config = opMap[op];
+  //     config.visitorFn = visitorFn;
+  //     updateAliasMap(BinaryPredicate.prototype.aliasMap, op, opMap[op]);
+  //   }
+  //   if (!toFunctionVisitor.isExtended) {
+  //     toFunctionVisitor.binaryPredicate = function (context, expr1Val, expr2Val) {
+  //       let visitorFn = this.aliasMap[this.op.key!].visitorFn;
+  //       if (visitorFn) {
+  //         return visitorFn(context, expr1Val, expr2Val);
+  //       } else {
+  //         return baseVisitorFn(context, expr1Val, expr2Val);
+  //       }
+  //     };
+  //     toFunctionVisitor.isExtended = true;
+  //   }
+  // };
 
 
   /**
@@ -301,7 +303,7 @@ export class Predicate {
     return JSON.stringify(this);
   };
 
-  visit(context: IVisitContext, visitor: IVisitor) {
+  visit(context: IVisitContext, visitor?: IVisitor) {
     if (core.isEmpty(context)) {
       context = { entityType: null };
     } else if (context instanceof EntityType) {
@@ -323,7 +325,9 @@ export class Predicate {
     // don't bother validating if already done so ( or if no _validate method
     if (this._validate && entityType == null || this._entityType !== entityType) {
       // don't need to capture return value because validation fn doesn't have one.
-      this._validate(entityType, context.usesNameOnServer);
+      // TODO: this was old code
+      // this._validate(entityType, context.usesNameOnServer);
+      this._validate(entityType, context.toNameOnServer);
       this._entityType = entityType;
     }
 
@@ -437,7 +441,7 @@ function argsForAndOrPredicates(obj: {}, args: any[]) {
   if (preds instanceof Predicate) {
     preds = core.arraySlice(args);
   } else if (!Array.isArray(preds)) {
-    preds = [ new Predicate(core.arraySlice(args))];
+    preds = [new Predicate(core.arraySlice(args))];
   }
   return [obj].concat(preds);
 }
@@ -565,7 +569,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 
 
 class AndOrPredicate extends Predicate {
-  op: IOp | null;
+  op: IOp; // TODO - this was removed ... | null;
   preds: Predicate[];
   constructor(op: string | IQueryOp, preds: any[]) {
     super();
@@ -578,10 +582,11 @@ class AndOrPredicate extends Predicate {
     }).map(function (pred) {
       return new Predicate(pred);
     });
-    if (this.preds.length === 0) {
-      // marker for an empty predicate
-      this.op = null;
-    }
+    // TODO: this was removed - test if really needed.
+    // if (this.preds.length === 0) {
+    //   // marker for an empty predicate
+    //   this.op = null;
+    // }
     if (this.preds.length === 1) {
       return this.preds[0];
     }
@@ -598,7 +603,7 @@ class AndOrPredicate extends Predicate {
 AndOrPredicate.prototype._initialize("andOrPredicate", {
   'and': { aliases: ['&&'] },
   'or': { aliases: ['||'] }
-});
+} );
 
 
 class AnyAllPredicate extends Predicate {
@@ -627,9 +632,9 @@ class AnyAllPredicate extends Predicate {
 }
 
 AnyAllPredicate.prototype._initialize("anyAllPredicate", {
-    'any': { aliases: ['some'] },
-    'all': { aliases: ["every"] }
-  });
+  'any': { aliases: ['some'] },
+  'all': { aliases: ["every"] }
+});
 
 class PredicateExpression {
   visitorMethodName: string;
@@ -664,7 +669,7 @@ class LitExpr extends PredicateExpression {
 
     if (dt2.parse) {
       if (Array.isArray(value)) {
-        this.value = value.map( (v) => { return dt2.parse!(v, typeof v); });
+        this.value = value.map((v) => { return dt2.parse!(v, typeof v); });
       } else {
         this.value = dt2.parse(value, typeof value);
       }
@@ -872,7 +877,7 @@ let RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g;
 let RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g;
 let DELIM = String.fromCharCode(191);
 
-function createExpr(source, exprContext: IExpressionContext) {
+function createExpr(source: any, exprContext: IExpressionContext) {
   let entityType = exprContext.entityType;
 
   // the right hand side of an 'in' clause
@@ -928,7 +933,7 @@ function createExpr(source, exprContext: IExpressionContext) {
   }
 }
 
-function parseExpr(source: string, tokens: string[], exprContext: IExpressionContext): PredicateExpression  {
+function parseExpr(source: string, tokens: string[], exprContext: IExpressionContext): PredicateExpression {
   let parts = source.split(DELIM);
   if (parts.length === 1) {
     return parseLitOrPropExpr(parts[0], exprContext);
@@ -996,351 +1001,349 @@ function parseFnExpr(source: string, parts: string[], tokens: string[], exprCont
   }
 }
 
-let toFunctionVisitor = (function () {
-  let visitor = {
+// toFunctionVisitor
 
-    passthruPredicate: function () {
-      throw new Error("Cannot execute an PassthruPredicate expression against the local cache: " + this.value);
-    },
+let toFunctionVisitor = {
 
-    unaryPredicate: function (context: IVisitContext) {
-      let predFn = this.pred.visit(context);
-      switch (this.op.key) {
-        case "not":
-          return function (entity) {
-            return !predFn(entity);
-          };
-        default:
-          throw new Error("Invalid unary operator:" + this.op.key);
-      }
-    },
+  isExtended: false,
 
-    binaryPredicate: function (context: IVisitContext) {
-      let expr1Fn = this.expr1.visit(context);
-      let expr2Fn = this.expr2.visit(context);
-      let dataType = this.expr1.dataType || this.expr2.dataType;
-      let lqco = context.entityType!.metadataStore.localQueryComparisonOptions;
-      let predFn = getBinaryPredicateFn(this, dataType, lqco);
-      if (predFn == null) {
-        throw new Error("Invalid binaryPredicate operator:" + this.op.key);
-      }
-      return function (entity: IEntity) {
-        return predFn!(expr1Fn(entity), expr2Fn(entity));
-      };
-    },
+  passthruPredicate: function (this: PassthruPredicate) {
+    throw new Error("Cannot execute an PassthruPredicate expression against the local cache: " + this.value);
+  },
 
-    andOrPredicate: function (context: IVisitContext) {
-      let predFns = this.preds.map((pred) => {
-        return pred.visit(context);
-      });
-      switch (this.op.key) {
-        case "and":
-          return function (entity: any) {
-            let result = predFns.reduce(function (prev, cur) {
-              return prev && cur(entity);
-            }, true);
-            return result;
-          };
-        case "or":
-          return function (entity) {
-            let result = predFns.reduce(function (prev, cur) {
-              return prev || cur(entity);
-            }, false);
-            return result;
-          };
-        default:
-          throw new Error("Invalid boolean operator:" + op.key);
-      }
-    },
-
-    anyAllPredicate: function (context) {
-      let exprFn = this.expr.visit(context);
-      let newContext = core.extend({}, context);
-      newContext.entityType = this.expr.dataType;
-      let predFn = this.pred.visit(newContext);
-      let anyAllPredFn = getAnyAllPredicateFn(this.op);
-      return function (entity) {
-        return anyAllPredFn(exprFn(entity), predFn);
-      };
-    },
-
-    litExpr: function () {
-      let value = this.value;
-      return function (entity) {
-        return value;
-      };
-    },
-
-    propExpr: function () {
-      let propertyPath = this.propertyPath;
-      let properties = propertyPath.split('.');
-      if (properties.length === 1) {
-        return function (entity) {
-          return entity.getProperty(propertyPath);
-        };
-      } else {
-        return function (entity) {
-          return getPropertyPathValue(entity, properties);
-        };
-      }
-    },
-
-    fnExpr: function (context: IExpressionContext) {
-      let exprFns = this.exprs.map(function (expr) {
-        return expr.visit(context);
-      });
-      let that = this;
-      return function (entity) {
-        let values = exprFns.map(function (exprFn) {
-          let value = exprFn(entity);
-          return value;
-        });
-        let result = that.localFn.apply(null, values);
-        return result;
-      };
-    }
-
-  };
-
-  function getAnyAllPredicateFn(op: IOp): (v1: any[], v2: any) => boolean {
-    switch (op.key) {
-      case "any":
-        return function (v1, v2) {
-          return v1.some(function (v) {
-            return v2(v);
-          });
-        };
-      case "all":
-        return function (v1, v2) {
-          return v1.every(function (v) {
-            return v2(v);
-          });
+  unaryPredicate: function (this: UnaryPredicate, context: IVisitContext) {
+    let predFn = this.pred.visit(context);
+    switch (this.op.key) {
+      case "not":
+        return function (entity: any) {
+          return !predFn(entity);
         };
       default:
-        throw new Error("Unknown operator: " + op.key);
+        throw new Error("Invalid unary operator:" + this.op.key);
     }
-  }
+  },
 
-  function getBinaryPredicateFn(binaryPredicate: BinaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
-    let op = binaryPredicate.op;
-    let mc = DataType.getComparableFn(dataType);
-    let predFn: (v1: any, v2: any) => boolean;
-    switch (op.key) {
-      case 'eq':
-        predFn = function (v1, v2) {
-          if (v1 && typeof v1 === 'string') {
-            return stringEquals(v1, v2, lqco);
-          } else {
-            return mc(v1) === mc(v2);
-          }
-        };
-        break;
-      case 'ne':
-        predFn = function (v1, v2) {
-          if (v1 && typeof v1 === 'string') {
-            return !stringEquals(v1, v2, lqco);
-          } else {
-            return mc(v1) !== mc(v2);
-          }
-        };
-        break;
-      case 'gt':
-        predFn = function (v1, v2) {
-          return mc(v1) > mc(v2);
-        };
-        break;
-      case 'ge':
-        predFn = function (v1, v2) {
-          return mc(v1) >= mc(v2);
-        };
-        break;
-      case 'lt':
-        predFn = function (v1, v2) {
-          return mc(v1) < mc(v2);
-        };
-        break;
-      case 'le':
-        predFn = function (v1, v2) {
-          return mc(v1) <= mc(v2);
-        };
-        break;
-      case 'startswith':
-        predFn = function (v1, v2) {
-          return stringStartsWith(v1, v2, lqco);
-        };
-        break;
-      case 'endswith':
-        predFn = function (v1, v2) {
-          return stringEndsWith(v1, v2, lqco);
-        };
-        break;
-      case 'contains':
-        predFn = function (v1, v2) {
-          return stringContains(v1, v2, lqco);
-        };
-        break;
-      case 'in':
-        predFn = function (v1, v2) {
-          v1 = mc(v1);
-          v2 = v2.map(function (v) { return mc(v); });
-          return v2.indexOf(v1) >= 0;
-        };
-        break;
-      default:
-        return null;
+  binaryPredicate: function (this: BinaryPredicate, context: IVisitContext) {
+    let expr1Fn = this.expr1!.visit(context);
+    let expr2Fn = this.expr2!.visit(context);
+    let dataType = this.expr1!.dataType || this.expr2!.dataType;
+    let lqco = context.entityType!.metadataStore.localQueryComparisonOptions;
+    let predFn = getBinaryPredicateFn(this, dataType as DataTypeSymbol, lqco);
+    if (predFn == null) {
+      throw new Error("Invalid binaryPredicate operator:" + this.op.key);
     }
-    return predFn;
-  }
+    return function (entity: IEntity) {
+      return predFn!(expr1Fn(entity), expr2Fn(entity));
+    };
+  },
 
-  function stringEquals(a: any, b: any, lqco: LocalQueryComparisonOptions) {
-    if (b == null) return false;
-    if (typeof b !== 'string') {
-      b = b.toString();
-    }
-    if (lqco.usesSql92CompliantStringComparison) {
-      a = (a || "").trim();
-      b = (b || "").trim();
-    }
-    if (!lqco.isCaseSensitive) {
-      a = (a || "").toLowerCase();
-      b = (b || "").toLowerCase();
-    }
-    return a === b;
-  }
-
-  function stringStartsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
-    if (!lqco.isCaseSensitive) {
-      a = (a || "").toLowerCase();
-      b = (b || "").toLowerCase();
-    }
-    return core.stringStartsWith(a, b);
-  }
-
-  function stringEndsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
-    if (!lqco.isCaseSensitive) {
-      a = (a || "").toLowerCase();
-      b = (b || "").toLowerCase();
-    }
-    return core.stringEndsWith(a, b);
-  }
-
-  function stringContains(a: any, b: any, lqco: LocalQueryComparisonOptions) {
-    if (!lqco.isCaseSensitive) {
-      a = (a || "").toLowerCase();
-      b = (b || "").toLowerCase();
-    }
-    return a.indexOf(b) >= 0;
-  }
-
-  return visitor;
-} ());
-
-let toJSONVisitor = (function () {
-  let visitor = {
-
-    passthruPredicate: function () {
-      return this.value;
-    },
-
-    unaryPredicate: function (context) {
-      let predVal = this.pred.visit(context);
-      let json = {};
-      json[this.op.key] = predVal;
-      return json;
-    },
-
-    binaryPredicate: function (context) {
-      let expr1Val = this.expr1.visit(context);
-      let expr2Val = this.expr2.visit(context);
-      let json = {};
-      if (this.expr2 instanceof PropExpr) {
-        expr2Val = { value: expr2Val, isProperty: true };
-      }
-      if (this.op.key === "eq") {
-        json[expr1Val] = expr2Val;
-      } else {
-        let value = {};
-        json[expr1Val] = value;
-        value[this.op.key] = expr2Val;
-      }
-      return json;
-    },
-
-    andOrPredicate: function (context) {
-      let predVals = this.preds.map(function (pred) {
-        return pred.visit(context);
-      });
-      let json;
-      // normalizeAnd clauses if possible.
-      // passthru predicate will appear as string and their 'ands' can't be 'normalized'
-      if (this.op.key === 'and' && predVals.length === 2 && !predVals.some(__isString)) {
-        // normalize 'and' clauses - will return null if can't be combined.
-        json = predVals.reduce(combine);
-      }
-      if (json == null) {
-        json = {};
-        json[this.op.key] = predVals;
-      }
-      return json;
-    },
-
-    anyAllPredicate: function (context) {
-      let exprVal = this.expr.visit(context);
-      let newContext = core.extend({}, context);
-      newContext.entityType = this.expr.dataType;
-      let predVal = this.pred.visit(newContext);
-      let json = {};
-      let value = {};
-      value[this.op.key] = predVal;
-      json[exprVal] = value;
-      return json;
-    },
-
-    litExpr: function (context) {
-      if (this.hasExplicitDataType || context.useExplicitDataType) {
-        return { value: this.value, dataType: this.dataType.name };
-      } else {
-        return this.value;
-      }
-    },
-
-    propExpr: function (context) {
-      if (context.toNameOnServer) {
-        return context.entityType.clientPropertyPathToServer(this.propertyPath);
-      } else {
-        return this.propertyPath;
-      }
-    },
-
-    fnExpr: function (context) {
-      let exprVals = this.exprs.map(function (expr) {
-        return expr.visit(context);
-      });
-      return this.fnName + "(" + exprVals.join(",") + ")";
-    }
-  };
-
-  function combine(j1, j2) {
-    let ok = Object.keys(j2).every(function (key) {
-      if (j1.hasOwnProperty(key)) {
-        if (typeof (j2[key]) !== 'object') {
-          // exit and indicate that we can't combine
-          return false;
-        }
-        if (combine(j1[key], j2[key]) == null) {
-          return false;
-        }
-      } else {
-        j1[key] = j2[key];
-      }
-      return true;
+  andOrPredicate: function (this: AndOrPredicate, context: IVisitContext) {
+    let predFns = this.preds.map((pred) => {
+      return pred.visit(context);
     });
-    return ok ? j1 : null;
+    switch (this.op.key) {
+      case "and":
+        return function (entity: any) {
+          let result = predFns.reduce(function (prev, cur) {
+            return prev && cur(entity);
+          }, true);
+          return result;
+        };
+      case "or":
+        return function (entity: any) {
+          let result = predFns.reduce(function (prev, cur) {
+            return prev || cur(entity);
+          }, false);
+          return result;
+        };
+      default:
+        throw new Error("Invalid boolean operator:" + this.op.key);
+    }
+  },
+
+  anyAllPredicate: function (this: AnyAllPredicate, context: IVisitContext) {
+    let exprFn = this.expr.visit(context);
+    let newContext = core.extend({}, context) as IVisitContext;
+    newContext.entityType = this.expr.dataType as EntityType;
+    let predFn = this.pred.visit(newContext);
+    let anyAllPredFn = getAnyAllPredicateFn(this.op);
+    return function (entity: any) {
+      return anyAllPredFn(exprFn(entity), predFn);
+    };
+  },
+
+  litExpr: function (this: LitExpr) {
+    let value = this.value;
+    return function (entity: any) {
+      return value;
+    };
+  },
+
+  propExpr: function (this: PropExpr) {
+    let propertyPath = this.propertyPath;
+    let properties = propertyPath.split('.');
+    if (properties.length === 1) {
+      return function (entity: any) {
+        return entity.getProperty(propertyPath);
+      };
+    } else {
+      return function (entity: IEntity) {
+        return EntityAspect.getPropertyPathValue(entity, properties);
+      };
+    }
+  },
+
+  fnExpr: function (this: FnExpr, context: IExpressionContext) {
+    let exprFns = this.exprs.map(function (expr) {
+      return expr.visit(context);
+    });
+    let that = this;
+    return function (entity: any) {
+      let values = exprFns.map(function (exprFn) {
+        let value = exprFn(entity);
+        return value;
+      });
+      let result = that.localFn.apply(null, values);
+      return result;
+    };
   }
 
-  return visitor;
-} ());
+};
 
+function getAnyAllPredicateFn(op: IOp): (v1: any[], v2: any) => boolean {
+  switch (op.key) {
+    case "any":
+      return function (v1, v2) {
+        return v1.some(function (v) {
+          return v2(v);
+        });
+      };
+    case "all":
+      return function (v1, v2) {
+        return v1.every(function (v) {
+          return v2(v);
+        });
+      };
+    default:
+      throw new Error("Unknown operator: " + op.key);
+  }
+}
+
+function getBinaryPredicateFn(binaryPredicate: BinaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
+  let op = binaryPredicate.op;
+  let mc = DataType.getComparableFn(dataType);
+  let predFn: (v1: any, v2: any) => boolean;
+  switch (op.key) {
+    case 'eq':
+      predFn = function (v1, v2) {
+        if (v1 && typeof v1 === 'string') {
+          return stringEquals(v1, v2, lqco);
+        } else {
+          return mc(v1) === mc(v2);
+        }
+      };
+      break;
+    case 'ne':
+      predFn = function (v1, v2) {
+        if (v1 && typeof v1 === 'string') {
+          return !stringEquals(v1, v2, lqco);
+        } else {
+          return mc(v1) !== mc(v2);
+        }
+      };
+      break;
+    case 'gt':
+      predFn = function (v1, v2) {
+        return mc(v1) > mc(v2);
+      };
+      break;
+    case 'ge':
+      predFn = function (v1, v2) {
+        return mc(v1) >= mc(v2);
+      };
+      break;
+    case 'lt':
+      predFn = function (v1, v2) {
+        return mc(v1) < mc(v2);
+      };
+      break;
+    case 'le':
+      predFn = function (v1, v2) {
+        return mc(v1) <= mc(v2);
+      };
+      break;
+    case 'startswith':
+      predFn = function (v1, v2) {
+        return stringStartsWith(v1, v2, lqco);
+      };
+      break;
+    case 'endswith':
+      predFn = function (v1, v2) {
+        return stringEndsWith(v1, v2, lqco);
+      };
+      break;
+    case 'contains':
+      predFn = function (v1, v2) {
+        return stringContains(v1, v2, lqco);
+      };
+      break;
+    case 'in':
+      predFn = function (v1: any, v2: any[]) {
+        v1 = mc(v1);
+        v2 = v2.map(function (v) { return mc(v); });
+        return v2.indexOf(v1) >= 0;
+      };
+      break;
+    default:
+      return null;
+  }
+  return predFn;
+}
+
+function stringEquals(a: any, b: any, lqco: LocalQueryComparisonOptions) {
+  if (b == null) return false;
+  if (typeof b !== 'string') {
+    b = b.toString();
+  }
+  if (lqco.usesSql92CompliantStringComparison) {
+    a = (a || "").trim();
+    b = (b || "").trim();
+  }
+  if (!lqco.isCaseSensitive) {
+    a = (a || "").toLowerCase();
+    b = (b || "").toLowerCase();
+  }
+  return a === b;
+}
+
+function stringStartsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
+  if (!lqco.isCaseSensitive) {
+    a = (a || "").toLowerCase();
+    b = (b || "").toLowerCase();
+  }
+  return core.stringStartsWith(a, b);
+}
+
+function stringEndsWith(a: any, b: any, lqco: LocalQueryComparisonOptions) {
+  if (!lqco.isCaseSensitive) {
+    a = (a || "").toLowerCase();
+    b = (b || "").toLowerCase();
+  }
+  return core.stringEndsWith(a, b);
+}
+
+function stringContains(a: any, b: any, lqco: LocalQueryComparisonOptions) {
+  if (!lqco.isCaseSensitive) {
+    a = (a || "").toLowerCase();
+    b = (b || "").toLowerCase();
+  }
+  return a.indexOf(b) >= 0;
+}
+
+// toJSONVisitor
+
+let toJSONVisitor = {
+
+  passthruPredicate: function (this: PassthruPredicate) {
+    return this.value;
+  },
+
+  unaryPredicate: function (this: UnaryPredicate, context: IVisitContext) {
+    let predVal = this.pred.visit(context);
+    let json = {};
+    json[this.op.key] = predVal;
+    return json;
+  },
+
+  binaryPredicate: function (this: BinaryPredicate, context: IVisitContext) {
+    let expr1Val = this.expr1!.visit(context);
+    let expr2Val = this.expr2!.visit(context);
+    let json = {};
+    if (this.expr2 instanceof PropExpr) {
+      expr2Val = { value: expr2Val, isProperty: true };
+    }
+    if (this.op.key === "eq") {
+      json[expr1Val] = expr2Val;
+    } else {
+      let value = {};
+      json[expr1Val] = value;
+      value[this.op.key!] = expr2Val;
+    }
+    return json;
+  },
+
+  andOrPredicate: function (this: AndOrPredicate, context: IVisitContext) {
+    let predVals = this.preds.map(function (pred) {
+      return pred.visit(context);
+    });
+    let json: Object | null = null;
+    // normalizeAnd clauses if possible.
+    // passthru predicate will appear as string and their 'ands' can't be 'normalized'
+    if (this.op.key === 'and' && predVals.length === 2 && !predVals.some((v) => typeof(v) === 'string')) {
+      // normalize 'and' clauses - will return null if can't be combined.
+      json = predVals.reduce(combine);
+    }
+    if (json == null) {
+      json = {};
+      json[this.op.key!] = predVals;
+    }
+    return json;
+  },
+
+  anyAllPredicate: function (this: AnyAllPredicate, context: IVisitContext) {
+    let exprVal = this.expr.visit(context);
+    let newContext = core.extend({}, context) as IVisitContext;
+    newContext.entityType = this.expr.dataType as EntityType;
+    let predVal = this.pred.visit(newContext);
+    let json = {};
+    let value = {};
+    value[this.op.key!] = predVal;
+    json[exprVal] = value;
+    return json;
+  },
+
+  litExpr: function (this: LitExpr, context: IVisitContext) {
+    if (this.hasExplicitDataType || context.useExplicitDataType) {
+      return { value: this.value, dataType: this.dataType.name };
+    } else {
+      return this.value;
+    }
+  },
+
+  propExpr: function (this: PropExpr, context: IVisitContext) {
+    if (context.toNameOnServer) {
+      return context.entityType!.clientPropertyPathToServer(this.propertyPath);
+    } else {
+      return this.propertyPath;
+    }
+  },
+
+  fnExpr: function (this: FnExpr, context: IVisitContext) {
+    let exprVals = this.exprs.map(function (expr) {
+      return expr.visit(context);
+    });
+    return this.fnName + "(" + exprVals.join(",") + ")";
+  }
+
+};
+
+function combine(j1: Object, j2: Object) {
+  let ok = Object.keys(j2).every(function (key) {
+    if (j1.hasOwnProperty(key)) {
+      if (typeof (j2[key]) !== 'object') {
+        // exit and indicate that we can't combine
+        return false;
+      }
+      if (combine(j1[key], j2[key]) == null) {
+        return false;
+      }
+    } else {
+      j1[key] = j2[key];
+    }
+    return true;
+  });
+  return ok ? j1 : null;
+}
 
 
 breeze.Predicate = Predicate;

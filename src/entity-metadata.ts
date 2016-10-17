@@ -13,7 +13,7 @@ import { DataService } from './data-service';
 import { NamingConvention } from './naming-convention';
 import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate this later;
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
-import { EntityQuery } from './entity-query'; 
+import { EntityQuery } from './entity-query';
 
 export type EntityProperty = DataProperty | NavigationProperty;
 
