@@ -201,7 +201,7 @@ export class Param {
         }
     };
 
-    _applyOne = function (instance: any) {
+    _applyOne = function (this: Param, instance: any) {
         if (this.v !== undefined) {
             instance[this.name] = this.v;
         } else {

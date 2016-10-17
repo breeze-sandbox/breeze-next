@@ -350,33 +350,13 @@ export class Predicate {
 
 }
 
-function argsForAndOrPredicates(obj: {}, args: any[]) {
-  let preds = args[0];
-  if (preds instanceof Predicate) {
-    preds = core.arraySlice(args);
-  } else if (!Array.isArray(preds)) {
-    preds = [ new Predicate(core.arraySlice(args))];
-  }
-  return [obj].concat(preds);
-}
-
-function updateAliasMap(aliasMap: IOpMap, opStr: string, op: IOp) {
-  let key = opStr.toLowerCase();
-  op.key = key;
-  aliasMap[key] = op;
-
-  op.aliases && op.aliases.forEach((alias: any) => {
-    aliasMap[alias.toLowerCase()] = op;
-  });
-}
-
 function createPredicateFromArray(arr: any[]) {
   // TODO: assert that length of the array should be > 3
   // Needs to handle:
   //      [ "freight", ">", 100"];
   //      [ "orders", "any", "freight",  ">", 950 ]
   //      [ "orders", "and", anotherPred ]
-  //      [ "orders", "and", [ "freight, ">", 950 ]
+  //      [ "orders", "and", [ "freight, ">", 950 ]]
   let json = {};
   let value = {};
   json[arr[0]] = value;
@@ -450,6 +430,28 @@ function createPredicateFromKeyValue(key: string, value: any): Predicate {
 
   return (preds.length === 1) ? preds[0] : new AndOrPredicate("and", preds);
 }
+
+function argsForAndOrPredicates(obj: {}, args: any[]) {
+  let preds = args[0];
+  if (preds instanceof Predicate) {
+    preds = core.arraySlice(args);
+  } else if (!Array.isArray(preds)) {
+    preds = [ new Predicate(core.arraySlice(args))];
+  }
+  return [obj].concat(preds);
+}
+
+function updateAliasMap(aliasMap: IOpMap, opStr: string, op: IOp) {
+  let key = opStr.toLowerCase();
+  op.key = key;
+  aliasMap[key] = op;
+
+  op.aliases && op.aliases.forEach((alias: any) => {
+    aliasMap[alias.toLowerCase()] = op;
+  });
+}
+
+
 
 class PassthruPredicate extends Predicate {
   value: any;
@@ -1052,7 +1054,7 @@ let toFunctionVisitor = (function () {
 
     anyAllPredicate: function (context) {
       let exprFn = this.expr.visit(context);
-      let newContext = __extend({}, context);
+      let newContext = core.extend({}, context);
       newContext.entityType = this.expr.dataType;
       let predFn = this.pred.visit(newContext);
       let anyAllPredFn = getAnyAllPredicateFn(this.op);
@@ -1082,7 +1084,7 @@ let toFunctionVisitor = (function () {
       }
     },
 
-    fnExpr: function (context) {
+    fnExpr: function (context: IExpressionContext) {
       let exprFns = this.exprs.map(function (expr) {
         return expr.visit(context);
       });

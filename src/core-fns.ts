@@ -52,7 +52,7 @@ function objectFirst(obj: Object, kvPredicate: (key: string, val: any) => boolea
 }
 
 function arrayFlatMap<T, U>(arr: T[], mapFn: (arg: T) => U[]) {
-    return Array.prototype.concat.apply([], this.map(mapFn)) as U[];
+    return Array.prototype.concat.apply([], arr.map(mapFn)) as U[];
 }
 
 function isSettable(obj: Object, propertyName: string): boolean {
@@ -476,7 +476,7 @@ function wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () =>
 }
 
 /** Remember & return the value of fn() when it was called with its current args */
-function memoize(fn: any): any {
+function memoize( fn: any): any {
     return function () {
         let args = arraySlice(<any>arguments),
             hash = "",
