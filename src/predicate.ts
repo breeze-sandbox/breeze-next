@@ -6,7 +6,7 @@ import { EntityAspect, IEntity } from './entity-aspect';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 
 interface IOp {
-  key?: string;
+  key: string;
   aliases?: string[];
   isFunction?: boolean;
 }
@@ -208,7 +208,7 @@ export class Predicate {
   //   }
   //   if (!toFunctionVisitor.isExtended) {
   //     toFunctionVisitor.binaryPredicate = function (context, expr1Val, expr2Val) {
-  //       let visitorFn = this.aliasMap[this.op.key!].visitorFn;
+  //       let visitorFn = this.aliasMap[this.op.key].visitorFn;
   //       if (visitorFn) {
   //         return visitorFn(context, expr1Val, expr2Val);
   //       } else {
@@ -334,11 +334,11 @@ export class Predicate {
     return fn.call(this, context);
   }
 
-  _initialize(visitorMethodName: string, opMap: IOpMap = {}) {
+  _initialize(visitorMethodName: string, opMap: { [key: string]: { aliases?: string[], isFunction?: boolean }} = {}) {
     this.visitorMethodName = visitorMethodName;
     let aliasMap = this.aliasMap = {};
-    for (let op in opMap) {
-      updateAliasMap(aliasMap, op, opMap[op]);
+    for (let op in opMap ) {
+      updateAliasMap(aliasMap, op, opMap[op] as IOp);
     }
   }
 
@@ -480,6 +480,7 @@ class UnaryPredicate extends Predicate {
     this.pred._validate(entityType, usesNameOnServer);
   };
 }
+
 UnaryPredicate.prototype._initialize('unaryPredicate', {
   'not': { aliases: ['!', '~'] },
 });
@@ -1265,7 +1266,7 @@ let toJSONVisitor = {
     } else {
       let value = {};
       json[expr1Val] = value;
-      value[this.op.key!] = expr2Val;
+      value[this.op.key] = expr2Val;
     }
     return json;
   },
@@ -1295,7 +1296,7 @@ let toJSONVisitor = {
     let predVal = this.pred.visit(newContext);
     let json = {};
     let value = {};
-    value[this.op.key!] = predVal;
+    value[this.op.key] = predVal;
     json[exprVal] = value;
     return json;
   },
