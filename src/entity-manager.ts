@@ -1387,6 +1387,11 @@ an option to check the local cache first.
   If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.
   @return {Array of Entity} Array of Entities
   **/
+  getChanges(): IEntity[];
+  getChanges(entityTypeName: string): IEntity[];
+  getChanges(entityTypeNames: string[]): IEntity[];
+  getChanges(entityType: EntityType): IEntity[];
+  getChanges(entityTypes: EntityType[]): IEntity[];
   getChanges(entityTypes?: EntityType | EntityType[] | string | string[]) {
     let ets = checkEntityTypes(this, entityTypes);
     return getChangesCore(this, ets);
