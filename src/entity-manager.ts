@@ -1109,7 +1109,7 @@ export class EntityManager {
       // must occur outside of isLoading block
       fixupKeys(em, keyMappings);
 
-      core.using(em, "isLoading", true, function () {
+      core.using(em, "isLoading", true,  () => {
 
         let mappingContext = new MappingContext({
           query: null, // tells visitAndMerge this is a save instead of a query
@@ -1229,6 +1229,9 @@ an option to check the local cache first.
     - entityKey {EntityKey} The entityKey of the entity to fetch.
     - fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
 **/
+  fetchEntityByKey(typeName: string, keyValue: any, checkLocalCacheFirst?: boolean): Promise<IEntityByKeyResult>;
+  fetchEntityByKey(typeName: string, keyValues: any[], checkLocalCacheFirst?: boolean): Promise<IEntityByKeyResult>;
+  fetchEntityByKey(entityKey: EntityKey, checkLocalCacheFirst?: boolean): Promise<IEntityByKeyResult>;
   fetchEntityByKey(...args: any[]) {
     let dataService = DataService.resolve([this.dataService]);
     if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
@@ -1721,11 +1724,16 @@ will be used to merge any server side entity returned by this method.
     - fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
 
 **/
+export interface IEntityByKeyResult {
+    entity: IEntity | null;
+    entityKey: EntityKey;
+    fromCache: boolean;
+}
 
-
-function fetchEntityByKeyCore(em: EntityManager, args: any[]) {
+function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityByKeyResult> {
   let tpl = createEntityKey(em, args);
   let entityKey = tpl.entityKey;
+
   let checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
   let entity: IEntity | null = null;
   let foundIt = false;
@@ -1742,7 +1750,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]) {
     }
   }
   if (foundIt) {
-    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true } );
   } else {
     return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data: any) {
       entity = (data.results.length === 0) ? null : data.results[0];
@@ -1809,7 +1817,8 @@ function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType
   return selected;
 }
 
-function createEntityKey(em: EntityManager, ...args: any[]) {
+
+function createEntityKey(em: EntityManager, args: any[]) {
   try {
     if (args[0] instanceof EntityKey) {
       return { entityKey: args[0] as EntityKey, remainingArgs: core.arraySlice(args, 1) };

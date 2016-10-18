@@ -8,8 +8,13 @@
   },
   "devDependencies": {
     "@types/jasmine": "^2.5.35",
+    "cross-spawn": "^4.0.2",
+    "gulp-task-listing": "^1.0.1",
+    "gutil": "^1.6.4",
     "jasmine": "^2.5.2",
-    "jasmine-node": "^1.14.5"
+    "jasmine-node": "^1.14.5",
+    "lodash": "^4.16.4",
+    "q": "^1.4.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

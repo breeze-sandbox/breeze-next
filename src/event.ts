@@ -1,6 +1,9 @@
 ﻿import { core } from './core-fns';
 import { assertParam } from './assert-param';
 
+// TODO: why is this needed.
+declare function setTimeout(handler: any, timeout?: any, ...args: any[]): number;
+
 function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {
     let subscribers = that._subscribers;
     if (!subscribers) return true;

@@ -18,6 +18,8 @@ describe("Predicate", function () {
         var p1 = new predicate_1.Predicate("CompanyName", "StartsWith", "B");
         var json = p1.toJSON();
         var s = JSON.stringify(json);
+        console.log('\ntest');
+        console.log(s);
     });
 });
 //# sourceMappingURL=predicate.spec.js.map

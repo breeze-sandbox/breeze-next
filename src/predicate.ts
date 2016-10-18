@@ -83,7 +83,7 @@ export class Predicate {
     if (args.length === 0) return new Predicate();
     if (args.length === 1) {
       // possibilities:
-      //      Predicate([ aPredicate ]) or  Predicate(["freight", ">", 100"]) - an array
+      //      Predicate([ aPredicate ]) or  Predicate(["freight", ">", 100]) - an array
       //      Predicate(aPredicate) - a predicate
       //      Predicate( "freight gt 100" }  // passthru ( i.e. maybe an odata string) - a string
       //      Predicate( { freight: { ">": 100 } }) - an object
@@ -586,7 +586,7 @@ class AndOrPredicate extends Predicate {
     //   this.op = null;
     // }
     if (this.preds.length === 1) {
-      return this.preds[0];
+      return this.preds[0] as AndOrPredicate; // HACK: this.preds[0] is actually NOT a AndOrPredicate but some other kind of pred.
     }
   };
 

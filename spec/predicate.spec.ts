@@ -1,5 +1,7 @@
 import { Predicate } from '../src/predicate';
 
+declare let console: any;
+
 describe("Predicate", () => {
 
    it("should support both new and old ctor mechs", function() {
@@ -21,6 +23,8 @@ describe("Predicate", () => {
       let p1 = new Predicate("CompanyName", "StartsWith", "B");
       let json = p1.toJSON();
       let s = JSON.stringify(json);
+      console.log('\ntest');
+      console.log(s);
     });
 
 });

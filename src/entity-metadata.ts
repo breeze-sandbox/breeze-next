@@ -13,8 +13,9 @@ import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate thi
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 import { defaultPropertyInterceptor } from './default-property-interceptor';
 
-export type EntityProperty = DataProperty | NavigationProperty;
+declare let console: any; // TODO: why is this necessary;
 
+export type EntityProperty = DataProperty | NavigationProperty;
 export type StructuralType = EntityType | ComplexType;
 
 interface IStructuralTypeMap {
