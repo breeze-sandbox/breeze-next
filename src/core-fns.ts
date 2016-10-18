@@ -717,7 +717,7 @@ export const core = {
 };
 
 export interface ErrorCallback {
-    (error: Error): void;
+    (error: any): void;
 }
 
 breeze.core = core;

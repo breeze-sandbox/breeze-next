@@ -15,8 +15,40 @@ import { QueryOptions, MergeStrategy, MergeStrategySymbol, FetchStrategy } from 
 import { SaveOptions } from './save-options';
 import { KeyGenerator } from './key-generator';
 import { EntityGroup } from './entity-group';
-import { MappingContext} from './mapping-context';
+import { MappingContext } from './mapping-context';
 import { EntityQuery } from './entity-query';
+
+export interface IHttpResponse {
+  config: any;
+  data: any[];
+  error?: any;
+  saveContext?: any;
+  status: number;
+  getHeaders(headerName: string): string;
+}
+
+export interface IQueryResult {
+  /** Top level entities returned */
+  results: any[];
+  /** Query that was executed */
+  query: EntityQuery | string;
+  /** Raw response from the server */
+  httpResponse: IHttpResponse;
+  /** EntityManager that executed the query */
+  entityManager?: EntityManager;
+  /** Total number of results available on the server */
+  inlineCount?: number;
+  /** All entities returned by the query.  Differs from results when an expand is used. */
+  retrievedEntities?: IEntity[];
+}
+
+export interface ExecuteQuerySuccessCallback {
+  (data: IQueryResult): void;
+}
+
+export interface ExecuteQueryErrorCallback {
+  (error: { query: EntityQuery; httpResponse: IHttpResponse; entityManager: EntityManager; message?: string; stack?: string }): void;
+}
 
 
 interface IKeyMapping {
@@ -68,10 +100,10 @@ interface IServerSaveError {
 
 
 interface ISaveContext {
-   entityManager: EntityManager;
-   dataService: DataService;
-   processSavedEntities: (saveResult: ISaveResult) => IEntity[];
-   resourceName: string;
+  entityManager: EntityManager;
+  dataService: DataService;
+  processSavedEntities: (saveResult: ISaveResult) => IEntity[];
+  resourceName: string;
 }
 
 export interface EntityManagerConfig {
@@ -365,17 +397,18 @@ export class EntityManager {
   @param [mergeStrategy=MergeStrategy.Disallowed] {MergeStrategy} - How to handle conflicts if an entity with the same key already exists within this EntityManager.
   @return {Entity} A new Entity of the specified type.
   **/
-  createEntity(entityType: EntityType, initialValues: Object, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
+  createEntity(typeName: string, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
+  createEntity(entityType: EntityType, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
+  createEntity(entityType: EntityType | string, initialValues: Object, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
     assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
     assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check();
     assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check();
-    if (typeof entityType === "string") {
-      entityType = this.metadataStore._getStructuralType(entityType) as EntityType;
-    }
+
+    let et = (typeof entityType === "string") ? this.metadataStore._getStructuralType(entityType) as EntityType : entityType;
     entityState = entityState || EntityState.Added;
     let entity = {} as IEntity;
     core.using(this, "isLoading", true, function () {
-      entity = entityType.createEntity(initialValues);
+      entity = et.createEntity(initialValues);
     });
     if (entityState !== EntityState.Detached) {
       entity = this.attachEntity(entity, entityState, mergeStrategy);
@@ -899,7 +932,9 @@ export class EntityManager {
     items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
     would have been applied.
   **/
-  executeQuery(query: EntityQuery, callback?: Callback, errorCallback?: ErrorCallback) {
+  executeQuery(query: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
+  executeQuery(query: EntityQuery, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
+  executeQuery(query: EntityQuery | string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback) {
     assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
     assertParam(callback, "callback").isFunction().isOptional().check();
     assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
@@ -907,8 +942,8 @@ export class EntityManager {
     // 'resolve' methods create a new typed object with all of its properties fully resolved against a list of sources.
     // Thought about creating a 'normalized' query with these 'resolved' objects
     // but decided not to because the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
-    let queryOptions = QueryOptions.resolve([query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
-    let dataService = DataService.resolve([query.dataService!, this.dataService]);
+    let queryOptions = QueryOptions.resolve([(query as any).queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
+    let dataService = DataService.resolve([(query as any).dataService!, this.dataService]);
 
     if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
       promise = executeQueryCore(this, query, queryOptions, dataService);
@@ -918,7 +953,7 @@ export class EntityManager {
       });
     }
 
-    return promiseWithCallbacks(promise, callback, errorCallback);
+    return promiseWithCallbacks(promise, callback, errorCallback as ErrorCallback);
   };
 
   /**
@@ -1082,7 +1117,7 @@ export class EntityManager {
     function saveSuccess(saveResult: ISaveResult) {
       let em = saveContext.entityManager;
       markIsBeingSaved(entitiesToSave, false);
-      let savedEntities =  saveContext.processSavedEntities(saveResult);
+      let savedEntities = saveContext.processSavedEntities(saveResult);
       saveResult.entities = savedEntities;
 
       // update _hasChanges after save.
@@ -1109,7 +1144,7 @@ export class EntityManager {
       // must occur outside of isLoading block
       fixupKeys(em, keyMappings);
 
-      core.using(em, "isLoading", true,  () => {
+      core.using(em, "isLoading", true, () => {
 
         let mappingContext = new MappingContext({
           query: null, // tells visitAndMerge this is a save instead of a query
@@ -1454,6 +1489,14 @@ an option to check the local cache first.
   If this parameter is omitted, entities of all EntityStates are returned.
   @return {Array of Entity} Array of Entities
   **/
+  getEntities(entityTypeName: string, entityState?: EntityStateSymbol): IEntity[];
+  getEntities(entityTypeNames?: string[], entityState?: EntityStateSymbol): IEntity[];
+  getEntities(entityTypeName?: string, entityStates?: EntityStateSymbol[]): IEntity[];
+  getEntities(entityTypeNames?: string[], entityStates?: EntityStateSymbol[]): IEntity[];
+  getEntities(entityType: EntityType, entityState?: EntityStateSymbol): IEntity[];
+  getEntities(entityTypes?: EntityType[], entityState?: EntityStateSymbol): IEntity[];
+  getEntities(entityType?: EntityType, entityStates?: EntityStateSymbol[]): IEntity[];
+  getEntities(entityTypes?: EntityType[], entityStates?: EntityStateSymbol[]): IEntity[];
   getEntities(entityTypes?: EntityType | EntityType[] | string | string[], entityStates?: EntityStateSymbol | EntityStateSymbol[]) {
     let entTypes = checkEntityTypes(this, entityTypes);
     assertParam(entityStates, "entityStates").isOptional().isEnumOf(EntityState).or().isNonEmptyArray().isEnumOf(EntityState).check();
@@ -1654,7 +1697,7 @@ function clearServerErrors(entities: IEntity[]) {
 
 function createEntityErrors(entities: IEntity[]) {
   let entityErrors: IEntityError[] = [];
-  entities.forEach( (entity) => {
+  entities.forEach((entity) => {
     core.objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
       let cfg = core.extend({
         entity: entity,
@@ -1673,7 +1716,7 @@ function processServerErrors(saveContext: ISaveContext, saveError: IServerSaveEr
   if (!serverErrors) return;
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
-  let entityErrors = serverErrors.map( (serr) => {
+  let entityErrors = serverErrors.map((serr) => {
     let entity: IEntity | null = null;
     let entityType: EntityType | null = null;
     if (serr.keyValues) {
@@ -1730,9 +1773,9 @@ will be used to merge any server side entity returned by this method.
 
 **/
 export interface IEntityByKeyResult {
-    entity: IEntity | null;
-    entityKey: EntityKey;
-    fromCache: boolean;
+  entity: IEntity | null;
+  entityKey: EntityKey;
+  fromCache: boolean;
 }
 
 function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityByKeyResult> {
@@ -1755,7 +1798,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
     }
   }
   if (foundIt) {
-    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true } );
+    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
   } else {
     return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data: any) {
       entity = (data.results.length === 0) ? null : data.results[0];
@@ -2175,7 +2218,7 @@ function attachRelatedEntities(em: EntityManager, entity: IEntity, entityState: 
 }
 
 // returns a promise
-function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: QueryOptions, dataService: DataService) {
+function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryOptions: QueryOptions, dataService: DataService) {
   try {
     let results: any[];
     let metadataStore = em.metadataStore;
@@ -2186,6 +2229,9 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
 
     if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
       try {
+        if (typeof query === 'string') {
+          throw new Error("cannot execute 'string' EntityQuery locally.");
+        }
         let qr = executeQueryLocallyCore(em, query);
         return Promise.resolve({ results: qr.results, entityManager: em, inlineCount: qr.inlineCount, query: query });
       } catch (e) {
@@ -2199,7 +2245,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
       dataService: dataService,
       mergeOptions: {
         mergeStrategy: queryOptions.mergeStrategy,
-        noTracking: !!query.noTrackingEnabled,
+        noTracking: !! (query as any).noTrackingEnabled,
         includeDeleted: queryOptions.includeDeleted
       }
     });
@@ -2243,7 +2289,9 @@ function executeQueryCore(em: EntityManager, query: EntityQuery, queryOptions: Q
         }
         mappingContext!.processDeferred();
         // if query has expand clauses walk each of the 'results' and mark the expanded props as loaded.
-        markLoadedNavProps(results, query);
+        if (query instanceof EntityQuery) {
+          markLoadedNavProps(results, query);
+        }
         let retrievedEntities = core.objectMap(mappingContext!.refMap);
         return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount, retrievedEntities: retrievedEntities };
       });

@@ -611,7 +611,10 @@ export class EntityAspect {
   If omitted, all of the validation errors for this entity will be returned.
   @return {Array of ValidationError}
   **/
-  getValidationErrors(property: DataProperty | NavigationProperty) {
+  getValidationErrors(): ValidationError[];
+  getValidationErrors(property: string): ValidationError[];
+  getValidationErrors(property: EntityProperty): ValidationError[];
+  getValidationErrors(property?: DataProperty | NavigationProperty | string) {
     assertParam(property, "property").isOptional().isEntityProperty().or().isString().check();
     let result = core.getOwnPropertyValues(this._validationErrors);
     if (property) {
