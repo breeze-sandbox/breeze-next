@@ -7,7 +7,7 @@ import { EntityAction } from './entity-action';
 import { EntityType, ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
 import { EntityGroup } from './entity-group';
-import { EntityManager, IQueryResult, ExecuteQueryErrorCallback, ExecuteQuerySuccessCallback } from './entity-manager';
+import { EntityManager, IQueryResult, QueryErrorCallback, QuerySuccessCallback } from './entity-manager';
 import { Validator, ValidationError } from './validate';
 import { EntityQuery } from './entity-query';
 
@@ -464,9 +464,9 @@ export class EntityAspect {
       - query {EntityQuery} The original query
       - httpResponse {httpResponse} The HttpResponse returned from the server.
   **/
-  loadNavigationProperty(navigationProperty: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>
-  loadNavigationProperty(navigationProperty: NavigationProperty, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
-  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: ExecuteQuerySuccessCallback, errorCallback: ExecuteQueryErrorCallback) {
+  loadNavigationProperty(navigationProperty: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>
+  loadNavigationProperty(navigationProperty: NavigationProperty, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: QuerySuccessCallback, errorCallback: QueryErrorCallback) {
     if (!this.entity || this.entity.entityAspect || this.entity.entityAspect!.entityManager) return;
     let entity = this.entity;
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);

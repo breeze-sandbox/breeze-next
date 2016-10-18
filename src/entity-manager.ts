@@ -42,11 +42,11 @@ export interface IQueryResult {
   retrievedEntities?: IEntity[];
 }
 
-export interface ExecuteQuerySuccessCallback {
+export interface QuerySuccessCallback {
   (data: IQueryResult): void;
 }
 
-export interface ExecuteQueryErrorCallback {
+export interface QueryErrorCallback {
   (error: { query: EntityQuery; httpResponse: IHttpResponse; entityManager: EntityManager; message?: string; stack?: string }): void;
 }
 
@@ -932,9 +932,9 @@ export class EntityManager {
     items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
     would have been applied.
   **/
-  executeQuery(query: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
-  executeQuery(query: EntityQuery, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
-  executeQuery(query: EntityQuery | string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback) {
+  executeQuery(query: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  executeQuery(query: EntityQuery, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  executeQuery(query: EntityQuery | string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback) {
     assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
     assertParam(callback, "callback").isFunction().isOptional().check();
     assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
