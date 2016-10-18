@@ -1,4 +1,4 @@
-﻿import { breeze, core, Callback, ErrorCallback } from './core-fns';
+﻿import { breeze, core } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
@@ -7,7 +7,7 @@ import { EntityAction } from './entity-action';
 import { EntityType, ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
 import { EntityGroup } from './entity-group';
-import { EntityManager } from './entity-manager';
+import { EntityManager, IQueryResult, ExecuteQueryErrorCallback, ExecuteQuerySuccessCallback } from './entity-manager';
 import { Validator, ValidationError } from './validate';
 import { EntityQuery } from './entity-query';
 
@@ -464,7 +464,9 @@ export class EntityAspect {
       - query {EntityQuery} The original query
       - httpResponse {httpResponse} The HttpResponse returned from the server.
   **/
-  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: Callback, errorCallback: ErrorCallback) {
+  loadNavigationProperty(navigationProperty: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>
+  loadNavigationProperty(navigationProperty: NavigationProperty, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise<IQueryResult>;
+  loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: ExecuteQuerySuccessCallback, errorCallback: ExecuteQueryErrorCallback) {
     if (!this.entity || this.entity.entityAspect || this.entity.entityAspect!.entityManager) return;
     let entity = this.entity;
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
@@ -516,6 +518,8 @@ export class EntityAspect {
   @method isNavigationPropertyLoaded
   @param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.
   **/
+  isNavigationPropertyLoaded(navigationProperty: string): boolean;
+  isNavigationPropertyLoaded(navigationProperty: NavigationProperty): boolean;
   isNavigationPropertyLoaded(navigationProperty: NavigationProperty | string) {
     if (!this.entity) return;
     let navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
