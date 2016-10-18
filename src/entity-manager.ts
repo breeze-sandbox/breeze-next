@@ -50,7 +50,6 @@ export interface QueryErrorCallback {
   (error: { query: EntityQuery; httpResponse: IHttpResponse; entityManager: EntityManager; message?: string; stack?: string }): void;
 }
 
-
 interface IKeyMapping {
   entityTypeName: string;
   tempValue: any;
@@ -61,9 +60,12 @@ interface ITempKeyMap {
   [index: string]: EntityKey;
 }
 
-interface IImportConfig {
+export interface IImportConfig {
   mergeStrategy?: MergeStrategySymbol;
   metadataVersionFn?: (arg: { metadataVersion: any, metadataStoreName: any }) => void;
+}
+
+interface IImportConfigExt extends IImportConfig {
   tempKeyMap?: ITempKeyMap;
 }
 
@@ -441,9 +443,11 @@ export class EntityManager {
   provided by the same named method on an EntityManager instance. Use that method if you need additional information
   regarding the imported entities.
   **/
-  static importEntities(exportedString: string, config: { mergeStrategy: MergeStrategySymbol }) {
+  static importEntities(exportedString: string, config?: IImportConfig): EntityManager;
+  static importEntities(exportedData: Object, config?: IImportConfig): EntityManager;
+  static importEntities(exported: string | Object, config?: IImportConfig) {
     let em = new EntityManager();
-    em.importEntities(exportedString, config);
+    em.importEntities(exported, config);
     return em;
   };
 
@@ -595,16 +599,16 @@ export class EntityManager {
   result.entities {Array of Entities} The entities that were imported.
   result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager.
   **/
-  importEntities(exportedString: string | Object, importConfig?: { mergeStrategy?: MergeStrategySymbol, metadataVersionFn?: (arg: { metadataVersion: any, metadataStoreName: any }) => void }) {
+  importEntities(exportedString: string, config?: IImportConfig): void;
+  importEntities(exportedData: Object, config?: IImportConfig): void;
+  importEntities(exported: string | Object, importConfig?: IImportConfig) {
     importConfig = importConfig || {};
     assertConfig(importConfig)
       .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
       .whereParam("metadataVersionFn").isFunction().isOptional()
       .applyAll(importConfig);
-    let that = this;
 
-
-    let json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
+    let json = (typeof exported === "string") ? JSON.parse(exported) : exported;
     if (json.metadataStore) {
       this.metadataStore.importMetadata(json.metadataStore);
       // the || clause is for backwards compat with an earlier serialization format.
@@ -624,10 +628,12 @@ export class EntityManager {
     json.tempKeys.forEach((k: any) => {
       let oldKey = EntityKey.fromJSON(k, that.metadataStore);
       // try to use oldKey if not already used in this keyGenerator.
-      tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
+      tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, this.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
     });
+
     let entitiesToLink: IEntity[] = [];
-    let impConfig = importConfig as IImportConfig;
+    let impConfig = importConfig as IImportConfigExt;
+    let that = this;
     impConfig.tempKeyMap = tempKeyMap;
     core.wrapExecution(function () {
       that._pendingPubs = [];
@@ -1365,7 +1371,12 @@ an option to check the local cache first.
   If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.
   @return {Boolean} Whether there were any changed entities.
   **/
-  hasChanges(entityTypes: EntityType | EntityType[] | string | string[]) {
+  hasChanges(): boolean;
+  hasChanges(entityTypeName: string): boolean;
+  hasChanges(entityTypeNames: string[]): boolean;
+  hasChanges(entityType: EntityType): boolean;
+  hasChanges(entityTypes: EntityType[]): boolean;
+  hasChanges(entityTypes?: EntityType | EntityType[] | string | string[]) {
     if (!this._hasChanges) return false;
     if (entityTypes === undefined) return this._hasChanges;
     return this._hasChangesCore(entityTypes);
@@ -2029,7 +2040,7 @@ function exportTempKeyInfo(entityAspect: EntityAspect, tempKeys: ITempKey[]) {
   return tempNavPropNames;
 }
 
-function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: IImportConfig) {
+function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: IImportConfigExt) {
 
   let tempKeyMap = importConfig.tempKeyMap;
 

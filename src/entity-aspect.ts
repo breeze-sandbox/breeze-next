@@ -576,6 +576,9 @@ export class EntityAspect {
   @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
   @return {Boolean} Whether the entity passed validation.
   **/
+  validateProperty(property: string, context?: any): boolean;
+  validateProperty(property: DataProperty, context?: any): boolean;
+  validateProperty(property: NavigationProperty, context?: any): boolean;
   validateProperty(property: EntityProperty | string, context: any) {
     let value = this.getPropertyValue(property); // performs validations
     if (value && value.complexAspect) {
@@ -647,6 +650,8 @@ export class EntityAspect {
   @method removeValidationError
   @param validationErrorOrKey {ValidationError|String} Either a ValidationError or a ValidationError 'key' value
   **/
+  removeValidationError(validationError: ValidationError): void;
+  removeValidationError(validationKey: string): void;
   removeValidationError(validationErrorOrKey: ValidationError | string) {
     assertParam(validationErrorOrKey, "validationErrorOrKey").isString().or().isInstanceOf(ValidationError).or().isInstanceOf(Validator).check();
 

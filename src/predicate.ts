@@ -42,7 +42,8 @@ interface IExpressionContext {
   **/
 
 export class Predicate {
-  op: IOp | null;
+  // op: IOp | null;
+  op: IOp;
   _entityType: EntityType | null;
   aliasMap: IOpMap;
   visitorMethodName: string;
@@ -154,8 +155,10 @@ export class Predicate {
   **/
   static and(...args: any[]) {
     let pred = new AndOrPredicate("and", args);
+    // TODO removed below
     // return undefined if empty
-    return pred.op && pred;
+    // return pred.op && pred;
+    return pred;
   };
 
   /**
@@ -176,7 +179,8 @@ export class Predicate {
   **/
   static or(...args: any[]) {
     let pred = new AndOrPredicate("or", args);
-    return pred.op && pred;
+    // return pred.op && pred;
+    return pred;
   };
 
   /**
@@ -468,7 +472,7 @@ class PassthruPredicate extends Predicate {
 PassthruPredicate.prototype._initialize('passthruPredicate');
 
 class UnaryPredicate extends Predicate {
-  op: any;
+  op: IOp;
   pred: Predicate;
   constructor(op: string | IQueryOp, ...args: any[]) {
     super();
@@ -566,9 +570,8 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
   }
 });
 
-
 class AndOrPredicate extends Predicate {
-  op: IOp | null;
+  op: IOp;
   preds: Predicate[];
   constructor(op: string | IQueryOp, preds: any[]) {
     super();

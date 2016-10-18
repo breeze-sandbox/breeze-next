@@ -4,11 +4,15 @@ import { DataType } from './data-type';
 import { EntityAspect, IEntity  } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { EnumSymbol, TypedEnum } from './enum';
-import { DataService } from './data-service';
+import { DataService, JsonResultsAdapter } from './data-service';
 import { EntityManager } from './entity-manager';
 import { MetadataStore, EntityType, NavigationProperty, EntityProperty } from './entity-metadata';
-import { QueryOptions } from './query-options';
+import { QueryOptions, MergeStrategySymbol, FetchStrategySymbol } from './query-options';
 import { Predicate } from './predicate';
+
+export interface IRecursiveArray<T> {
+    [i: number]: T | IRecursiveArray<T>;
+}
 
 interface IEntityQueryJsonContext {
   entityType?: EntityType | null;
@@ -262,6 +266,14 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
+  where(predicate: Predicate): EntityQuery;
+  where(predicate: Object): EntityQuery;
+  where(property: string, operator: string, value: any): EntityQuery;
+  where(property: string, operator: FilterQueryOpSymbol, value: any): EntityQuery;
+  where(property: string, filterop: FilterQueryOpSymbol, property2: string, filterop2: FilterQueryOpSymbol, value: any): EntityQuery;  // for any/all clauses
+  where(property: string, filterop: string, property2: string, filterop2: string, value: any): EntityQuery;  // for any/all clauses
+
+  where(anArray: IRecursiveArray<string | number | FilterQueryOpSymbol | Predicate>): EntityQuery;
   where(...args: any[]) {
     let wherePredicate: Predicate | null = null;
     if (args.length > 0) {
@@ -307,10 +319,11 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
-  orderBy(propertyPaths: string | string[], isDescending: boolean = false) {
+  orderBy(propertyPaths: string, isDescending?: boolean): EntityQuery;
+  orderBy(propertyPaths: string[], isDescending?: boolean): EntityQuery;
+  orderBy(propertyPaths: string | string[], isDescending?: boolean) {
     // propertyPaths: can pass in create("A.X,B") or create("A.X desc, B") or create("A.X desc,B", true])
     // isDesc parameter trumps isDesc in propertyName.
-
     let orderByClause = propertyPaths == null ? null : new OrderByClause(normalizePropertyPaths(propertyPaths), isDescending);
     if (this.orderByClause && orderByClause) {
       orderByClause = new OrderByClause([this.orderByClause, orderByClause]);
@@ -340,8 +353,10 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
+  orderByDesc(propertyPaths: string): EntityQuery;
+  orderByDesc(propertyPaths: string[]): EntityQuery;
   orderByDesc(propertyPaths: string | string[]) {
-    return this.orderBy(propertyPaths, true);
+    return this.orderBy(propertyPaths as any, true);
   };
 
   /**
@@ -565,6 +580,12 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
+  using(obj: EntityManager): EntityQuery;
+  using(obj: DataService): EntityQuery;
+  using(obj: JsonResultsAdapter): EntityQuery;
+  using(obj: QueryOptions): EntityQuery;
+  using(obj: MergeStrategySymbol): EntityQuery;
+  using(obj: FetchStrategySymbol): EntityQuery;
   using(obj: any) {
     if (!obj) return this;
     let eq = clone(this);
@@ -729,6 +750,8 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
+  static fromEntities(entity: IEntity): EntityQuery;
+  static fromEntities(entities: IEntity[]): EntityQuery;
   static fromEntities(entities: IEntity | IEntity[]) {
     assertParam(entities, "entities").isEntity().or().isNonEmptyArray().isEntity().check();
     let ents = (Array.isArray(entities)) ? entities : [entities];
@@ -798,6 +821,9 @@ export class EntityQuery {
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
     let q = new EntityQuery(navProperty.entityType.defaultResourceName);
     let pred = buildNavigationPredicate(entity, navProperty);
+    if (pred == null) {
+      throw new Error("Unable to create a NavigationQuery for navigationProperty: " + navigationProperty.name);
+    }
     q = q.where(pred);
     let em = entity.entityAspect.entityManager;
     return em ? q.using(em) : q;
