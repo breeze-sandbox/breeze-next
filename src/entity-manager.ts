@@ -101,6 +101,7 @@ export class EntityManager {
   keyGeneratorCtor: { new (): KeyGenerator }; // TODO: review this
   metadataStore: MetadataStore;
   isLoading: boolean;
+  isRejectingChanges: boolean;
 
   entityChanged: BreezeEvent;
   validationErrorsChanged: BreezeEvent;
@@ -1620,12 +1621,11 @@ an option to check the local cache first.
     return attachedEntity;
   }
 
-  // TODO: never called...
-  // private _updateFkVal(fkProp: DataProperty, oldValue: any, newValue: any) {
-  //   let group = this._entityGroupMap[fkProp.parentType.name];
-  //   if (!group) return;
-  //   group._updateFkVal(fkProp, oldValue, newValue);
-  // }
+  _updateFkVal(fkProp: DataProperty, oldValue: any, newValue: any) {
+    let group = this._entityGroupMap[fkProp.parentType.name];
+    if (!group) return;
+    group._updateFkVal(fkProp, oldValue, newValue);
+  }
 }
 
 function clearServerErrors(entities: IEntity[]) {
