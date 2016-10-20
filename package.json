@@ -3,13 +3,12 @@
   "version": "1.0.0",
   "description": "Next version of Breeze, built using TypeScript 2.",
   "main": "app.js",
-  "dependencies": {
-    "typescript": "^2.0.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jasmine": "^2.5.35",
     "@types/node": "^6.0.45",
     "cross-spawn": "^4.0.2",
+    "gulp": "^3.9.1",
     "gulp-task-listing": "^1.0.1",
     "gutil": "^1.6.4",
     "jasmine": "^2.5.2",
