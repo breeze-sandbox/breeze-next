@@ -599,7 +599,6 @@ class AndOrPredicate extends Predicate {
       pred._validate(entityType, usesNameOnServer);
     });
   }
-
 }
 
 AndOrPredicate.prototype._initialize("andOrPredicate", {

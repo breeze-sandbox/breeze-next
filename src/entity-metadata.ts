@@ -13,8 +13,6 @@ import { CsdlMetadataParser } from './csdl-metadata-parser'; // TODO isolate thi
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 import { defaultPropertyInterceptor } from './default-property-interceptor';
 
-declare let console: any; // TODO: why is this necessary;
-
 export type EntityProperty = DataProperty | NavigationProperty;
 export type StructuralType = EntityType | ComplexType;
 
@@ -525,6 +523,7 @@ export class MetadataStore {
 
     if (aCtor) {
       if (aCtor._$typeName && aCtor._$typeName !== typeName) {
+        // TODO: wrap this - console and especially console.warn does not exist in all browsers.
         console.warn("Registering a constructor for " + typeName + " that is already used for " + aCtor._$typeName + ".");
       }
       aCtor._$typeName = typeName;

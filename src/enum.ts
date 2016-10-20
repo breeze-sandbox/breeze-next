@@ -1,15 +1,12 @@
 ﻿import { core } from './core-fns';
 
-declare function setTimeout(handler: any, timeout?: any, ...args: any[]): number;
-
-
 // TODO: think about CompositeEnum (flags impl).
 
 /**
 Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
 A Breeze Enum is a namespaced set of constant values.  Each Enum consists of a group of related constants, called 'symbols'.
 Unlike enums in some other environments, each 'symbol' can have both methods and properties.
-
+ 
 @example
     // Example of creating a new Enum
        class DayOfWeekSymbol extends EnumSymbol {
@@ -96,7 +93,7 @@ export class Enum {
         this._symbolPrototype = prototype;
 
     }
-
+ 
     /**
     Checks if an object is an Enum 'symbol'.
     @example
