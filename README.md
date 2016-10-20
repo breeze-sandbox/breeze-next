@@ -12,7 +12,11 @@ Next version of Breeze, built using TypeScript 2.
     - improve performance
 5. Test more
 
-## Build Notes
+## Build using WebPack
+Run `npm run build`.  This will create a breeze.core.js file in the \build dir.
+
+
+## Compile Notes
 We are compiling the code with `--strictNullChecks`, and have used `Object` instead of `any` where possible in parameter declarations, to ensure that null checking is taking place.
 
 Use of `Object` often means casting to `any` within methods, but the payoff should be better compile-time bug catching.

@@ -15,10 +15,14 @@
     "jasmine-node": "^1.14.5",
     "lodash": "^4.16.4",
     "q": "^1.4.1",
-    "typescript": "^2.0.3"
+    "ts-loader": "^0.9.5",
+    "typescript": "^2.0.3",
+    "webpack": "^1.13.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --progress --profile --colors --display-error-details --display-cached",
+    "watch": "webpack --watch --progress --profile --colors --display-error-details --display-cached"
   },
   "repository": {
     "type": "git",
