@@ -168,7 +168,7 @@ export class MetadataStore {
   @param dataService {DataService} The DataService to add
   @param [shouldOverwrite=false] {Boolean} Permit overwrite of existing DataService rather than throw exception
   **/
-  addDataService(dataService: DataService, shouldOverwrite: boolean) {
+  addDataService(dataService: DataService, shouldOverwrite?: boolean) {
     assertParam(dataService, "dataService").isInstanceOf(DataService).check();
     assertParam(shouldOverwrite, "shouldOverwrite").isBoolean().isOptional().check();
     let ix = this._getDataServiceIndex(dataService.serviceName);

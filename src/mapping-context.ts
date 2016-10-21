@@ -1,4 +1,5 @@
-﻿import { core } from './core-fns';
+﻿import { IDataServiceAdapter } from './adapter-interfaces';
+import { core } from './core-fns';
 import { DataType, DataTypeSymbol } from './data-type';
 import { DataService, JsonResultsAdapter, INodeContext, INodeMeta } from './data-service';
 import { EntityState  } from './entity-state';
@@ -33,6 +34,7 @@ export class MappingContext {
   query: EntityQuery | string;
   entityManager: EntityManager;
   mergeOptions: IMergeOptions;
+  adapter: IDataServiceAdapter;
 
   refMap: Object; // TODO
   deferredFns: Function[]; // TODO

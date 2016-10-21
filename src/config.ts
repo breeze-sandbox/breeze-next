@@ -1,11 +1,12 @@
-﻿import { core, breeze } from './core-fns';
+﻿import { IBaseAdapter  } from './config';
+import { core, breeze } from './core-fns';
 import { assertParam, assertConfig } from './assert-param';
 import { BreezeEvent } from './event';
 
 interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; };
 interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance: T | null; };
 
-class InterfaceDef<T extends IBaseAdapter> {
+export class InterfaceDef<T extends IBaseAdapter> {
 
     name: string;
     defaultInstance: T | null;
@@ -40,51 +41,24 @@ class InterfaceDef<T extends IBaseAdapter> {
     }
 }
 
-interface IBaseAdapter {
+export interface IBaseAdapter {
     _$impl: any;
     name: string;
-    initialize(): Function;
+    initialize(): void;
     checkForRecomposition?: (context: any) => void;
 }
 
-interface IAjaxAdapter extends IBaseAdapter {
-
+export interface IInterfaceRegistry {
+    // [index: string]: IBaseAdapter;
 }
 
-interface IModelLibraryAdapter extends IBaseAdapter {
-    startTracking(entity: any, entityCtor: Function): void;
-    initializeEntityPrototype(proto: Object): void;
-    createCtor?: Function;
-    getTrackablePropertyNames: (entity: any) => string[];
-}
-
-interface IDataServiceAdapter extends IBaseAdapter {
-    saveChanges(saveContext: any, saveBundle: any): Promise<any>; // Promise<ISaveResult>
-
-}
-
-interface IUriBuilderAdapter extends IBaseAdapter {
-
-}
-
-interface InterfaceRegistry {
-    ajax: InterfaceDef<IAjaxAdapter>;
-    modelLibrary: InterfaceDef<IModelLibraryAdapter>;
-    dataService: InterfaceDef<IDataServiceAdapter>;
-    uriBuilder: InterfaceDef<IUriBuilderAdapter>;
-}
 
 class Config {
     functionRegistry = {};
     typeRegistry = {};
     objectRegistry = {};
     interfaceInitialized: BreezeEvent;
-    interfaceRegistry: InterfaceRegistry = {
-        ajax: new InterfaceDef<IAjaxAdapter>("ajax"),
-        modelLibrary: new InterfaceDef<IModelLibraryAdapter>("modelLibrary"),
-        dataService: new InterfaceDef<IDataServiceAdapter>("dataService"),
-        uriBuilder: new InterfaceDef<IUriBuilderAdapter>("uriBuilder")
-    };
+    interfaceRegistry: IInterfaceRegistry;
     stringifyPad = '';
     modelLibraryDef = this.interfaceRegistry.modelLibrary;
 
@@ -147,7 +121,7 @@ class Config {
     @param [config.uriBuilder] {String} - the name of a previously registered "uriBuilder" adapter
     @return [array of instances]
     **/
-    initializeAdapterInstances(config: InterfaceRegistry) {
+    initializeAdapterInstances(config: IInterfaceRegistry) {
         assertConfig(config)
             .whereParam("dataService").isOptional()
             .whereParam("modelLibrary").isOptional()
