@@ -223,6 +223,7 @@ export interface INodeMeta {
 
 export interface INodeContext {
   nodeType: string;
+  propertyName: string;
 }
 
 export interface JsonResultsAdapterConfig {

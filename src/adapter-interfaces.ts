@@ -1,5 +1,5 @@
 import { IEntity } from './entity-aspect';
-import { IHttpResponse, ISaveContext, ISaveBundle } from './entity-manager';
+import { ISaveContext, ISaveBundle } from './entity-manager';
 import { IBaseAdapter  } from './config';
 
 // This module describes the interfaceRegistry by extending config
@@ -14,7 +14,7 @@ declare module "./config" {
 
 
 export interface IAjaxAdapter extends IBaseAdapter {
-    ajax: (config: Object) => IHttpResponse;
+    ajax(config: any): void;
 }
 
 export interface IModelLibraryAdapter extends IBaseAdapter {
@@ -42,6 +42,7 @@ export interface IChangeRequestInterceptorCtor {
 }
 
 export interface IChangeRequestInterceptor {
+    oneTime?: boolean;
   /**
    Prepare and return the save data for an entity change-set.
 

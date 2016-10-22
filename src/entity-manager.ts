@@ -35,6 +35,9 @@ export interface IServerError extends Error {
    httpResponse: IHttpResponse;
    status: number;
    message: string;
+   statusText?: string;
+   body?: any;
+   url?: string;
 }
 
 export interface ISaveServerError extends IServerError {
@@ -88,7 +91,7 @@ export interface QueryErrorCallback {
   (error: { query: EntityQuery; httpResponse: IHttpResponse; entityManager: EntityManager; message?: string; stack?: string }): void;
 }
 
-interface IKeyMapping {
+export interface IKeyMapping {
   entityTypeName: string;
   tempValue: any;
   realValue: any;
@@ -110,7 +113,7 @@ interface IImportConfigExt extends IImportConfig {
 export interface ISaveResult {
   entities: IEntity[];
   keyMappings: IKeyMapping[];
-  httpResponse: IHttpResponse;
+  httpResponse?: IHttpResponse;
   // XHR: XMLHttpRequest;
 }
 
@@ -122,6 +125,7 @@ export interface ISaveContext {
   processSavedEntities: (saveResult: ISaveResult) => IEntity[];
   resourceName: string;
   adapter?: IDataServiceAdapter;
+  routePrefix?: string;
 }
 
 export interface ISaveBundle {

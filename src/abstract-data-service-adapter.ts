@@ -1,19 +1,15 @@
 ﻿import { EntityQuery } from './entity-query';
 import { IDataServiceAdapter, IAjaxAdapter } from './adapter-interfaces';
 import { IEntity } from './entity-aspect';
-
-
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';
 import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 import { breeze, core } from './core-fns';
 
-
-
-
+// Will usually be the base class for all other DataServiceAdapters;
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
-  abstract _$impl: any;
+  _$impl?: any;
 
   name: string;
   ajaxImpl: IAjaxAdapter; // TODO: use interface;
@@ -62,7 +58,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
             metadataStore.importMetadata(metadata);
           } catch (e) {
             let errMsg = "Unable to either parse or import metadata: " + e.message;
-            return handleHttpError(reject, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
+            return this._handleHttpError(reject, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
           }
 
           // import may have brought in the service.
@@ -74,7 +70,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
 
         },
         error: function (httpResponse: IHttpResponse) {
-          handleHttpError(reject, httpResponse, "Metadata query failed for: " + url);
+          this._handleHttpError(reject, httpResponse, "Metadata query failed for: " + url);
         }
       });
     });
@@ -107,13 +103,13 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
             if (e instanceof Error) {
               reject(e);
             } else {
-              handleHttpError(reject, httpResponse);
+              this._handleHttpError(reject, httpResponse);
             }
           }
 
         },
         error: function (httpResponse: IHttpResponse) {
-          handleHttpError(reject, httpResponse);
+          this._handleHttpError(reject, httpResponse);
         },
         crossDomain: false
       };
@@ -144,7 +140,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
           httpResponse.saveContext = saveContext;
           let data = httpResponse.data;
           if (data.Errors || data.errors) {
-            handleHttpError(reject, httpResponse);
+            this._handleHttpError(reject, httpResponse);
           } else {
             let saveResult = adapter._prepareSaveResult(saveContext, data);
             saveResult.httpResponse = httpResponse;
@@ -153,7 +149,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
         },
         error: function (httpResponse: IHttpResponse) {
           httpResponse.saveContext = saveContext;
-          handleHttpError(reject, httpResponse);
+          this._handleHttpError(reject, httpResponse);
         }
       });
     });
@@ -221,6 +217,23 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     throw new Error("Need a concrete implementation of _prepareSaveResult");
   };
 
+  _handleHttpError(reject: (reason?: any) => void, httpResponse: IHttpResponse, messagePrefix?: string) {
+    let err = createError(httpResponse);
+    AbstractDataServiceAdapter._catchNoConnectionError(err);
+    if (messagePrefix) {
+      err.message = messagePrefix + "; " + err.message;
+    }
+    return reject(err);
+  }
+
+  // Put this at the bottom of your http error analysis
+  static _catchNoConnectionError(err: IServerError) {
+    if (err.status === 0 && err.message == null) {
+      err.message = "HTTP response status 0 and no message.  " +
+        "Likely did not or could not reach server. Is the server running?";
+    }
+  }
+
   jsonResultsAdapter = new JsonResultsAdapter({
     name: "noop",
 
@@ -228,16 +241,6 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
       return {};
     }
   });
-}
-
-
-function handleHttpError(reject: (reason?: any) => void, httpResponse: IHttpResponse, messagePrefix?: string) {
-  let err = createError(httpResponse);
-  _catchNoConnectionError(err);
-  if (messagePrefix) {
-    err.message = messagePrefix + "; " + err.message;
-  }
-  return reject(err);
 }
 
 function createError(httpResponse: IHttpResponse)   {
@@ -307,13 +310,7 @@ function createError(httpResponse: IHttpResponse)   {
   return err;
 }
 
-// Put this at the bottom of your http error analysis
-function _catchNoConnectionError(err: IServerError) {
-  if (err.status === 0 && err.message == null) {
-    err.message = "HTTP response status 0 and no message.  " +
-      "Likely did not or could not reach server. Is the server running?";
-  }
-}
+
 
 
 //This is a default, no-op implementation that developers can replace.

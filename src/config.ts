@@ -42,7 +42,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
 }
 
 export interface IBaseAdapter {
-    _$impl: any;
+    _$impl?: any;
     name: string;
     initialize(): void;
     checkForRecomposition?: (context: any) => void;
