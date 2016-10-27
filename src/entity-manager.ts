@@ -166,8 +166,8 @@ export class EntityManager {
   validationErrorsChanged: BreezeEvent;
   hasChangesChanged: BreezeEvent;
 
-  _pendingPubs: any[] | null; // TODO: refine later
-  _hasChangesAction?: (() => boolean) | null; // TODO refine later
+  _pendingPubs?: any[]; // TODO: refine later
+  _hasChangesAction?: (() => boolean); // TODO refine later
   _hasChanges: boolean;
   _entityGroupMap: { [index: string]: EntityGroup };
   _unattachedChildrenMap: UnattachedChildrenMap;
@@ -666,7 +666,7 @@ export class EntityManager {
       that._pendingPubs!.forEach(function (fn) {
         fn();
       });
-      that._pendingPubs = null;
+      that._pendingPubs = undefined;
       that._hasChangesAction && that._hasChangesAction();
     }, function () {
       core.objectForEach(json.entityGroupMap, (entityTypeName, jsonGroup) => {
@@ -804,7 +804,7 @@ export class EntityManager {
         attachRelatedEntities(that, entity, esSymbol, msSymbol);
       } finally {
         // insure that _inProcessEntity is cleared.
-        aspect._inProcessEntity = null;
+        aspect._inProcessEntity = undefined;
       }
     });
     if (this.validationOptions.validateOnAttach) {
@@ -1093,7 +1093,7 @@ export class EntityManager {
 
     saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
 
-    let entitiesToSave = getEntitiesToSave(this, entities);
+    let entitiesToSave = getEntitiesToSave(this, entities ? entities : undefined);
 
     if (entitiesToSave.length === 0) {
       let result = { entities: [], keyMappings: [] };
@@ -1152,7 +1152,7 @@ export class EntityManager {
       saveResult.entities = savedEntities;
 
       // update _hasChanges after save.
-      em._setHasChanges(null);
+      em._setHasChanges();
 
       // can't do this anymore because other changes might have been made while saved entities in flight.
       //      let hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : null;
@@ -1178,7 +1178,7 @@ export class EntityManager {
       core.using(em, "isLoading", true, () => {
 
         let mappingContext = new MappingContext({
-          query: null, // tells visitAndMerge this is a save instead of a query
+          query: undefined, // tells visitAndMerge this is a save instead of a query
           entityManager: em,
           mergeOptions: { mergeStrategy: MergeStrategy.OverwriteChanges },
           dataService: dataService
@@ -1262,7 +1262,7 @@ Attempts to locate an entity within this EntityManager by its key.
   getEntityByKey(...args: any[]) {
     let entityKey = createEntityKey(this, args).entityKey;
     let entityTypes = entityKey._subtypes || [entityKey.entityType];
-    let e: IEntity | null = null;
+    let e: IEntity | undefined;
     // hack use of some to simulate mapFirst logic.
     entityTypes.some((et) => {
       let group = this._findEntityGroup(et);
@@ -1270,7 +1270,7 @@ Attempts to locate an entity within this EntityManager by its key.
       e = group && group.findEntityByKey(entityKey);
       return e != null;
     });
-    return e as IEntity | null;
+    return e as IEntity;
   };
 
   /**
@@ -1481,7 +1481,7 @@ an option to check the local cache first.
   **/
   rejectChanges() {
     if (!this._hasChanges) return [];
-    let changes = getChangesCore(this, null);
+    let changes = getChangesCore(this);
     // next line stops individual reject changes from each calling _hasChangesCore
     let aspects = changes.map(function (e) {
       return e.entityAspect._checkOperation("rejectChanges");
@@ -1561,21 +1561,21 @@ an option to check the local cache first.
           }.bind(this);
           return;
         } else {
-          this._setHasChanges(null);
+          this._setHasChanges();
         }
       }
     }
     this.entityChanged.publish(ecArgs);
   };
 
-  _setHasChanges(hasChanges: boolean | null) {
+  _setHasChanges(hasChanges?: boolean) {
     if (hasChanges == null) hasChanges = this._hasChangesCore();
     let hadChanges = this._hasChanges;
     this._hasChanges = hasChanges;
     if (hasChanges !== hadChanges) {
       this.hasChangesChanged.publish({ entityManager: this, hasChanges: hasChanges });
     }
-    this._hasChangesAction = null;
+    this._hasChangesAction = undefined;
   }
 
   _linkRelatedEntities(entity: IEntity) {
@@ -1753,8 +1753,8 @@ function processServerErrors(saveContext: ISaveContext, saveError: ISaveServerEr
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
   let entityErrors = serverErrors.map((serr) => {
-    let entity: IEntity | null = null;
-    let entityType: EntityType | null = null;
+    let entity: IEntity | undefined;
+    let entityType: EntityType | undefined;
     if (serr.keyValues) {
       entityType = metadataStore._getStructuralType(serr.entityTypeName) as EntityType;
       let ekey = new EntityKey(entityType, serr.keyValues);
@@ -1809,7 +1809,7 @@ will be used to merge any server side entity returned by this method.
 
 **/
 export interface IEntityByKeyResult {
-  entity: IEntity | null;
+  entity?: IEntity;
   entityKey: EntityKey;
   fromCache: boolean;
 }
@@ -1819,7 +1819,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
   let entityKey = tpl.entityKey;
 
   let checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
-  let entity: IEntity | null = null;
+  let entity: IEntity | undefined;
   let foundIt = false;
   if (checkLocalCacheFirst) {
     entity = em.getEntityByKey(entityKey);
@@ -1827,7 +1827,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
     if (entity != null &&
       // null the entity if it is deleted and we should exclude deleted entities
       !em.queryOptions.includeDeleted && entity.entityAspect.entityState.isDeleted()) {
-      entity = null;
+      entity = undefined;
       // but resume looking if we'd overwrite deleted entity with a remote entity
       // note: em.queryOptions is always fully resolved by now
       foundIt = em.queryOptions.mergeStrategy !== MergeStrategy.OverwriteChanges;
@@ -1851,7 +1851,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
 function checkEntityTypes(em: EntityManager, entityTypes?: EntityType | EntityType[] | string | string[]) {
   assertParam(entityTypes, "entityTypes").isString().isOptional().or().isNonEmptyArray().isString()
     .or().isInstanceOf(EntityType).or().isNonEmptyArray().isInstanceOf(EntityType).check();
-  let resultTypes: EntityType | EntityType[] | null;
+  let resultTypes: EntityType | EntityType[] | undefined;
   if (typeof entityTypes === "string") {
     resultTypes = em.metadataStore._getStructuralType(entityTypes, false) as (EntityType | EntityType[]);
   } else if (Array.isArray(entityTypes) && typeof entityTypes[0] === "string") {
@@ -1859,13 +1859,13 @@ function checkEntityTypes(em: EntityManager, entityTypes?: EntityType | EntityTy
       return em.metadataStore._getStructuralType(etName, false) as EntityType;
     });
   } else {
-    resultTypes = entityTypes as (EntityType | EntityType[] | null);
+    resultTypes = entityTypes as (EntityType | EntityType[] | undefined);
   }
 
   return resultTypes;
 }
 
-function getChangesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null) {
+function getChangesCore(em: EntityManager, entityTypes?: EntityType | EntityType[]) {
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
@@ -1883,7 +1883,7 @@ function getChangesCore(em: EntityManager, entityTypes: EntityType | EntityType[
   return selected;
 }
 
-function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | null, entityStates: EntityStateSymbol[]) {
+function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType[] | undefined, entityStates: EntityStateSymbol[]) {
   let entityGroups = getEntityGroups(em, entityTypes);
 
   // TODO: think about writing a core.mapMany method if we see more of these.
@@ -2072,7 +2072,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[
   let entityType = entityGroup.entityType;
   let mergeStrategy = importConfig.mergeStrategy;
 
-  let targetEntity: IEntity | null = null;
+  let targetEntity: IEntity | undefined;
 
   let em = entityGroup.entityManager;
   let entityChanged = em.entityChanged;
@@ -2092,7 +2092,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[
     // Cannot safely merge such entities even
     // if could match temp key to an entity in cache.
     let newTempKey = entityState.isAdded() && getMappedKey(tempKeyMap!, entityKey);
-    targetEntity = newTempKey ? null : entityGroup.findEntityByKey(entityKey);
+    targetEntity = newTempKey ? undefined : entityGroup.findEntityByKey(entityKey);
 
     if (targetEntity) {
       if (mergeStrategy === MergeStrategy.SkipMerge) {
@@ -2165,7 +2165,7 @@ function promiseWithCallbacks<T>(promise: Promise<T>, callback?: Callback, error
   return promise;
 }
 
-function getEntitiesToSave(em: EntityManager, entities?: IEntity[] | null) {
+function getEntitiesToSave(em: EntityManager, entities?: IEntity[]) {
   let entitiesToSave: IEntity[];
   if (entities) {
     entitiesToSave = entities.filter(function (e) {
@@ -2192,7 +2192,7 @@ function fixupKeys(em: EntityManager, keyMappings: IKeyMapping[]) {
   em._inKeyFixup = false;
 }
 
-function getEntityGroups(em: EntityManager, entityTypes: EntityType | EntityType[] | null) {
+function getEntityGroups(em: EntityManager, entityTypes?: EntityType | EntityType[]) {
   let groupMap = em._entityGroupMap;
   if (entityTypes) {
     return core.toArray(entityTypes).map(function (et: EntityType) {
@@ -2275,7 +2275,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryO
       }
     }
 
-    let mappingContext: MappingContext | null = new MappingContext({
+    let mappingContext: MappingContext | undefined = new MappingContext({
       query: query,
       entityManager: em,
       dataService: dataService,
@@ -2300,12 +2300,12 @@ function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryO
         em._pendingPubs!.forEach(function (fn) {
           fn();
         });
-        em._pendingPubs = null;
+        em._pendingPubs = undefined;
         em._hasChangesAction && em._hasChangesAction();
         // TODO: removed - not sure why needed in first place...
         // // HACK for GC
-        // query = null;
-        mappingContext = null;
+        // query = undefined;
+        mappingContext = undefined;
         // HACK: some errors thrown in next function do not propogate properly - this catches them.
 
         if (state.error) {

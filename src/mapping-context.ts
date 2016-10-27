@@ -20,7 +20,7 @@ export interface IMergeOptions {
 
 interface IMappingContextConfig {
   dataService: DataService;
-  query: EntityQuery | string | null;
+  query?: EntityQuery | string;
   entityManager: EntityManager;
   mergeOptions: IMergeOptions;
 }
@@ -390,7 +390,7 @@ function mergeRelatedEntitiesCore(mc: MappingContext, rawEntity: any, navigation
   return relatedEntities;
 }
 
-function updateRelatedEntity(relatedEntity: IEntity | null, targetEntity: IEntity, navigationProperty: NavigationProperty) {
+function updateRelatedEntity(relatedEntity: IEntity, targetEntity: IEntity, navigationProperty: NavigationProperty) {
   if (!relatedEntity) return;
   let propName = navigationProperty.name;
   let currentRelatedEntity = targetEntity.getProperty(propName);
@@ -411,7 +411,7 @@ function updateRelatedEntity(relatedEntity: IEntity | null, targetEntity: IEntit
   }
 }
 
-function updateRelatedEntityInCollection(mc: MappingContext, relatedEntity: IEntity | null,
+function updateRelatedEntityInCollection(mc: MappingContext, relatedEntity: IEntity | undefined,
     relatedEntities: IEntity[], targetEntity: IEntity, inverseProperty: NavigationProperty) {
   if (!relatedEntity) return;
 

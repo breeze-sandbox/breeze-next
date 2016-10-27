@@ -8,8 +8,8 @@ import { DataProperty } from './entity-metadata';
 
 export interface IComplexArray extends IObservableArray {
   [index: number]: IComplexObject;
-  parent: IStructuralObject | null;
-  parentProperty: DataProperty | null;
+  parent?: IStructuralObject;
+  parentProperty?: DataProperty;
 }
 
 let complexArrayMixin = {
@@ -115,8 +115,8 @@ function clearAspect(co: IComplexObject, arr: IComplexArray) {
   // if not already attached - exit
   if (coAspect.parent !== arr.parent) return null;
 
-  coAspect.parent = null;
-  coAspect.parentProperty = null;
+  coAspect.parent = undefined;
+  coAspect.parentProperty = undefined;
   return coAspect;
 }
 

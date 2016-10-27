@@ -9,8 +9,8 @@ import { DataProperty } from './entity-metadata';
 // Not needed
 // interface IPrimitiveArray extends IObservableArray {
 //   [index: number]: any;
-//   parent: IStructuralObject | null;
-//   parentProperty: DataProperty | null;
+//   parent?: IStructuralObject;
+//   parentProperty?: DataProperty;
 // }
 
 let primitiveArrayMixin = {

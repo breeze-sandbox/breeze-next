@@ -14,8 +14,8 @@ export interface IObservableArray {
 
   getEntityAspect: () => EntityAspect;
   arrayChanged: BreezeEvent;
-  parent?: Object | null;
-  parentProperty?: DataProperty | null; // TODO: IProperty 
+  parent?: Object;
+  parentProperty?: DataProperty; // TODO: IProperty 
   _getEventParent: () => Object;
   _getPendingPubs: () => any[]; // TODO: Pub[]
   _beforeChange: () => void;

@@ -144,7 +144,7 @@ function parseCsdlComplexType(csdlComplexType: any, schema: any, metadataStore: 
 }
 
 function parseCsdlDataProperty(parentType: EntityType | ComplexType, csdlProperty: any, schema: any, keyNamesOnServer?: string[]) {
-  let dp: DataProperty | null;
+  let dp: DataProperty | undefined;
   let typeParts = csdlProperty.type.split(".");
   // Both tests on typeParts are necessary because of differing metadata conventions for OData and Edmx feeds.
   if (typeParts[0] === "Edm" && typeParts.length === 2) {
@@ -170,7 +170,7 @@ function parseCsdlSimpleProperty(parentType: EntityType | ComplexType, csdlPrope
   let dataType = DataType.fromEdmDataType(csdlProperty.type);
   if (dataType == null) {
     parentType.warnings.push("Unable to recognize DataType for property: " + csdlProperty.name + " DateType: " + csdlProperty.type);
-    return null;
+    return undefined;
   }
   let isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
   // let fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;

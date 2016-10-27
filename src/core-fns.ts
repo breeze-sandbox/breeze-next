@@ -61,14 +61,14 @@ function isSettable(obj: Object, propertyName: string): boolean {
     return !!(pd.writable || pd.set);
 }
 
-function getPropDescriptor(obj: Object, propertyName: string): PropertyDescriptor | null {
-    if (!isES5Supported) return null;
+function getPropDescriptor(obj: Object, propertyName: string): PropertyDescriptor | undefined {
+    if (!isES5Supported) return undefined;
 
     if (obj.hasOwnProperty(propertyName)) {
         return Object.getOwnPropertyDescriptor(obj, propertyName);
     } else {
         let nextObj = Object.getPrototypeOf(obj);
-        if (nextObj == null) return null;
+        if (nextObj == null) return undefined;
         return getPropDescriptor(nextObj, propertyName);
     }
 }

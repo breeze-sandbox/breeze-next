@@ -878,7 +878,7 @@ function intRangeValidatorCtor(validatorName: string, minValue: number, maxValue
   };
 }
 
-function makeRegExpValidator(validatorName: string, expression: RegExp, defaultMessage: string | null, context: any) {
+export function makeRegExpValidator(validatorName: string, expression: RegExp, defaultMessage: string | null, context: any) {
   if (defaultMessage) {
     Validator.messageTemplates[validatorName] = defaultMessage;
   }
@@ -933,7 +933,7 @@ Constructs a new ValidationError
 @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here.
 **/
 export class ValidationError {
-  validator: Validator | null;
+  validator?: Validator;
   key: string;
   context: any;
   errorMessage: string;
@@ -946,7 +946,7 @@ export class ValidationError {
     assertParam(validator, "validator").isOptional().isInstanceOf(Validator).check();
     assertParam(errorMessage, "errorMessage").isNonEmptyString().check();
     assertParam(key, "key").isOptional().isNonEmptyString().check();
-    this.validator = validator;
+    this.validator = validator || undefined;
     context = context || {};
     this.context = context;
     this.errorMessage = errorMessage;

@@ -4,13 +4,13 @@ import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
 export class AjaxAngularAdapter implements IAjaxAdapter {
   name: string;
   defaultSettings: { headers?: any };
-  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor | null;
+  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor;
   $http: any;
   $rootScope: any;
   constructor() {
     this.name = "angular";
     this.defaultSettings = {};
-    this.requestInterceptor = null;
+    this.requestInterceptor = undefined;
     // Will set:
     //   this.$http;
     //   this.$rootScope;
@@ -85,7 +85,7 @@ export class AjaxAngularAdapter implements IAjaxAdapter {
       let ri = this.requestInterceptor as any;
       ri(requestInfo);
       if (ri.oneTime) {
-        this.requestInterceptor = null;
+        this.requestInterceptor = undefined;
       }
     }
 

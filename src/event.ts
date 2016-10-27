@@ -199,7 +199,7 @@ export class BreezeEvent {
     };
 
     /** event bubbling - document later. */
-    static bubbleEvent(target: any, getParentFn: (() => any) | null) {
+    static bubbleEvent(target: any, getParentFn?: (() => any)) {
         target._getEventParent = getParentFn;
     };
 

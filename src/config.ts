@@ -4,7 +4,7 @@ import { assertParam, assertConfig } from './assert-param';
 import { BreezeEvent } from './event';
 
 interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; };
-interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance: T | null; };
+interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance?: T; };
 
 export class InterfaceDef<T extends IBaseAdapter> {
 
@@ -20,7 +20,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
 
     /** Define an implementation of the given adaptername */
     registerCtor(adapterName: string, ctor: IAdapterCtor<T>): void {
-        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: null };
+        this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: undefined };
     };
 
     /** Return the definition for the given adapterName */

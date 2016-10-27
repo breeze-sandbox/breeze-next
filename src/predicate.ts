@@ -20,11 +20,11 @@ interface IVisitor {
 }
 
 interface IVisitContext {
-  entityType: EntityType | null;
+  entityType?: EntityType;
   // usesNameOnServer?: boolean;
   toNameOnServer?: boolean;
   useExplicitDataType?: boolean;
-  visitor?: IVisitor | null;
+  visitor?: IVisitor;
 }
 
 interface IExpressionContext {
@@ -42,9 +42,8 @@ interface IExpressionContext {
   **/
 
 export class Predicate {
-  // op: IOp | null;
   op: IOp;
-  _entityType: EntityType | null;
+  _entityType?: EntityType;
   aliasMap: IOpMap;
   visitorMethodName: string;
 
@@ -111,7 +110,7 @@ export class Predicate {
     }
   };
 
-  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
+  _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     // noop here;
   }
 
@@ -309,7 +308,7 @@ export class Predicate {
 
   visit(context: IVisitContext, visitor?: IVisitor) {
     if (core.isEmpty(context)) {
-      context = { entityType: null };
+      context = { entityType: undefined };
     } else if (context instanceof EntityType) {
       context = { entityType: context };
     } else if (!core.hasOwnProperty(context, "entityType")) {
@@ -495,8 +494,8 @@ class BinaryPredicate extends Predicate {
   op: IOp;
   expr1Source: any;
   expr2Source: any;
-  expr1: PredicateExpression | null;
-  expr2: PredicateExpression | null;
+  expr1?: PredicateExpression;
+  expr2?: PredicateExpression;
   constructor(op: string | IQueryOp, expr1: any, expr2: any) {
     super();
     // 5 public props op, expr1Source, expr2Source, expr1, expr2
@@ -625,9 +624,9 @@ class AnyAllPredicate extends Predicate {
     this.expr = createExpr(this.exprSource, { entityType: entityType, usesNameOnServer: usesNameOnServer } as IExpressionContext);
     // can't really know the predicateEntityType unless the original entity type was known.
     if (entityType == null || entityType.isAnonymous) {
-      this.expr.dataType = null;
+      this.expr.dataType = undefined;
     }
-    this.pred._validate(this.expr.dataType as EntityType | null, usesNameOnServer);
+    this.pred._validate(this.expr.dataType as EntityType | undefined, usesNameOnServer);
   }
 
 }
@@ -640,7 +639,7 @@ AnyAllPredicate.prototype._initialize("anyAllPredicate", {
 class PredicateExpression {
   visitorMethodName: string;
   visit: Function; // TODO
-  dataType: DataTypeSymbol | StructuralType | null;
+  dataType?: DataTypeSymbol | StructuralType;
   constructor(visitorMethodName: string) {
     this.visitorMethodName = visitorMethodName;
     // give expressions the Predicate prototype method
@@ -649,7 +648,7 @@ class PredicateExpression {
     this._validate = core.noop;
   }
 
-  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
+  _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     // noop;
   }
 }
@@ -659,7 +658,7 @@ class LitExpr extends PredicateExpression {
   dataType: DataTypeSymbol;
   hasExplicitDataType: boolean;
   // 2 public props: value, dataType
-  constructor(value: any, dataType: string | DataTypeSymbol | null, hasExplicitDataType?: boolean) {
+  constructor(value: any, dataType: string | DataTypeSymbol | undefined, hasExplicitDataType?: boolean) {
     super("litExpr");
     // dataType may come is an a string
     let dt1 = resolveDataType(dataType);
@@ -687,7 +686,7 @@ class LitExpr extends PredicateExpression {
 
 }
 
-function resolveDataType(dataType: DataTypeSymbol | string | null) {
+function resolveDataType(dataType?: DataTypeSymbol | string) {
   if (dataType == null) return dataType;
   // if (DataType.contains(dataType)) {
   if (dataType instanceof DataTypeSymbol) {
@@ -718,7 +717,7 @@ class PropExpr extends PredicateExpression {
     return " PropExpr - " + this.propertyPath;
   };
 
-  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
+  _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
 
     if (entityType == null || entityType.isAnonymous) return;
     let props = entityType.getPropertiesOnPath(this.propertyPath, usesNameOnServer || false, false);
@@ -763,7 +762,7 @@ class FnExpr extends PredicateExpression {
     return "FnExpr - " + this.fnName + "(" + exprStr + ")";
   };
 
-  _validate(entityType: EntityType | null, usesNameOnServer?: boolean) {
+  _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     this.exprs.forEach(function (expr) {
       expr._validate(entityType, usesNameOnServer);
     });
@@ -905,14 +904,14 @@ function createExpr(source: any, exprContext: IExpressionContext) {
         return new LitExpr(source.value, source.dataType || exprContext.dataType, true);
       }
     } else {
-      return new LitExpr(source, exprContext.dataType || null);
+      return new LitExpr(source, exprContext.dataType);
     }
   }
 
   if (exprContext.isRHS) {
     if (entityType == null || entityType.isAnonymous) {
       // if entityType is unknown then assume that the rhs is a literal
-      return new LitExpr(source, exprContext.dataType || null);
+      return new LitExpr(source, exprContext.dataType);
     } else {
       return parseLitOrPropExpr(source, exprContext);
     }
@@ -929,7 +928,7 @@ function createExpr(source: any, exprContext: IExpressionContext) {
     }
 
     let expr = parseExpr(source, tokens, exprContext);
-    expr._validate(entityType || null, exprContext.usesNameOnServer);
+    expr._validate(entityType, exprContext.usesNameOnServer);
     return expr;
   }
 }
@@ -971,7 +970,7 @@ function parseLitOrPropExpr(value: string, exprContext: IExpressionContext): Pre
     // we don't really know the datatype here because even though it comes in as a string
     // its usually a string BUT it might be a number  i.e. the "1" or the "2" from an expr
     // like "toUpper(substring(companyName, 1, 2))"
-    return new LitExpr(value, exprContext.dataType || null);
+    return new LitExpr(value, exprContext.dataType);
   }
 }
 
@@ -1277,7 +1276,7 @@ let toJSONVisitor = {
     let predVals = this.preds.map(function (pred) {
       return pred.visit(context);
     });
-    let json: Object | null = null;
+    let json: Object | undefined;
     // normalizeAnd clauses if possible.
     // passthru predicate will appear as string and their 'ands' can't be 'normalized'
     if (this.op!.key === 'and' && predVals.length === 2 && !predVals.some((v) => typeof(v) === 'string')) {

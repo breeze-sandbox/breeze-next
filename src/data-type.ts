@@ -314,7 +314,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @return {DataType} A DataType.
   **/
   fromEdmDataType(typeName: string) {
-    let dt: DataTypeSymbol | null = null;
+    let dt: DataTypeSymbol | undefined;
     let parts = typeName.split(".");
     if (parts.length > 1) {
       let simpleName = parts[1];

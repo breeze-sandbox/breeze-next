@@ -1,4 +1,5 @@
-﻿import { breeze, core, ErrorCallback } from './core-fns';
+﻿import { EntityTypeConfig } from './entity-metadata';
+import { breeze, core, ErrorCallback } from './core-fns';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
@@ -700,7 +701,7 @@ export class MetadataStore {
 
 }
 
-BreezeEvent.bubbleEvent(MetadataStore.prototype, null);
+BreezeEvent.bubbleEvent(MetadataStore.prototype);
 
 function getTypesFromMap(typeMap: IStructuralTypeMap) {
   let types: (StructuralType)[] = [];
@@ -936,13 +937,15 @@ export class EntityType {
     if (arguments.length > 1) {
       throw new Error("The EntityType ctor has a single argument that is either a 'MetadataStore' or a configuration object.");
     }
-    let etConfig: EntityTypeConfig | null;
+    // let etConfig =  <EntityTypeConfig> <any> undefined;
+    let etConfig: EntityTypeConfig | undefined = undefined;
+
     if ((config as any)._$typeName === "MetadataStore") {
       this.metadataStore = config as MetadataStore;
       this.shortName = "Anon_" + (++EntityType.__nextAnonIx);
       this.namespace = "";
       this.isAnonymous = true;
-      etConfig = null;
+      // etConfig = undefined;
     } else {
       etConfig = config as EntityTypeConfig;
       assertConfig(config)
@@ -2167,7 +2170,7 @@ export class DataProperty  {
   nameOnServer: string;
   dataType: DataTypeSymbol | ComplexType; // this will be a complexType when dp is a complexProperty
   complexTypeName: string;
-  complexType: ComplexType | null;
+  complexType?: ComplexType;
   isComplexProperty: boolean;
   isNullable: boolean;
   isScalar: boolean; // will be false for some NoSQL databases.
@@ -2183,8 +2186,8 @@ export class DataProperty  {
   rawTypeName?: string;  // occurs with undefined datatypes
   custom?: Object;
 
-  inverseNavigationProperty?: NavigationProperty | null;
-  relatedNavigationProperty?: NavigationProperty | null;
+  inverseNavigationProperty?: NavigationProperty;
+  relatedNavigationProperty?: NavigationProperty;
 
   parentType: StructuralType;
   baseProperty?: DataProperty;
@@ -2561,7 +2564,7 @@ export class NavigationProperty  {
   parentType: EntityType; // ?? same as entityType
   parentEntityType: EntityType; // ?? same as above
   baseProperty?: NavigationProperty;
-  inverse: NavigationProperty | null;
+  inverse?: NavigationProperty;
   name: string;
   nameOnServer: string;
   entityTypeName: string;
@@ -2872,7 +2875,7 @@ export class NavigationProperty  {
       return altNp.associationName === np.associationName &&
         (altNp.name !== np.name || altNp.entityTypeName !== np.entityTypeName);
     });
-    np.inverse = invNp;
+    np.inverse = invNp || undefined;
     //if (invNp && invNp.inverse == null) {
     //    invNp._resolveNp();
     //}
@@ -2884,9 +2887,10 @@ export class NavigationProperty  {
           throw new Error("EntityType '" + np.entityTypeName + "' has no foreign key matching '" + invFkName + "'");
         }
         let invEntityType = np.parentType;
-        fkProp.inverseNavigationProperty = core.arrayFirst(invEntityType.navigationProperties, (np2) => {
+        invNp = core.arrayFirst(invEntityType.navigationProperties, (np2) => {
           return np2.invForeignKeyNames && np2.invForeignKeyNames.indexOf(fkProp!.name) >= 0 && np2.entityType === fkProp!.parentType;
         });
+        fkProp.inverseNavigationProperty = invNp || undefined;
         core.arrayAddItemUnique(entityType.foreignKeyProperties, fkProp);
       });
     }
@@ -3031,7 +3035,7 @@ function qualifyTypeName(shortName: string, ns?: string) {
 }
 
 // Used by both ComplexType and EntityType
-function addProperties(entityType: StructuralType, propObj: Object | null, ctor: any) {
+function addProperties(entityType: StructuralType, propObj: Object | undefined, ctor: any) {
   if (propObj == null) return;
   if (Array.isArray(propObj)) {
     propObj.forEach(entityType._addPropertyCore.bind(entityType));

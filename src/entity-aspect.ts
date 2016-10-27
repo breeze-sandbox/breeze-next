@@ -46,9 +46,9 @@ export type IStructuralObject = IEntity | IComplexObject;
   @class EntityAspect
   **/
 export class EntityAspect {
-  entity: IEntity | null;
-  entityManager: EntityManager | null;
-  entityGroup: EntityGroup | null;
+  entity?: IEntity;
+  entityManager?: EntityManager;
+  entityGroup?: EntityGroup;
   entityState: EntityStateSymbol;
   isBeingSaved: boolean;
   originalValues: {};
@@ -63,12 +63,11 @@ export class EntityAspect {
   validationErrorsChanged: BreezeEvent;
   propertyChanged: BreezeEvent;
   extraMetadata?: any;
+  _inProcessEntity?: IEntity; // used in EntityManager
 
-  _inProcessEntity: IEntity | null; // used in EntityManager
+  static _nullInstance = new EntityAspect(); // TODO: determine if this works
 
-  static _nullInstance = new EntityAspect(null); // TODO: determine if this works
-
-  constructor(entity: IEntity | null) {
+  constructor(entity?: IEntity) {
 
     // if called without new
     // if (!(this instanceof EntityAspect)) {
@@ -77,8 +76,8 @@ export class EntityAspect {
 
     this.entity = entity;
     // TODO: keep public or not?
-    this.entityGroup = null;
-    this.entityManager = null;
+    this.entityGroup = undefined;
+    this.entityManager = undefined;
     this.entityState = EntityState.Detached;
     this.isBeingSaved = false;
     this.originalValues = {};
@@ -115,10 +114,8 @@ export class EntityAspect {
   }
 
   static createFrom(entity: IEntity): EntityAspect {
-    if (entity === null) {
+    if (entity == null) {
       return EntityAspect._nullInstance;
-    } else if (entity === undefined) {
-      throw new Error("The EntityAspect ctor requires an entity as its only argument.");
     } else if (entity.entityAspect) {
       return entity.entityAspect;
     }
@@ -725,8 +722,8 @@ export class EntityAspect {
   }
 
   _detach() {
-    this.entityGroup = null;
-    this.entityManager = null;
+    this.entityGroup = undefined;
+    this.entityManager = undefined;
     this.entityState = EntityState.Detached;
     this.originalValues = {};
     this._validationErrors = {};
@@ -926,8 +923,8 @@ function validateTarget(target: any, coIndex?: number) {
 export class ComplexAspect {
   complexObject: IComplexObject;
   originalValues: {};
-  parent: IStructuralObject | null;
-  parentProperty: DataProperty | null;
+  parent?: IStructuralObject;
+  parentProperty?: DataProperty;
   extraMetadata?: any;
 
   constructor(complexObject: IComplexObject, parent: IStructuralObject, parentProperty: DataProperty) {
@@ -1008,13 +1005,13 @@ export class ComplexAspect {
   **/
   getEntityAspect() {
     let parent = <any>this.parent;
-    if (!parent) return new EntityAspect(null);
+    if (!parent) return new EntityAspect();
     let entityAspect = parent.entityAspect;
     while (parent && !entityAspect) {
       parent = parent.complexAspect && parent.complexAspect.parent;
       entityAspect = parent && parent.entityAspect;
     }
-    return entityAspect || new EntityAspect(null);
+    return entityAspect || new EntityAspect();
   }
 
   /**

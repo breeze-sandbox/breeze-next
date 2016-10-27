@@ -15,7 +15,7 @@ export interface IRecursiveArray<T> {
 }
 
 interface IEntityQueryJsonContext {
-  entityType?: EntityType | null;
+  entityType?: EntityType;
   propertyPathFn?: Function; // TODO
   toNameOnServer?: boolean;
 }
@@ -31,24 +31,24 @@ export class EntityQuery {
   _$typeName = "EntityQuery";
   // top = this.take; // TODO: consider
 
-  resourceName: string | null;
-  fromEntityType: EntityType | null;
+  resourceName?: string;
+  fromEntityType?: EntityType;
   wherePredicate: any; // TODO
-  orderByClause: OrderByClause | null;
-  expandClause: ExpandClause | null;
-  selectClause: SelectClause | null;
-  skipCount: number | null;
-  takeCount: number | null;
+  orderByClause?: OrderByClause;
+  expandClause?: ExpandClause;
+  selectClause?: SelectClause;
+  skipCount?: number;
+  takeCount?: number;
 
   parameters: Object;
   inlineCountEnabled: boolean;
   noTrackingEnabled: boolean;
 
   // default is to get queryOptions and dataService from the entityManager.
-  queryOptions: QueryOptions | null;
-  dataService: DataService | null;
+  queryOptions?: QueryOptions;
+  dataService?: DataService;
 
-  entityManager: EntityManager | null;
+  entityManager?: EntityManager;
   resultEntityType: EntityType | string;
 
   /**
@@ -69,21 +69,21 @@ export class EntityQuery {
       return fromJSON(this, resourceName);
     }
 
-    this.resourceName = resourceName || null;
-    this.fromEntityType = null;
-    this.wherePredicate = null;
-    this.orderByClause = null;
-    this.selectClause = null;
-    this.skipCount = null;
-    this.takeCount = null;
-    this.expandClause = null;
+    this.resourceName = resourceName;
+    this.fromEntityType = undefined;
+    this.wherePredicate = undefined;
+    this.orderByClause = undefined;
+    this.selectClause = undefined;
+    this.skipCount = undefined;
+    this.takeCount = undefined;
+    this.expandClause = undefined;
     this.parameters = {};
     this.inlineCountEnabled = false;
     this.noTrackingEnabled = false;
     // default is to get queryOptions and dataService from the entityManager.
     // this.queryOptions = new QueryOptions();
     // this.dataService = new DataService();
-    this.entityManager = null;
+    this.entityManager = undefined;
 
   };
 
@@ -275,7 +275,7 @@ export class EntityQuery {
 
   where(anArray: IRecursiveArray<string | number | FilterQueryOpSymbol | Predicate>): EntityQuery;
   where(...args: any[]) {
-    let wherePredicate: Predicate | null = null;
+    let wherePredicate: Predicate | undefined;
     if (args.length > 0) {
       wherePredicate = Predicate.create(...args);
       if (this.fromEntityType) wherePredicate._validate(this.fromEntityType);
@@ -412,7 +412,7 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
-  skip(count?: number | null) {
+  skip(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
     return clone(this, "skipCount", (count == null) ? null : count);
   };
@@ -429,7 +429,7 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
-  top(count?: number | null) {
+  top(count?: number) {
     return this.take(count);
   };
 
@@ -445,7 +445,7 @@ export class EntityQuery {
   @return {EntityQuery}
   @chainable
   **/
-  take(count?: number | null) {
+  take(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
     return clone(this, "takeCount", (count == null) ? null : count);
   };
@@ -848,7 +848,7 @@ export class EntityQuery {
         throw new Error("There is no metadata available for this query. " +
           "Are you querying the local cache before you've fetched metadata?");
       } else {
-        return null;
+        return undefined;
       }
     }
 
@@ -865,7 +865,7 @@ export class EntityQuery {
           + " Consider adding an 'EntityQuery.toType' call to your query or "
           + "calling the MetadataStore.setEntityTypeForResourceName method to register an entityType for this resourceName.", resourceName));
       } else {
-        return null;
+        return undefined;
       }
     }
 
@@ -874,7 +874,7 @@ export class EntityQuery {
 
   };
 
-  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | null  {
+  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | undefined  {
     // skipFromCheck is to avoid recursion if called from _getFromEntityType;
     if (this.resultEntityType instanceof EntityType) {
       return this.resultEntityType;
@@ -887,7 +887,7 @@ export class EntityQuery {
       // do not cache this value in this case
       // cannot determine the resultEntityType if a selectClause is present.
       // return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
-      if (skipFromCheck || !this.selectClause) return null;
+      if (skipFromCheck || !this.selectClause) return undefined;
       return this._getFromEntityType(metadataStore, false);
     }
   };

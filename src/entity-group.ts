@@ -93,7 +93,9 @@ export class EntityGroup {
     }
     let ix = this._indexMap[keyInGroup];
     // can't use just (ix) below because 0 is valid
-    return (ix !== undefined) ? this._entities[ix] : null;
+    let r = (ix !== undefined) ? this._entities[ix] : undefined;
+    // coerce null to undefined
+    return r == null ? undefined : r;
   };
 
   hasChanges() {

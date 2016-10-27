@@ -138,8 +138,8 @@ export namespace core {
     export class ComplexAspect {
         complexObject: ComplexObject;
         getEntityAspect(): EntityAspect;
-        parent?: Object | null;
-        parentProperty?: DataProperty | null;
+        parent?: Object;
+        parentProperty?: DataProperty;
         getPropertyPath(propName: string): string;
         originalValues: Object;
     }

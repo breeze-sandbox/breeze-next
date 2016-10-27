@@ -5,13 +5,13 @@ import { breeze, core } from './core-fns';
 export class AjaxJQueryAdapter implements IAjaxAdapter {
   name: string;
   defaultSettings: { headers?: any };
-  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor | null;
+  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor;
   jQuery: any;
 
   constructor() {
     this.name = "jQuery";
     this.defaultSettings = { };
-    this.requestInterceptor = null;
+    this.requestInterceptor = undefined;
   };
 
 
@@ -56,7 +56,7 @@ export class AjaxJQueryAdapter implements IAjaxAdapter {
       let ri = this.requestInterceptor as any;
       ri(requestInfo);
       if (ri.oneTime) {
-        this.requestInterceptor = null;
+        this.requestInterceptor = undefined;
       }
     }
 

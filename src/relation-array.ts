@@ -11,7 +11,7 @@ import { EntityQuery } from './entity-query';
 interface IRelationArray extends IObservableArray {
   [index: number]: IEntity;
   parentEntity: IEntity;
-  parentProperty: DataProperty | null;
+  parentProperty?: DataProperty;
   navigationProperty: NavigationProperty;
   _inProgress?: boolean;
   _addsInProcess: IEntity[];
