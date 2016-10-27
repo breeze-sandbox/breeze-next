@@ -1,6 +1,6 @@
 ﻿import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
 import { breeze, core } from './core-fns';
-declare var jQuery: any;
+// declare var jQuery: any;
 
 export class AjaxJQueryAdapter implements IAjaxAdapter {
   name: string;
@@ -61,7 +61,7 @@ export class AjaxJQueryAdapter implements IAjaxAdapter {
     }
 
     if (requestInfo.config) { // exists unless requestInterceptor killed it.
-      (requestInfo as any).jqXHR = jQuery.ajax(requestInfo.config)
+      (requestInfo as any).jqXHR = this.jQuery.ajax(requestInfo.config)
         .done(requestInfo.success)
         .fail(requestInfo.error);
     }

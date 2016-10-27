@@ -169,7 +169,7 @@ function processNoMerge(mc: MappingContext, stype: StructuralType, node: any) {
     }
   });
 
-  stype instanceof EntityType && stype.navigationProperties.forEach( (np) => {
+  (stype instanceof EntityType) && stype.navigationProperties.forEach( (np) => {
     let nodeContext = { nodeType: "navProp", navigationProperty: np };
     visitNode(node[np.nameOnServer], mc, nodeContext, result, np.name);
   });

@@ -1,7 +1,7 @@
 ﻿import { breeze, core } from './core-fns';
 import { config } from './config';
 import { assertConfig } from './assert-param';
-import { EntityType } from './entity-metadata';
+import { EntityType, NavigationProperty } from './entity-metadata';
 import { MappingContext } from './mapping-context';
 
 export interface DataServiceConfig {
@@ -223,7 +223,8 @@ export interface INodeMeta {
 
 export interface INodeContext {
   nodeType: string;
-  propertyName: string;
+  propertyName?: string;
+  navigationProperty?: NavigationProperty;
 }
 
 export interface JsonResultsAdapterConfig {
