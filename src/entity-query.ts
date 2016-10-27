@@ -895,7 +895,7 @@ export class EntityQuery {
   // for testing
   _toUri(em: EntityManager) {
     let ds = DataService.resolve([em.dataService]);
-    return ds.uriBuilder.buildUri(this, em.metadataStore);
+    return ds!.uriBuilder!.buildUri(this, em.metadataStore);
   }
 
 }

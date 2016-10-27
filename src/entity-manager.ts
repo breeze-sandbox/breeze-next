@@ -1136,8 +1136,8 @@ export class EntityManager {
 
     try { // Guard against exception thrown in dataservice adapter before it goes async
       updateConcurrencyProperties(entitiesToSave);
-      return dataService.adapterInstance.saveChanges(saveContext, saveBundle)
-        .then(saveSuccess).then(null, saveFail);
+      return dataService.adapterInstance!.saveChanges(saveContext, saveBundle)
+        .then(saveSuccess).then(() => {}, saveFail);
     } catch (err) {
       // undo the marking by updateConcurrencyProperties
       markIsBeingSaved(entitiesToSave, false);
@@ -2288,7 +2288,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryO
 
     let validateOnQuery = em.validationOptions.validateOnQuery;
 
-    return dataService.adapterInstance.executeQuery(mappingContext).then(function (data: any) {
+    return dataService.adapterInstance!.executeQuery(mappingContext).then(function (data: any) {
       let result = core.wrapExecution(function () {
         let state = { isLoading: em.isLoading };
         em.isLoading = true;

@@ -9,12 +9,12 @@ interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance
 export class InterfaceDef<T extends IBaseAdapter> {
 
     name: string;
-    defaultInstance: T | null;
+    defaultInstance?: T;
     _implMap: { [name: string]: IDef<T> };
 
     constructor(name: string) {
         this.name = name;
-        this.defaultInstance = null;
+        this.defaultInstance = undefined;
         this._implMap = {};
     }
 
@@ -176,7 +176,7 @@ class Config {
         } else {
             impl = idef.getImpl(adapterName);
         }
-        if (!impl) return null;
+        if (!impl) return undefined;
         if (impl.defaultInstance) {
             return impl.defaultInstance;
         } else {

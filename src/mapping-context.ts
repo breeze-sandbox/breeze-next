@@ -64,7 +64,7 @@ export class MappingContext {
     if (typeof query === 'string') {
       uriString = query;
     } else if (query instanceof EntityQuery) {
-      uriString = this.dataService.uriBuilder.buildUri(query, this.metadataStore);
+      uriString = this.dataService.uriBuilder!.buildUri(query, this.metadataStore);
     } else {
       throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
     }

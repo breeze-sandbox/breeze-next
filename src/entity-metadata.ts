@@ -453,7 +453,7 @@ export class MetadataStore {
         throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
       }
       let that = this;
-      return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata: any) {
+      return dataService.adapterInstance!.fetchMetadata(this, dataService).then(function (rawMetadata: any) {
         that.metadataFetched.publish({ metadataStore: that, dataService: dataService, rawMetadata: rawMetadata });
         if (callback) callback(rawMetadata);
         return Promise.resolve(rawMetadata);

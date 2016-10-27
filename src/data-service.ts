@@ -1,4 +1,5 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { IDataServiceAdapter, IUriBuilderAdapter } from './adapter-interfaces';
+import { breeze, core } from './core-fns';
 import { config } from './config';
 import { assertConfig } from './assert-param';
 import { EntityType, NavigationProperty } from './entity-metadata';
@@ -31,8 +32,8 @@ export class DataService {
 
   serviceName: string;
   adapterName: string;
-  uriBuilder: any; // TODO - tighten this
-  adapterInstance: any; // TODO - tighten this
+  uriBuilder?: IUriBuilderAdapter;
+  adapterInstance?: IDataServiceAdapter;
   uriBuilderName: string;
   hasServerMetadata: boolean;
   jsonResultsAdapter: JsonResultsAdapter;
@@ -138,9 +139,9 @@ export class DataService {
     if (!ds.serviceName) {
       throw new Error("Unable to resolve a 'serviceName' for this dataService");
     }
-    ds.adapterInstance = ds.adapterInstance || config.getAdapterInstance("dataService", ds.adapterName);
-    ds.jsonResultsAdapter = ds.jsonResultsAdapter || ds.adapterInstance.jsonResultsAdapter;
-    ds.uriBuilder = ds.uriBuilder || config.getAdapterInstance("uriBuilder", ds.uriBuilderName);
+    ds.adapterInstance = ds.adapterInstance || config.getAdapterInstance<IDataServiceAdapter>("dataService", ds.adapterName);
+    ds.jsonResultsAdapter = ds.jsonResultsAdapter || ds.adapterInstance!.jsonResultsAdapter;
+    ds.uriBuilder = ds.uriBuilder || config.getAdapterInstance<IUriBuilderAdapter>("uriBuilder", ds.uriBuilderName);
     return ds;
   };
 
@@ -206,8 +207,8 @@ function updateWithConfig(obj: DataService, dsConfig?: DataServiceConfig) {
         .whereParam("useJsonp").isBoolean().isOptional()
         .applyAll(obj);
     obj.serviceName = obj.serviceName && DataService._normalizeServiceName(obj.serviceName);
-    obj.adapterInstance = obj.adapterName && config.getAdapterInstance("dataService", obj.adapterName);
-    obj.uriBuilder = obj.uriBuilderName && config.getAdapterInstance("uriBuilder", obj.uriBuilderName);
+    obj.adapterInstance = obj.adapterName ?  config.getAdapterInstance<IDataServiceAdapter>("dataService", obj.adapterName) : undefined;
+    obj.uriBuilder = obj.uriBuilderName ? config.getAdapterInstance<IUriBuilderAdapter>("uriBuilder", obj.uriBuilderName) : undefined;
   }
   return obj;
 }

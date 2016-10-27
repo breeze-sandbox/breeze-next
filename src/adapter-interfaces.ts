@@ -1,5 +1,9 @@
+import { MappingContext } from './mapping-context';
+import { EntityQuery } from './entity-query';
+import { MetadataStore } from './entity-metadata';
+import { JsonResultsAdapter, DataService } from './data-service';
 import { IEntity } from './entity-aspect';
-import { ISaveContext, ISaveBundle } from './entity-manager';
+import { ISaveContext, ISaveBundle, ISaveResult } from './entity-manager';
 import { IBaseAdapter  } from './config';
 
 // This module describes the interfaceRegistry by extending config
@@ -25,14 +29,17 @@ export interface IModelLibraryAdapter extends IBaseAdapter {
 }
 
 export interface IDataServiceAdapter extends IBaseAdapter {
-    saveChanges(saveContext: any, saveBundle: any): Promise<any>; // Promise<ISaveResult>
+    fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;  // result of Promise is either rawMetadata or a string explaining why not.
+    executeQuery(mappingContext: MappingContext): any;   // result of executeQuery will get passed to JsonResultsAdapter extractResults method
+    saveChanges(saveContext: any, saveBundle: any): Promise<ISaveResult>;
     changeRequestInterceptor: IChangeRequestInterceptorCtor;
+    jsonResultsAdapter: JsonResultsAdapter;
 }
 
 
 
 export interface IUriBuilderAdapter extends IBaseAdapter {
-
+    buildUri(query: EntityQuery, metadataStore: MetadataStore ): string;
 }
 
 // -----------------------------------
