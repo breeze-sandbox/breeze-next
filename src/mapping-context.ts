@@ -34,7 +34,7 @@ export class MappingContext {
   query: EntityQuery | string;
   entityManager: EntityManager;
   mergeOptions: IMergeOptions;
-  adapter: IDataServiceAdapter;
+  adapter: IDataServiceAdapter;  // assigned in the AbstractDataServiceAdapter.
 
   refMap: Object; // TODO
   deferredFns: Function[]; // TODO
@@ -103,8 +103,6 @@ export class MappingContext {
       });
     }
   }
-
-
 };
 
 

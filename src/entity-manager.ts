@@ -2432,7 +2432,7 @@ function findOrCreateEntityGroups(em: EntityManager, entityType: EntityType) {
 
 function unwrapInstance(structObj: IStructuralObject, transformFn?: (dp: DataProperty, val: any) => any) {
 
-  let rawObject = {};
+  let rawObject: any = {};
   let stype = EntityAspect.isEntity(structObj) ? structObj.entityType : structObj.complexType;
   let serializerFn = getSerializerFn(stype);
   let unmapped = {};
@@ -2463,7 +2463,7 @@ function unwrapInstance(structObj: IStructuralObject, transformFn?: (dp: DataPro
   return rawObject;
 }
 
-function unwrapOriginalValues(target: IStructuralObject, metadataStore: MetadataStore, transformFn: (dp: DataProperty, val: any) => any) {
+function unwrapOriginalValues(target: IStructuralObject, metadataStore: MetadataStore, transformFn?: (dp: DataProperty, val: any) => any) {
   let stype = EntityAspect.isEntity(target) ? target.entityType : target.complexType;
   let aspect = EntityAspect.isEntity(target) ? target.entityAspect : target.complexAspect;
   let fn = metadataStore.namingConvention.clientPropertyNameToServer;

@@ -1,4 +1,5 @@
-﻿import { IDataServiceAdapter, IUriBuilderAdapter } from './adapter-interfaces';
+﻿import { IKeyMapping } from './entity-manager';
+import { IDataServiceAdapter, IUriBuilderAdapter } from './adapter-interfaces';
 import { breeze, core } from './core-fns';
 import { config } from './config';
 import { assertConfig } from './assert-param';
@@ -233,7 +234,7 @@ export interface JsonResultsAdapterConfig {
 
   extractResults?: Function;
   extractSaveResults?: Function;
-  extractKeyMappings?: Function;
+  extractKeyMappings?: (data: {}) => IKeyMapping[];
   visitNode?: (v: any, mc: MappingContext, nodeContext: INodeContext) => INodeMeta;
 }
 
@@ -248,9 +249,9 @@ export class JsonResultsAdapter {
 
   name: string;
 
-  extractResults: Function;
+  extractResults: Function; // TODO - refine
   extractSaveResults: Function;
-  extractKeyMappings: Function;
+  extractKeyMappings:  (data: {}) => IKeyMapping[];
   visitNode: Function;
 
   /**

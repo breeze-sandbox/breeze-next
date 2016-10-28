@@ -125,8 +125,8 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   saveChanges(saveContext: ISaveContext, saveBundle: ISaveBundle) {
     let adapter = saveContext.adapter = this;
 
-    saveBundle = adapter._prepareSaveBundle(saveContext, saveBundle);
-    let bundle = JSON.stringify(saveBundle);
+    let saveBundleSer = adapter._prepareSaveBundle(saveContext, saveBundle);
+    let bundle = JSON.stringify(saveBundleSer);
 
     let url = saveContext.dataService.qualifyUrl(saveContext.resourceName);
     let promise = new Promise((resolve, reject) => {
@@ -157,7 +157,8 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     return promise;
   };
 
-  _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle): ISaveBundle {
+  // result should be a serializable object that will be sent to the server after calling JSON.stringify
+  _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle): any {
     // The implementor should call _createChangeRequestInterceptor
     throw new Error("Need a concrete implementation of _prepareSaveBundle");
   };

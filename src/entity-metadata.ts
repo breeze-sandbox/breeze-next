@@ -825,23 +825,6 @@ function getQualifiedTypeName(metadataStore: MetadataStore, structTypeName: stri
   return result;
 }
 
-// export interface IStructuralType {
-//   metadataStore: MetadataStore;
-//   isComplexType: boolean;
-//   complexProperties: DataProperty[];
-//   dataProperties: DataProperty[];
-//   name: string;
-//   namespace: string;
-//   shortName: string;
-//   unmappedProperties: DataProperty[];
-//   validators: Validator[];
-//   custom?: Object;
-//   getProperty(propName: string, throwIfNotFound?: boolean): EntityProperty;
-//   getPropertyNames(): string[];
-// }
-
-
-
 export interface EntityTypeConfig {
   shortName?: string;
   namespace?: string;
@@ -1963,7 +1946,7 @@ export class ComplexType  {
   createInstance = EntityType.prototype.createEntity;  // name change
   warnings: any[];
   serializerFn?: (prop: EntityProperty, val: any) => any;
-
+  _extra?: any;
 
   constructor(config: ComplexTypeConfig) {
     if (arguments.length > 1) {
