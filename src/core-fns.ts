@@ -188,6 +188,13 @@ function toJson(source: Object, template: Object, target: Object = {}): Object {
     return target;
 }
 
+/** Replacer function for toJSONSafe, when serializing entities.  Excludes entityAspect and other internal properties. */ 
+function safeReplacer(prop: string, val: any) {
+	if (prop === "entityAspect" || prop === "complexAspect" || prop === "entityType" || prop === "complexType"
+	|| prop === "constructor" || prop.charAt(0) === '_' || prop.charAt(0) === '$') return;
+	return val;
+}
+
 /** Safely perform toJSON logic on objects with cycles. */
 function toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): any {
     if (obj !== Object(obj)) return obj; // primitive value
@@ -195,7 +202,7 @@ function toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): any
     if (obj.toJSON) {
         let newObj = obj.toJSON();
         if (newObj !== Object(newObj)) return newObj; // primitive value
-        if (newObj !== obj) return toJSONSafe(newObj);
+        if (newObj !== obj) return toJSONSafe(newObj, replacer);
         // toJSON returned the object unchanged.
         obj = newObj;
     }
@@ -216,7 +223,7 @@ function toJSONSafe(obj: any, replacer?: (prop: string, value: any) => any): any
                 val = replacer(prop, val);
                 if (val === undefined) continue;
             }
-            val = toJSONSafe(val);
+            val = toJSONSafe(val, replacer);
             if (val === undefined) continue;
             result[prop] = val;
         }
@@ -713,6 +720,7 @@ export const core = {
 
     toJson: toJson,
     toJSONSafe: toJSONSafe,
+    safeReplacer: safeReplacer,
     parent: breeze
 };
 
