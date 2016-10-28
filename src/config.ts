@@ -1,10 +1,9 @@
-﻿import { IBaseAdapter  } from './config';
-import { core, breeze } from './core-fns';
-import { assertParam, assertConfig } from './assert-param';
+﻿import { core, breeze } from './core-fns';
+import { assertParam  } from './assert-param';
 import { BreezeEvent } from './event';
 
 interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; };
-interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>;  defaultInstance?: T; };
+interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>; defaultInstance?: T; };
 
 export class InterfaceDef<T extends IBaseAdapter> {
 
@@ -36,7 +35,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
         return kv ? kv.value : null;
     };
 
-    getDefaultInstance()  {
+    getDefaultInstance() {
         return this.defaultInstance!;
     }
 }
@@ -48,29 +47,17 @@ export interface IBaseAdapter {
     checkForRecomposition?: (context: any) => void;
 }
 
-export interface IInterfaceRegistry {
-    // [index: string]: IBaseAdapter;
-}
-
-
-class Config {
+export class BreezeConfig {
     functionRegistry = {};
     typeRegistry = {};
     objectRegistry = {};
     interfaceInitialized: BreezeEvent;
-    interfaceRegistry: IInterfaceRegistry;
+
     stringifyPad = '';
-    modelLibraryDef = this.interfaceRegistry.modelLibrary;
+    _interfaceRegistry: any;  // will be set in adapter-interfaces.  
 
     constructor() {
         this.interfaceInitialized = new BreezeEvent("interfaceInitialized", this);
-        this.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
-            if (!this.defaultInstance) {
-                throw new Error("Unable to locate the default implementation of the '" + this.name +
-                    "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
-            }
-            return this.defaultInstance;
-        };
     }
 
     /**
@@ -112,26 +99,6 @@ class Config {
     };
 
     /**
-    Initializes a collection of adapter implementations and makes each one the default for its corresponding interface.
-    @method initializeAdapterInstances
-    @param config {Object}
-    @param [config.ajax] {String} - the name of a previously registered "ajax" adapter
-    @param [config.dataService] {String} - the name of a previously registered "dataService" adapter
-    @param [config.modelLibrary] {String} - the name of a previously registered "modelLibrary" adapter
-    @param [config.uriBuilder] {String} - the name of a previously registered "uriBuilder" adapter
-    @return [array of instances]
-    **/
-    initializeAdapterInstances(config: IInterfaceRegistry) {
-        assertConfig(config)
-            .whereParam("dataService").isOptional()
-            .whereParam("modelLibrary").isOptional()
-            .whereParam("ajax").isOptional()
-            .whereParam("uriBuilder").isOptional()
-            .applyAll(this, false);
-        return core.objectMap(config, this.initializeAdapterInstance);
-    };
-
-    /**
     Initializes a single adapter implementation. Initialization means either newing a instance of the
     specified interface and then calling "initialize" on it or simply calling "initialize" on the instance
     if it already exists.
@@ -153,7 +120,7 @@ class Config {
             throw new Error("Unregistered adapter.  Interface: " + interfaceName + " AdapterName: " + adapterName);
         }
 
-        return this.initializeAdapterInstanceCore(idef, impl, isDefault);
+        return this._initializeAdapterInstanceCore(idef, impl, isDefault);
     };
 
     /**
@@ -165,7 +132,7 @@ class Config {
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName: string)  {
+    getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName: string) {
         let idef = this.getInterfaceDef<T>(interfaceName);
         let impl: IDef<T>;
 
@@ -180,7 +147,7 @@ class Config {
         if (impl.defaultInstance) {
             return impl.defaultInstance;
         } else {
-            return this.initializeAdapterInstanceCore(idef, impl, isDefault);
+            return this._initializeAdapterInstanceCore(idef, impl, isDefault);
         }
     };
 
@@ -193,9 +160,28 @@ class Config {
         this.functionRegistry[fnName] = fn;
     };
 
+    registerType(ctor: Function, typeName: string) {
+        assertParam(ctor, "ctor").isFunction().check();
+        assertParam(typeName, "typeName").isString().check();
+        ctor.prototype._$typeName = typeName;
+        this.typeRegistry[typeName] = ctor;
+    };
+
     getRegisteredFunction(fnName: string) {
         return this.functionRegistry[fnName];
     };
+
+    getInterfaceDef<T extends IBaseAdapter>(interfaceName: string) {
+        let lcName = interfaceName.toLowerCase();
+        // source may be null
+        let kv = core.objectFirst(this._interfaceRegistry || {}, function (k, v) {
+            return k.toLowerCase() === lcName;
+        });
+        if (!kv) {
+            throw new Error("Unknown interface name: " + interfaceName);
+        }
+        return <InterfaceDef<T>>kv.value;
+    }
 
     _storeObject(obj: Object, type: string | Function, name: string) {
         // uncomment this if we make this public.
@@ -215,15 +201,7 @@ class Config {
         return result;
     };
 
-    registerType(ctor: Function, typeName: string) {
-        assertParam(ctor, "ctor").isFunction().check();
-        assertParam(typeName, "typeName").isString().check();
-        ctor.prototype._$typeName = typeName;
-        this.typeRegistry[typeName] = ctor;
-    };
-
-
-    initializeAdapterInstanceCore<T extends IBaseAdapter>(interfaceDef: InterfaceDef<T>, impl: IDef<T>, isDefault: boolean) {
+    _initializeAdapterInstanceCore<T extends IBaseAdapter>(interfaceDef: InterfaceDef<T>, impl: IDef<T>, isDefault: boolean) {
         let instance: T;
         let inst = impl.defaultInstance;
         if (!inst) {
@@ -255,21 +233,9 @@ class Config {
         return instance;
     }
 
-    getInterfaceDef<T extends IBaseAdapter>(interfaceName: string) {
-        let lcName = interfaceName.toLowerCase();
-        // source may be null
-        let kv = core.objectFirst(this.interfaceRegistry || {}, function (k, v) {
-            return k.toLowerCase() === lcName;
-        });
-        if (!kv) {
-            throw new Error("Unknown interface name: " + interfaceName);
-        }
-        return <InterfaceDef<T>> kv.value;
-    }
-
 }
 
-export const config = new Config();
+export const config = new BreezeConfig();
 
 // legacy
 (core as any).config = config;

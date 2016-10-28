@@ -18,7 +18,5 @@ describe("EntityAction", function() {
     expect(EntityAction.Attach.isDetach()).toBe(false);
     expect(EntityAction.Detach.isAttach()).toBe(false);
     expect(EntityAction.Detach.isDetach()).toBe(true);
-    
-
   });
 });

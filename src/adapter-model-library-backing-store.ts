@@ -100,8 +100,6 @@ export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
       }
     });
   };
-
-
 }
 
 breeze.config.registerAdapter("modelLibrary", ModelLibraryBackingStoreAdapter);
