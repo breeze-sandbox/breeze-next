@@ -36,7 +36,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
     };
 
     getDefaultInstance() {
-        return this.defaultInstance!;
+        return this.defaultInstance as T;
     }
 }
 

@@ -1249,7 +1249,7 @@ export class EntityType {
     if (ms && this._extra) {
       if (this._extra.alreadyWrappedProps) {
         let proto = this._ctor.prototype;
-        config.modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
+        config.interfaceRegistry.modelLibrary.getDefaultInstance().initializeEntityPrototype(proto);
       }
     }
   };
@@ -1364,7 +1364,7 @@ export class EntityType {
     }
 
     if (!aCtor) {
-      let createCtor = config.modelLibraryDef.getDefaultInstance().createCtor;
+      let createCtor = config.interfaceRegistry.modelLibrary.getDefaultInstance().createCtor;
       aCtor = createCtor ? createCtor(this) : createEmptyCtor(this);
     }
 
@@ -1398,7 +1398,7 @@ export class EntityType {
 
     // defaultPropertyInterceptor is a 'global' (but internal to breeze) function;
     (instanceProto as any)._$interceptor = interceptor || defaultPropertyInterceptor;
-    config.modelLibraryDef.getDefaultInstance().initializeEntityPrototype(instanceProto);
+    config.interfaceRegistry.modelLibrary.getDefaultInstance().initializeEntityPrototype(instanceProto);
     this._ctor = aCtor;
   };
 
@@ -1857,7 +1857,7 @@ function tryResolveNp(np: NavigationProperty, metadataStore: MetadataStore) {
 
 function calcUnmappedProperties(stype: StructuralType, instance: any) {
   let metadataPropNames = stype.getPropertyNames();
-  let modelLib = config.modelLibraryDef.getDefaultInstance();
+  let modelLib = config.interfaceRegistry.modelLibrary.getDefaultInstance();
   let trackablePropNames = modelLib.getTrackablePropertyNames(instance);
   trackablePropNames.forEach(function (pn: string) {
     if (metadataPropNames.indexOf(pn) === -1) {

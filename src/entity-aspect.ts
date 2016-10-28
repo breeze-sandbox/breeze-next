@@ -104,7 +104,7 @@ export class EntityAspect {
         }
       }
       let entityCtor = entityType.getEntityCtor();
-      config.modelLibraryDef.getDefaultInstance().startTracking(entity, entityCtor.prototype);
+      config.interfaceRegistry.modelLibrary.getDefaultInstance().startTracking(entity, entityCtor.prototype);
     }
   };
 
@@ -962,7 +962,7 @@ export class ComplexAspect {
       }
     }
     let complexCtor = complexType.getCtor();
-    config.modelLibraryDef.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
+    config.interfaceRegistry.modelLibrary.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
   };
 

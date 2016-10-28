@@ -16,11 +16,12 @@ export interface IInterfaceRegistryConfig {
 }
 
 class InterfaceRegistry {
-    ajax: InterfaceDef<IAjaxAdapter>;
-    modelLibrary: InterfaceDef<IModelLibraryAdapter>;
-    dataService: InterfaceDef<IDataServiceAdapter>;
-    uriBuilder: InterfaceDef<IUriBuilderAdapter>;
+    ajax = new InterfaceDef<IAjaxAdapter>("ajax");
+    modelLibrary = new InterfaceDef<IModelLibraryAdapter>("modelLibrary");
+    dataService = new InterfaceDef<IDataServiceAdapter>("dataService");
+    uriBuilder = new InterfaceDef<IUriBuilderAdapter>("uriBuilder");
 }
+
 
 // This module describes the interfaceRegistry by extending config
 declare module "./config" {
@@ -36,11 +37,15 @@ declare module "./config" {
         @return [array of instances]
         **/
         initializeAdapterInstances(irConfig: IInterfaceRegistryConfig): void;
+
+        // stronly typed version
+        interfaceRegistry: InterfaceRegistry;
     }
 }
 
-config._interfaceRegistry = new InterfaceRegistry();
-config._interfaceRegistry.modelLibrary.getDefaultInstance = function() {
+config.interfaceRegistry = new InterfaceRegistry();
+config._interfaceRegistry = config.interfaceRegistry;
+config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
     if (!this.defaultInstance) {
         throw new Error("Unable to locate the default implementation of the '" + this.name +
             "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
