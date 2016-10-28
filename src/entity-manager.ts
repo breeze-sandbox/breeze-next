@@ -19,6 +19,7 @@ import { KeyGenerator } from './key-generator';
 import { EntityGroup } from './entity-group';
 import { MappingContext } from './mapping-context';
 import { EntityQuery } from './entity-query';
+import { UnattachedChildrenMap } from './unattached-children-map';
 
 export interface IHttpResponse {
   config: any;
@@ -1588,68 +1589,68 @@ an option to check the local cache first.
       let entityKey = entityAspect.getKey();
       let entityType = entityKey.entityType;
 
-    while (entityType) {
-      let keystring = entityKey.toString(entityType);
+      while (entityType) {
+        let keystring = entityKey.toString(entityType);
 
-      // attach any unattachedChildren
-      let tuples = unattachedMap.getTuplesByString(keystring);
-      if (tuples) {
-        tuples.slice(0).forEach(function (tpl) {
+        // attach any unattachedChildren
+        let tuples = unattachedMap.getTuplesByString(keystring);
+        if (tuples) {
+          tuples.slice(0).forEach(function (tpl) {
 
-          let unattachedChildren = tpl.children.filter(function (e) {
-            return e.entityAspect.entityState !== EntityState.Detached;
-          });
+            let unattachedChildren = tpl.children.filter(function (e) {
+              return e.entityAspect.entityState !== EntityState.Detached;
+            });
 
-          let childToParentNp: NavigationProperty;
-          let parentToChildNp: NavigationProperty;
+            let childToParentNp: NavigationProperty;
+            let parentToChildNp: NavigationProperty;
 
-          // np is usually childToParentNp
-          // except with unidirectional 1-n where it is parentToChildNp;
-          let np = tpl.navigationProperty;
+            // np is usually childToParentNp
+            // except with unidirectional 1-n where it is parentToChildNp;
+            let np = tpl.navigationProperty;
 
-          if (np.inverse) {
-            // bidirectional
-            childToParentNp = np;
-            parentToChildNp = np.inverse;
-
-            if (parentToChildNp.isScalar) {
-              let onlyChild = unattachedChildren[0];
-              entity.setProperty(parentToChildNp.name, onlyChild);
-              onlyChild.setProperty(childToParentNp.name, entity);
-            } else {
-              let currentChildren = entity.getProperty(parentToChildNp.name);
-              unattachedChildren.forEach(function (child) {
-                currentChildren.push(child);
-                child.setProperty(childToParentNp.name, entity);
-              });
-            }
-            unattachedMap.removeChildren(keystring, childToParentNp);
-          } else {
-            // unidirectional
-            // if (np.isScalar || np.parentType !== entity.entityType) {
-            if (np.isScalar) {
-              // n -> 1  eg: child: OrderDetail parent: Product
-              // 1 -> 1 eg child: Employee parent: Employee ( only Manager, no DirectReports property)
+            if (np.inverse) {
+              // bidirectional
               childToParentNp = np;
-              unattachedChildren.forEach(function (child) {
-                child.setProperty(childToParentNp.name, entity);
-              });
+              parentToChildNp = np.inverse;
+
+              if (parentToChildNp.isScalar) {
+                let onlyChild = unattachedChildren[0];
+                entity.setProperty(parentToChildNp.name, onlyChild);
+                onlyChild.setProperty(childToParentNp.name, entity);
+              } else {
+                let currentChildren = entity.getProperty(parentToChildNp.name);
+                unattachedChildren.forEach(function (child) {
+                  currentChildren.push(child);
+                  child.setProperty(childToParentNp.name, entity);
+                });
+              }
               unattachedMap.removeChildren(keystring, childToParentNp);
             } else {
-              // 1 -> n  eg: parent: Region child: Terr
-              // TODO: need to remove unattached children from the map after this; only a perf issue.
-              parentToChildNp = np;
-              let currentChildren = entity.getProperty(parentToChildNp.name);
-              unattachedChildren.forEach(function (child) {
-                // we know if can't already be there.
-                currentChildren._push(child);
-              });
+              // unidirectional
+              // if (np.isScalar || np.parentType !== entity.entityType) {
+              if (np.isScalar) {
+                // n -> 1  eg: child: OrderDetail parent: Product
+                // 1 -> 1 eg child: Employee parent: Employee ( only Manager, no DirectReports property)
+                childToParentNp = np;
+                unattachedChildren.forEach(function (child) {
+                  child.setProperty(childToParentNp.name, entity);
+                });
+                unattachedMap.removeChildren(keystring, childToParentNp);
+              } else {
+                // 1 -> n  eg: parent: Region child: Terr
+                // TODO: need to remove unattached children from the map after this; only a perf issue.
+                parentToChildNp = np;
+                let currentChildren = entity.getProperty(parentToChildNp.name);
+                unattachedChildren.forEach(function (child) {
+                  // we know if can't already be there.
+                  currentChildren._push(child);
+                });
+              }
             }
-          }
-        });
+          });
+        }
+        entityType = entityType.baseEntityType; // look for relationships up the hierarchy
       }
-      entityType = entityType.baseEntityType; // look for relationships up the hierarchy
-    }
 
 
       // now add to unattachedMap if needed.
@@ -2602,76 +2603,6 @@ function coHasOriginalValues(co: IComplexObject) {
 function getSerializerFn(stype: EntityType | ComplexType) {
   return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
 }
-
-interface INavTuple {
-  navigationProperty: NavigationProperty;
-  children: IEntity[];
-}
-
-class UnattachedChildrenMap {
-  // key is EntityKey.toString(), value is array of { navigationProperty, children }
-  map: { [index: string]: INavTuple[] } = {};
-
-
-  addChild(parentEntityKey: EntityKey, navigationProperty: NavigationProperty, child: IEntity) {
-    let tuple = this.getTuple(parentEntityKey, navigationProperty);
-    if (!tuple) {
-      tuple = { navigationProperty: navigationProperty, children: [] };
-      core.getArray(this.map, parentEntityKey.toString()).push(tuple);
-    }
-    tuple.children.push(child);
-  };
-
-  removeChildren(parentEntityKeyString: string, navigationProperty: NavigationProperty) {
-    let tuples = this.map[parentEntityKeyString];
-    // let tuples = this.getTuples(parentEntityKey);
-    if (!tuples) return;
-    core.arrayRemoveItem(tuples, (t: any) => {
-      return t.navigationProperty === navigationProperty;
-    });
-    if (!tuples.length) {
-      delete this.map[parentEntityKeyString];
-    }
-  };
-
-  // getChildren(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
-  //   let tuple = this.getTuple(parentEntityKey, navigationProperty);
-  //   if (tuple) {
-  //     return tuple.children.filter((child: IEntity) => {
-  //       // it may have later been detached.
-  //       return !child.entityAspect.entityState.isDetached();
-  //     });
-  //   } else {
-  //     return null;
-  //   }
-  // };
-
-  getTuple(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
-    let tuples = this.getTuples(parentEntityKey);
-    if (!tuples) return null;
-    let tuple = core.arrayFirst(tuples, function (t) {
-      return t.navigationProperty === navigationProperty;
-    });
-    return tuple;
-  };
-
-  getTuples(parentEntityKey: EntityKey) {
-    let tuples = this.map[parentEntityKey.toString()];
-    let entityType = parentEntityKey.entityType;
-    while (!tuples && entityType.baseEntityType) {
-      entityType = entityType.baseEntityType;
-      let baseKey = parentEntityKey.toString(entityType);
-      tuples = this.map[baseKey];
-    }
-    return tuples;
-  };
-
-  getTuplesByString(parentEntityKeyString: string) {
-    return this.map[parentEntityKeyString];
-  }
-
-}
-
 
 // expose
 breeze.EntityManager = EntityManager;
