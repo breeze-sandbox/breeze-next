@@ -269,7 +269,7 @@ function mergeEntity(mc: MappingContext, node: any, meta: INodeMeta) {
           targetEntity.entityAspect.extraMetadata = meta.extraMetadata;
         }
         targetEntity.entityAspect.entityState = EntityState.Unchanged;
-        targetEntity.entityAspect.originalValues = {};
+        clearOriginalValues(targetEntity);
         targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
         let action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
         em.entityChanged.publish({ entityAction: action, entity: targetEntity });
@@ -300,6 +300,23 @@ function mergeEntity(mc: MappingContext, node: any, meta: INodeMeta) {
   }
   return targetEntity;
 }
+
+// copied from entityAspect
+function clearOriginalValues(target: any) {
+  let aspect = target.entityAspect || target.complexAspect;
+  aspect.originalValues = {};
+  let stype = target.entityType || target.complexType;
+  stype.complexProperties.forEach(function (cp: any) {
+    let cos = target.getProperty(cp.name);
+    if (cp.isScalar) {
+      clearOriginalValues(cos);
+    } else {
+      cos._acceptChanges();
+      cos.forEach(clearOriginalValues);
+    }
+  });
+}
+
 
 function updateEntityNoMerge(mc: MappingContext, targetEntity: IEntity, node: any) {
   updateEntityRef(mc, targetEntity, node);
