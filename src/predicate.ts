@@ -71,9 +71,9 @@ export class Predicate {
   constructor(...args: any[]) {
     if (args.length === 0) return;
     if (!(this instanceof Predicate)) {
-      return new Predicate(...args);
+      return new Predicate(...<any>args);
     }
-    return Predicate.create(...args);
+    return Predicate.create(...<any>args);
   }
 
   static create(...args: any[]) {
