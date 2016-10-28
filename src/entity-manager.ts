@@ -1586,9 +1586,13 @@ an option to check the local cache first.
 
       let unattachedMap = em._unattachedChildrenMap;
       let entityKey = entityAspect.getKey();
+      let entityType = entityKey.entityType;
+
+    while (entityType) {
+      let keystring = entityKey.toString(entityType);
 
       // attach any unattachedChildren
-      let tuples = unattachedMap.getTuples(entityKey);
+      let tuples = unattachedMap.getTuplesByString(keystring);
       if (tuples) {
         tuples.slice(0).forEach(function (tpl) {
 
@@ -1619,7 +1623,7 @@ an option to check the local cache first.
                 child.setProperty(childToParentNp.name, entity);
               });
             }
-            unattachedMap.removeChildren(entityKey, childToParentNp);
+            unattachedMap.removeChildren(keystring, childToParentNp);
           } else {
             // unidirectional
             // if (np.isScalar || np.parentType !== entity.entityType) {
@@ -1630,7 +1634,7 @@ an option to check the local cache first.
               unattachedChildren.forEach(function (child) {
                 child.setProperty(childToParentNp.name, entity);
               });
-              unattachedMap.removeChildren(entityKey, childToParentNp);
+              unattachedMap.removeChildren(keystring, childToParentNp);
             } else {
               // 1 -> n  eg: parent: Region child: Terr
               // TODO: need to remove unattached children from the map after this; only a perf issue.
@@ -1644,6 +1648,8 @@ an option to check the local cache first.
           }
         });
       }
+      entityType = entityType.baseEntityType; // look for relationships up the hierarchy
+    }
 
 
       // now add to unattachedMap if needed.
@@ -2616,28 +2622,29 @@ class UnattachedChildrenMap {
     tuple.children.push(child);
   };
 
-  removeChildren(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
-    let tuples = this.getTuples(parentEntityKey);
+  removeChildren(parentEntityKeyString: string, navigationProperty: NavigationProperty) {
+    let tuples = this.map[parentEntityKeyString];
+    // let tuples = this.getTuples(parentEntityKey);
     if (!tuples) return;
     core.arrayRemoveItem(tuples, (t: any) => {
       return t.navigationProperty === navigationProperty;
     });
     if (!tuples.length) {
-      delete this.map[parentEntityKey.toString()];
+      delete this.map[parentEntityKeyString];
     }
   };
 
-  getChildren(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
-    let tuple = this.getTuple(parentEntityKey, navigationProperty);
-    if (tuple) {
-      return tuple.children.filter((child: IEntity) => {
-        // it may have later been detached.
-        return !child.entityAspect.entityState.isDetached();
-      });
-    } else {
-      return null;
-    }
-  };
+  // getChildren(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
+  //   let tuple = this.getTuple(parentEntityKey, navigationProperty);
+  //   if (tuple) {
+  //     return tuple.children.filter((child: IEntity) => {
+  //       // it may have later been detached.
+  //       return !child.entityAspect.entityState.isDetached();
+  //     });
+  //   } else {
+  //     return null;
+  //   }
+  // };
 
   getTuple(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
     let tuples = this.getTuples(parentEntityKey);
@@ -2658,6 +2665,10 @@ class UnattachedChildrenMap {
     }
     return tuples;
   };
+
+  getTuplesByString(parentEntityKeyString: string) {
+    return this.map[parentEntityKeyString];
+  }
 
 }
 
