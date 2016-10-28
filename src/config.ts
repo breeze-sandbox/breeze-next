@@ -54,7 +54,7 @@ export class BreezeConfig {
     interfaceInitialized: BreezeEvent;
 
     stringifyPad = '';
-    _interfaceRegistry: any;  // will be set in adapter-interfaces.  
+    _interfaceRegistry: any;  // will be set in adapter-interfaces. untyped here to avoid circularity issues.
 
     constructor() {
         this.interfaceInitialized = new BreezeEvent("interfaceInitialized", this);

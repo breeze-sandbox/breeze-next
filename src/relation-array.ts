@@ -182,13 +182,14 @@ function checkForDups(relationArray: IRelationArray, adds: IEntity[]) {
   return goodAdds;
 }
 
-export function makeRelationArray(arr: IRelationArray, parentEntity: IEntity, navigationProperty: NavigationProperty): IRelationArray {
-  arr.parentEntity = parentEntity;
-  arr.navigationProperty = navigationProperty;
-  arr.arrayChanged = new BreezeEvent("arrayChanged", arr);
+export function makeRelationArray(arr: any[], parentEntity: IEntity, navigationProperty: NavigationProperty): IRelationArray {
+  let arrX = arr as any;
+  arrX.parentEntity = parentEntity;
+  arrX.navigationProperty = navigationProperty;
+  arrX.arrayChanged = new BreezeEvent("arrayChanged", arrX);
   // array of pushes currently in process on this relation array - used to prevent recursion.
-  arr._addsInProcess = [];
+  arrX._addsInProcess = [];
   // need to use mixins here instead of inheritance because we are starting from an existing array object.
-  core.extend(arr, observableArray.mixin);
-  return core.extend(arr, relationArrayMixin) as IRelationArray;
+  core.extend(arrX, observableArray.mixin);
+  return core.extend(arrX, relationArrayMixin) as IRelationArray;
 }

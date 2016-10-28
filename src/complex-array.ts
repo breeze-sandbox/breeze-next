@@ -130,12 +130,12 @@ function setAspect(co: IComplexObject, arr: IComplexArray) {
   return coAspect;
 }
 
-export function makeComplexArray(arr: IObservableArray, parent: IStructuralObject, parentProperty: DataProperty) {
-
-  observableArray.initializeParent(arr, parent, parentProperty);
-  arr.arrayChanged = new BreezeEvent("arrayChanged", arr);
-  core.extend(arr, observableArray.mixin);
-  return core.extend(arr, complexArrayMixin) as IComplexArray;
+export function makeComplexArray(arr: any[], parent: IStructuralObject, parentProperty: DataProperty) {
+  let arrX = arr as any;
+  observableArray.initializeParent(arrX, parent, parentProperty);
+  arrX.arrayChanged = new BreezeEvent("arrayChanged", arrX);
+  core.extend(arrX, observableArray.mixin);
+  return core.extend(arrX, complexArrayMixin) as IComplexArray;
 }
 
 breeze.makeComplexArray = makeComplexArray; 

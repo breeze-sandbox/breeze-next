@@ -1,5 +1,5 @@
 import { core  } from './core-fns';
-import { IObservableArray, observableArray } from './observable-array';
+import { observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 import { IStructuralObject } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
@@ -86,12 +86,12 @@ let primitiveArrayMixin = {
 };
   // local functions
 
-export function makePrimitiveArray(arr: IObservableArray, parent: IStructuralObject, parentProperty: DataProperty) {
-
-  observableArray.initializeParent(arr, parent, parentProperty);
-  arr.arrayChanged = new BreezeEvent("arrayChanged", arr);
-  core.extend(arr, observableArray.mixin);
-  return core.extend(arr, primitiveArrayMixin);
+export function makePrimitiveArray(arr: any[], parent: IStructuralObject, parentProperty: DataProperty) {
+  let arrX = arr as any;
+  observableArray.initializeParent(arrX, parent, parentProperty);
+  arrX.arrayChanged = new BreezeEvent("arrayChanged", arrX);
+  core.extend(arrX, observableArray.mixin);
+  return core.extend(arrX, primitiveArrayMixin);
 }
 
 

@@ -171,6 +171,7 @@ function toJson(source: Object, template: Object, target: Object = {}): Object {
             if (typeof value === 'function') return false;
             // '==' is deliberate here - idea is that null or undefined values will never get serialized
             // if default value is set to null.
+            // tslint:disable-next-line
             if (value == defaultValue) return true;
             if (Array.isArray(value) && value.length === 0) return true;
             if (typeof (defaultValue) === "function") {
@@ -188,11 +189,11 @@ function toJson(source: Object, template: Object, target: Object = {}): Object {
     return target;
 }
 
-/** Replacer function for toJSONSafe, when serializing entities.  Excludes entityAspect and other internal properties. */ 
+/** Replacer function for toJSONSafe, when serializing entities.  Excludes entityAspect and other internal properties. */
 function safeReplacer(prop: string, val: any) {
-	if (prop === "entityAspect" || prop === "complexAspect" || prop === "entityType" || prop === "complexType"
-	|| prop === "constructor" || prop.charAt(0) === '_' || prop.charAt(0) === '$') return;
-	return val;
+    if (prop === "entityAspect" || prop === "complexAspect" || prop === "entityType" || prop === "complexType"
+        || prop === "constructor" || prop.charAt(0) === '_' || prop.charAt(0) === '$') return;
+    return val;
 }
 
 /** Safely perform toJSON logic on objects with cycles. */
@@ -502,7 +503,7 @@ function memoize( fn: any): any {
 
 function getUuid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        //noinspection NonShortCircuitBooleanExpressionJS
+        // tslint:disable-next-line
         let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });

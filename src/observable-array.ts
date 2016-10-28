@@ -135,7 +135,7 @@ function publish(publisher: IObservableArray, eventName: string, eventArgs: any)
   }
 }
 
-function initializeParent(obsArray: IObservableArray, parent: Object, parentProperty: DataProperty) {
+function initializeParent(obsArray: any, parent: Object, parentProperty: DataProperty) {
   obsArray.parent = parent;
   obsArray.parentProperty = parentProperty;
 }
