@@ -17,12 +17,20 @@
     "q": "^1.4.1",
     "ts-loader": "^0.9.5",
     "typescript": "^2.0.3",
-    "webpack": "^1.13.2"
+    "webpack": "^1.13.2",
+    "uglifyjs": "^2.4.10",
+    "rollup": "^0.36.3",
+    "rollup-plugin-multi-entry": "^2.0.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --progress --profile --colors --display-error-details --display-cached",
-    "watch": "webpack --watch --progress --profile --colors --display-error-details --display-cached"
+    "watch": "webpack --watch --progress --profile --colors --display-error-details --display-cached",
+    "rollup-only": "node_modules/.bin/rollup.cmd -c rollup.js",
+    "es5-only": "tsc --target es5 --allowJs build/breeze.es2015.js --out build/breeze.debug.js",
+    "tsc2015": "tsc -p tsconfig.es2015.json",
+    "minify": "uglifyjs build/breeze.debug.js --screw-ie8 --compress --mangle --output build/breeze.min.js",
+    "rollup": "npm run tsc2015 && npm run rollup-only && npm run es5-only && npm run minify"
   },
   "repository": {
     "type": "git",
