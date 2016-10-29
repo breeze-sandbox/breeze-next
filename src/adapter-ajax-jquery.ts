@@ -1,11 +1,11 @@
-﻿import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
-import { breeze, core } from './core';
-// declare var jQuery: any;
+﻿import * as breeze from './breeze';
 
-export class AjaxJQueryAdapter implements IAjaxAdapter {
+let core = breeze.core;
+
+export class AjaxJQueryAdapter implements breeze.IAjaxAdapter {
   name: string;
   defaultSettings: { headers?: any };
-  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor;
+  requestInterceptor?: (() => breeze.IChangeRequestInterceptor) | breeze.IChangeRequestInterceptor;
   jQuery: any;
 
   constructor() {

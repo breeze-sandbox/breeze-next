@@ -8,7 +8,6 @@ import { DataService, JsonResultsAdapter } from './data-service';
 import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 
-
 // Will usually be the base class for all other DataServiceAdapters;
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
   _$impl?: any;

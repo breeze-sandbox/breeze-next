@@ -1,11 +1,15 @@
-﻿import { core } from './core';
-import { config } from './config';
-import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
+﻿// import { core } from './core';
+// import { config } from './config';
+// import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
 
-export class AjaxAngularAdapter implements IAjaxAdapter {
+import * as breeze from './breeze'; // TODO: think about this approach for plugin modules.
+
+let core = breeze.core;
+
+export class AjaxAngularAdapter implements breeze.IAjaxAdapter {
   name: string;
   defaultSettings: { headers?: any };
-  requestInterceptor?: (() => IChangeRequestInterceptor) | IChangeRequestInterceptor;
+  requestInterceptor?: (() => breeze.IChangeRequestInterceptor) | breeze.IChangeRequestInterceptor;
   $http: any;
   $rootScope: any;
   constructor() {
@@ -20,7 +24,7 @@ export class AjaxAngularAdapter implements IAjaxAdapter {
 
   initialize() {
 
-    let ng = core.requireLib("angular");
+    let ng = breeze.core.requireLib("angular");
     if (ng) {
       let $injector = ng.injector(['ng']);
       let http: any, rootScope: any;
@@ -130,7 +134,7 @@ export class AjaxAngularAdapter implements IAjaxAdapter {
   };
 }
 
-config.registerAdapter("ajax", AjaxAngularAdapter);
+breeze.config.registerAdapter("ajax", AjaxAngularAdapter);
 
 function encodeParams(obj: Object) {
   let query = '';
