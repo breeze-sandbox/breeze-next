@@ -93,7 +93,7 @@ export class Enum {
         this._symbolPrototype = prototype;
 
     }
- 
+
     /**
     Checks if an object is an Enum 'symbol'.
     @example

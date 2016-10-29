@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core';
+﻿import { core } from './core';
 import { EntityType, StructuralType, DataProperty  } from './entity-metadata';
 import { IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';
@@ -1349,5 +1349,5 @@ function combine(j1: Object, j2: Object) {
 }
 
 
-breeze.Predicate = Predicate;
+
 

@@ -1,6 +1,6 @@
 ﻿import { IHttpResponse } from './entity-manager';
 import { IDataServiceAdapter } from './adapter-interfaces';
-import { breeze, core, Callback, ErrorCallback } from './core';
+import { core, Callback, ErrorCallback } from './core';
 import { assertParam, assertConfig } from './assert-param';
 import { config  } from './config';
 import { BreezeEvent } from './event';
@@ -581,7 +581,7 @@ export class EntityManager {
       json = core.extend(json, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
       (json as any).metadataStore = this.metadataStore.exportMetadata();
     } else {
-      (json as any).metadataVersion = breeze.metadataVersion;
+      (json as any).metadataVersion = MetadataStore.metadataVersion;
       (json as any).metadataStoreName = this.metadataStore.name;
     }
 
@@ -2603,7 +2603,4 @@ function coHasOriginalValues(co: IComplexObject) {
 function getSerializerFn(stype: EntityType | ComplexType) {
   return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
 }
-
-// expose
-breeze.EntityManager = EntityManager;
 

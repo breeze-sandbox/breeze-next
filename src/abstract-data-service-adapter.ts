@@ -1,18 +1,20 @@
-﻿import { EntityQuery } from './entity-query';
+﻿import { core } from './core';
+import { config } from './config';
+import { EntityQuery } from './entity-query';
 import { IDataServiceAdapter, IAjaxAdapter } from './adapter-interfaces';
 import { IEntity } from './entity-aspect';
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';
 import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
-import { breeze, core } from './core';
+
 
 // Will usually be the base class for all other DataServiceAdapters;
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
   _$impl?: any;
 
   name: string;
-  ajaxImpl: IAjaxAdapter; // TODO: use interface;
+  ajaxImpl: IAjaxAdapter;
 
   constructor() {
   }
@@ -26,7 +28,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   };
 
   initialize() {
-    this.ajaxImpl = breeze.config.getAdapterInstance("ajax");
+    this.ajaxImpl = config.getAdapterInstance<IAjaxAdapter>("ajax")!;
 
     // don't cache 'ajax' because then we would need to ".bind" it, and don't want to because of brower support issues.
     if (this.ajaxImpl && this.ajaxImpl.ajax) {

@@ -132,7 +132,7 @@ export class BreezeConfig {
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
     **/
-    getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName: string) {
+    getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName?: string) {
         let idef = this.getInterfaceDef<T>(interfaceName);
         let impl: IDef<T>;
 
@@ -141,7 +141,7 @@ export class BreezeConfig {
             if (idef.defaultInstance) return idef.defaultInstance;
             impl = idef.getFirstImpl();
         } else {
-            impl = idef.getImpl(adapterName);
+            impl = idef.getImpl(adapterName!);
         }
         if (!impl) return undefined;
         if (impl.defaultInstance) {
