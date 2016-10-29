@@ -6,7 +6,7 @@ import { EntityQuery } from './entity-query';
 import { MetadataStore } from './entity-metadata';
 import { JsonResultsAdapter, DataService } from './data-service';
 import { IEntity } from './entity-aspect';
-import { ISaveContext, ISaveBundle, ISaveResult } from './entity-manager';
+import { ISaveContext, ISaveBundle, ISaveResult, IQueryResult } from './entity-manager';
 
 export interface IInterfaceRegistryConfig {
     ajax?: InterfaceDef<IAjaxAdapter>;
@@ -87,7 +87,7 @@ export interface IModelLibraryAdapter extends IBaseAdapter {
 
 export interface IDataServiceAdapter extends IBaseAdapter {
     fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;  // result of Promise is either rawMetadata or a string explaining why not.
-    executeQuery(mappingContext: MappingContext): any;   // result of executeQuery will get passed to JsonResultsAdapter extractResults method
+    executeQuery(mappingContext: MappingContext): Promise<IQueryResult>;   // result of executeQuery will get passed to JsonResultsAdapter extractResults method
     saveChanges(saveContext: any, saveBundle: any): Promise<ISaveResult>;
     changeRequestInterceptor: IChangeRequestInterceptorCtor;
     jsonResultsAdapter: JsonResultsAdapter;

@@ -2261,7 +2261,7 @@ function attachRelatedEntities(em: EntityManager, entity: IEntity, entityState: 
 }
 
 // returns a promise
-function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryOptions: QueryOptions, dataService: DataService) {
+function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryOptions: QueryOptions, dataService: DataService): Promise<IQueryResult> {
   try {
     let results: any[];
     let metadataStore = em.metadataStore;
@@ -2316,7 +2316,7 @@ function executeQueryCore(em: EntityManager, query: EntityQuery | string, queryO
         // HACK: some errors thrown in next function do not propogate properly - this catches them.
 
         if (state.error) {
-          Promise.reject(state.error);
+          return Promise.reject(state.error);
         }
 
       }, function () {
