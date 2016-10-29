@@ -1,5 +1,5 @@
 ﻿import { IKeyMapping } from './entity-manager';
-import { IDataServiceAdapter, IUriBuilderAdapter } from './adapter-interfaces';
+import { IDataServiceAdapter, IUriBuilderAdapter } from './interface-registry';
 import { core } from './core';
 import { config } from './config';
 import { assertConfig } from './assert-param';

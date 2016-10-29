@@ -1,8 +1,4 @@
-﻿// import { core } from './core';
-// import { config } from './config';
-// import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
-
-import * as breeze from './breeze'; // TODO: think about this approach for plugin modules.
+﻿import * as breeze from './breeze';
 
 let core = breeze.core;
 

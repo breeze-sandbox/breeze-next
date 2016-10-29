@@ -15,11 +15,11 @@ interface IOpMap {
   [key: string]: IOp;
 }
 
-interface IVisitor {
+export interface IVisitor {
 
 }
 
-interface IVisitContext {
+export interface IVisitContext {
   entityType?: EntityType;
   // usesNameOnServer?: boolean;
   toNameOnServer?: boolean;
@@ -27,7 +27,7 @@ interface IVisitContext {
   visitor?: IVisitor;
 }
 
-interface IExpressionContext {
+export interface IExpressionContext {
   entityType?: EntityType;
   usesNameOnServer?: boolean;
   dataType?: DataTypeSymbol | string;
@@ -470,7 +470,7 @@ class PassthruPredicate extends Predicate {
 }
 PassthruPredicate.prototype._initialize('passthruPredicate');
 
-class UnaryPredicate extends Predicate {
+export class UnaryPredicate extends Predicate {
   op: IOp;
   pred: Predicate;
   constructor(op: string | IQueryOp, ...args: any[]) {
@@ -490,7 +490,7 @@ UnaryPredicate.prototype._initialize('unaryPredicate', {
 
 // -----------------------------------------------
 
-class BinaryPredicate extends Predicate {
+export class BinaryPredicate extends Predicate {
   op: IOp;
   expr1Source: any;
   expr2Source: any;
@@ -569,7 +569,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
   }
 });
 
-class AndOrPredicate extends Predicate {
+export class AndOrPredicate extends Predicate {
   op: IOp;
   preds: Predicate[];
   constructor(op: string | IQueryOp, preds: any[]) {
@@ -606,7 +606,7 @@ AndOrPredicate.prototype._initialize("andOrPredicate", {
 } );
 
 
-class AnyAllPredicate extends Predicate {
+export class AnyAllPredicate extends Predicate {
   op: IOp;
   expr: PredicateExpression;
   exprSource: string;
@@ -653,7 +653,7 @@ class PredicateExpression {
   }
 }
 
-class LitExpr extends PredicateExpression {
+export class LitExpr extends PredicateExpression {
   value: any;
   dataType: DataTypeSymbol;
   hasExplicitDataType: boolean;
@@ -702,7 +702,7 @@ function resolveDataType(dataType?: DataTypeSymbol | string) {
 }
 
 
-class PropExpr extends PredicateExpression {
+export class PropExpr extends PredicateExpression {
   propertyPath: string;
   dataType: DataTypeSymbol | StructuralType;
   // two public props: propertyPath, dateType
@@ -737,7 +737,7 @@ class PropExpr extends PredicateExpression {
 
 }
 
-class FnExpr extends PredicateExpression {
+export class FnExpr extends PredicateExpression {
   fnName: string;
   exprs: PredicateExpression[];
   localFn: any; // TODO:

@@ -1,10 +1,8 @@
-﻿import { DataProperty, ComplexType, StructuralType, EntityProperty } from './entity-metadata';
-import { breeze, core } from './core';
-import { IEntity, EntityAspect } from './entity-aspect';
-import { IModelLibraryAdapter } from './adapter-interfaces';
-import { IStructuralObject } from './entity-aspect';
+﻿import * as breeze from './breeze';
 
-export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
+let core = breeze.core;
+
+export class ModelLibraryBackingStoreAdapter implements breeze.IModelLibraryAdapter {
   name: string;
 
   constructor() {
@@ -15,7 +13,7 @@ export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
 
   };
 
-  getTrackablePropertyNames(entity: IEntity) {
+  getTrackablePropertyNames(entity: breeze.IEntity) {
     let names: string[] = [];
     for (let p in entity) {
       if (p === "entityType") continue;
@@ -53,21 +51,21 @@ export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
   // which can be called either directly or via standard query materialization
 
   // entity is either an entity or a complexObject
-  startTracking(entity: IStructuralObject, proto: any) {
+  startTracking(entity: breeze.IStructuralObject, proto: any) {
     // can't touch the normal property sets within this method - access the backingStore directly instead.
     let bs = movePropsToBackingStore(entity);
 
     // assign default values to the entity
-    let stype = EntityAspect.isEntity(entity) ? entity.entityType : entity.complexType;
+    let stype = breeze.EntityAspect.isEntity(entity) ? entity.entityType : entity.complexType;
     stype.getProperties().forEach(function (prop) {
 
       let propName = prop.name;
       let val = entity[propName];
 
-      if (prop instanceof DataProperty) {
+      if (prop instanceof breeze.DataProperty) {
         if (prop.isComplexProperty) {
           if (prop.isScalar) {
-            val = (prop.dataType as ComplexType)._createInstanceCore(entity, prop);
+            val = (prop.dataType as breeze.ComplexType)._createInstanceCore(entity, prop);
           } else {
             val = breeze.makeComplexArray([], entity, prop);
           }
@@ -85,7 +83,7 @@ export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
           // TODO: change this to nullstob later.
           val = null;
         } else {
-          val = breeze.makeRelationArray([], entity, prop);
+          val = breeze.makeRelationArray([], entity as breeze.IEntity, prop);
         }
       } else {
         throw new Error("unknown property: " + propName);
@@ -94,7 +92,7 @@ export class ModelLibraryBackingStoreAdapter implements IModelLibraryAdapter {
       // otherwise we could just do
       // entity[propName] = val
       // after all of the interception logic had been injected.
-      if ((prop as DataProperty).isSettable || prop.isNavigationProperty) {
+      if ((prop as breeze.DataProperty).isSettable || prop.isNavigationProperty) {
         bs[propName] = val;
       }
     });
@@ -107,7 +105,7 @@ breeze.config.registerAdapter("modelLibrary", ModelLibraryBackingStoreAdapter);
 
 // This method is called during Metadata initialization to correctly "wrap" properties.
 function movePropDefsToProto(proto: any) {
-  let stype = (proto.entityType || proto.complexType) as StructuralType;
+  let stype = (proto.entityType || proto.complexType) as breeze.StructuralType;
   let extra = stype._extra;
 
   let alreadyWrapped = extra.alreadyWrappedProps || {};
@@ -142,7 +140,7 @@ function movePropsToBackingStore(instance: any) {
 
   let bs = getBackingStore(instance);
   let proto = Object.getPrototypeOf(instance);
-  let stype = (proto.entityType || proto.complexType) as StructuralType;
+  let stype = (proto.entityType || proto.complexType) as breeze.StructuralType;
   stype.getProperties().forEach(function (prop) {
     let propName = prop.name;
     if (prop.isUnmapped) {
@@ -162,7 +160,7 @@ function movePropsToBackingStore(instance: any) {
   return bs;
 }
 
-function makePropDescription(proto: any, property: EntityProperty) {
+function makePropDescription(proto: any, property: breeze.EntityProperty) {
   let propName = property.name;
   let pendingStores = proto._pendingBackingStores;
   if (!pendingStores) {
@@ -204,7 +202,7 @@ function getAccessorFn(bs: {}, propName: string): any {
   };
 }
 
-function wrapPropDescription(proto: any, property: EntityProperty): any {
+function wrapPropDescription(proto: any, property: breeze.EntityProperty): any {
   if (!proto.hasOwnProperty(property.name)) {
     let nextProto = Object.getPrototypeOf(proto);
     return wrapPropDescription(nextProto, property);

@@ -664,8 +664,6 @@ if (!Object.create) {
     };
 }
 
-export var breeze: any = breeze || {};
-
 // // not all methods above are exported
 export const core = {
     isES5Supported: isES5Supported,
@@ -722,7 +720,6 @@ export const core = {
     toJson: toJson,
     toJSONSafe: toJSONSafe,
     safeReplacer: safeReplacer,
-    parent: breeze
 };
 
 export interface ErrorCallback {
@@ -740,10 +737,5 @@ function isPrimitive(obj: any) {
     if (obj != Object(obj)) return true;
     return isDate(obj);
 }
-
-
-
-
-
 
 */

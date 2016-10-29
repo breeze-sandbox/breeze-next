@@ -1,7 +1,7 @@
 ﻿import { core } from './core';
 import { config } from './config';
 import { EntityQuery } from './entity-query';
-import { IDataServiceAdapter, IAjaxAdapter } from './adapter-interfaces';
+import { IDataServiceAdapter, IAjaxAdapter } from './interface-registry';
 import { IEntity } from './entity-aspect';
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';

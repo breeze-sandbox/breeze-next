@@ -1,5 +1,5 @@
 ﻿import { IHttpResponse } from './entity-manager';
-import { IDataServiceAdapter } from './adapter-interfaces';
+import { IDataServiceAdapter } from './interface-registry';
 import { core, Callback, ErrorCallback } from './core';
 import { assertParam, assertConfig } from './assert-param';
 import { config  } from './config';

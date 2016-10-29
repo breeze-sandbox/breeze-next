@@ -1,13 +1,16 @@
-﻿import { config } from './config';
-import { core } from './core';
+﻿// import { config } from './config';
+// import { core } from './core';
 
-import { DataProperty, ComplexType, StructuralType, EntityProperty, NavigationProperty } from './entity-metadata';
-import { makeRelationArray, makeComplexArray, makePrimitiveArray } from './array';
+// import { DataProperty, ComplexType, StructuralType, EntityProperty, NavigationProperty } from './entity-metadata';
+// import { makeRelationArray, makeComplexArray, makePrimitiveArray } from './array';
+import * as breeze from './breeze';
+
+let core = breeze.core;
 
 let canIsolateES5Props = core.isES5Supported;
 let ko: any;
 
-export class ModelLibraryKnockoutAdapter {
+export class ModelLibraryKnockoutAdapter implements breeze.IModelLibraryAdapter {
   name: string;
   constructor() {
     this.name = "ko";
@@ -82,7 +85,7 @@ export class ModelLibraryKnockoutAdapter {
   startTracking(entity: any, proto: any) {
     // create ko's for each property and assign defaultValues
 
-    let stype = (entity.entityType || entity.complexType) as StructuralType;
+    let stype = (entity.entityType || entity.complexType) as breeze.StructuralType;
     let es5Descriptors = stype._extra.es5Descriptors || {};
 
     // sort unmapped properties to the end
@@ -172,7 +175,7 @@ export class ModelLibraryKnockoutAdapter {
   };
 }
 
-config.registerAdapter("modelLibrary", ModelLibraryKnockoutAdapter);
+breeze.config.registerAdapter("modelLibrary", ModelLibraryKnockoutAdapter);
 
 
 // private fns
@@ -189,22 +192,22 @@ function getES5PropDescriptor(proto: any, propName: string): any {
   }
 }
 
-function initializeValueForProp(entity: any, prop: EntityProperty, val: any) {
-  if (prop instanceof DataProperty) {
+function initializeValueForProp(entity: any, prop: breeze.EntityProperty, val: any) {
+  if (prop instanceof breeze.DataProperty) {
     if (prop.isComplexProperty) {
       // TODO: right now we create Empty complexObjects here - these should actually come from the entity
       if (prop.isScalar) {
-        val = (prop.dataType as ComplexType)._createInstanceCore(entity, prop);
+        val = (prop.dataType as breeze.ComplexType)._createInstanceCore(entity, prop);
       } else {
-        val = makeComplexArray([], entity, prop);
+        val = breeze.makeComplexArray([], entity, prop);
       }
     } else if (!prop.isScalar) {
-      val = makePrimitiveArray([], entity, prop);
+      val = breeze.makePrimitiveArray([], entity, prop);
     } else if (val === undefined) {
       val = prop.defaultValue;
     }
 
-  } else if (prop instanceof NavigationProperty) {
+  } else if (prop instanceof breeze.NavigationProperty) {
     if (val !== undefined) {
       throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.name);
     }
@@ -212,7 +215,7 @@ function initializeValueForProp(entity: any, prop: EntityProperty, val: any) {
       // TODO: change this to nullEntity later.
       val = null;
     } else {
-      val = makeRelationArray([], entity, prop);
+      val = breeze.makeRelationArray([], entity, prop);
     }
   } else {
     throw new Error("unknown property: " + (prop as any).name);
@@ -235,7 +238,7 @@ function onArrayChanged(args: any) {
 }
 
 function isolateES5Props(proto: any) {
-  let stype = (proto.entityType || proto.complexType) as StructuralType;
+  let stype = (proto.entityType || proto.complexType) as breeze.StructuralType;
   let es5Descriptors = {};
   stype.getProperties().forEach(function (prop) {
     let propDescr = getES5PropDescriptor(proto, prop.name);

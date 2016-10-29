@@ -1,4 +1,4 @@
-﻿import { IDataServiceAdapter } from './adapter-interfaces';
+﻿import { IDataServiceAdapter } from './interface-registry';
 import { core } from './core';
 import { DataType, DataTypeSymbol } from './data-type';
 import { DataService, JsonResultsAdapter, INodeContext, INodeMeta } from './data-service';

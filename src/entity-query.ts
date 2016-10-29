@@ -1191,7 +1191,8 @@ export const BooleanQueryOp = new BooleanQueryOpEnum();
  let obc = new OrderByClause("Company.CompanyName, LastName", true);
  @class OrderByClause
  */
-class OrderByClause {
+// Exposed for use by UriBuilder adapters
+export class OrderByClause {
   items: OrderByItem[];
 
   constructor(propertyPaths: string[] | OrderByClause[], isDesc: boolean = false) {
@@ -1314,8 +1315,8 @@ class OrderByItem {
   }
 }
 
-// Not exposed
-class SelectClause {
+// Exposed for use by UriBuilder adapters 
+export class SelectClause {
   propertyPaths: string[];
   _pathNames: string[];
 
@@ -1352,8 +1353,8 @@ class SelectClause {
   };
 }
 
-// Not exposed
-class ExpandClause {
+// Exposed for use by UriBuilder adapters
+export class ExpandClause {
   propertyPaths: string[];
 
   constructor(propertyPaths: string[]) {

@@ -1,19 +1,13 @@
-﻿import { breeze } from './core';
-import { ISaveContext, ISaveBundle  } from './entity-manager';
-import { MetadataStore } from './entity-metadata';
-import { MappingContext } from './mapping-context';
-import { JsonResultsAdapter, INodeContext } from './data-service';
-import { AbstractDataServiceAdapter } from './abstract-data-service-adapter';
+﻿import * as breeze from './breeze'; // TODO: think about this approach for plugin modules.
 
-export class DataServiceWebApiAdapter extends AbstractDataServiceAdapter {
+export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter {
 
   constructor() {
     super();
     this.name = "webApi";
   };
 
-
-  _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle ) {
+  _prepareSaveBundle(saveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle ) {
     let changeRequestInterceptor = this._createChangeRequestInterceptor(saveContext, saveBundle);
     let em = saveContext.entityManager;
     let metadataStore = em.metadataStore;
@@ -47,7 +41,7 @@ export class DataServiceWebApiAdapter extends AbstractDataServiceAdapter {
     return serSaveBundle;
   };
 
-  _prepareSaveResult(saveContext: ISaveContext, data: any) {
+  _prepareSaveResult(saveContext: breeze.ISaveContext, data: any) {
     // use the jsonResultAdapter to extractResults and extractKeyMappings
     let jra = saveContext.dataService.jsonResultsAdapter || this.jsonResultsAdapter;
     let entities = jra.extractSaveResults(data) || [];
@@ -59,20 +53,20 @@ export class DataServiceWebApiAdapter extends AbstractDataServiceAdapter {
       keyMappings = keyMappings.map(function (km) {
         if (km.entityTypeName) return km; // it's already lower case
         let kmHack = km as any;
-        let entityTypeName = MetadataStore.normalizeTypeName(kmHack.EntityTypeName);
+        let entityTypeName = breeze.MetadataStore.normalizeTypeName(kmHack.EntityTypeName);
         return { entityTypeName: entityTypeName, tempValue: kmHack.TempValue, realValue: kmHack.RealValue };
       });
     }
     return { entities: entities, keyMappings: keyMappings };
   };
 
-  jsonResultsAdapter = new JsonResultsAdapter({
+  jsonResultsAdapter = new breeze.JsonResultsAdapter({
 
     name: "webApi_default",
 
-    visitNode: function (node: any, mappingContext: MappingContext, nodeContext: INodeContext) {
+    visitNode: function (node: any, mappingContext: breeze.MappingContext, nodeContext: breeze.INodeContext) {
       if (node == null) return {};
-      let entityTypeName = MetadataStore.normalizeTypeName(node.$type);
+      let entityTypeName = breeze.MetadataStore.normalizeTypeName(node.$type);
       let entityType = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
       let propertyName = nodeContext.propertyName;
       let ignore = propertyName && propertyName.substr(0, 1) === "$";
@@ -86,7 +80,6 @@ export class DataServiceWebApiAdapter extends AbstractDataServiceAdapter {
     }
 
   });
-
 
 }
 
