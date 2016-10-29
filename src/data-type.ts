@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { EnumSymbol, TypedEnum } from './enum';
 import { Validator } from './validate';
 
@@ -630,5 +630,5 @@ DataType.getSymbols().forEach(function (sym: DataTypeSymbol) {
   sym.validatorCtor = getValidatorCtor(sym);
 });
 
-breeze.DataType = DataType;
+
 

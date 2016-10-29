@@ -1,5 +1,4 @@
-﻿import { breeze } from './core-fns';
-import { EntityType, DataProperty } from './entity-metadata';
+﻿import { EntityType, DataProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
 import { config } from './config';
 
@@ -130,4 +129,3 @@ export class KeyGenerator {
 
 config.registerType(KeyGenerator, "KeyGenerator");
 
-breeze.KeyGenerator = KeyGenerator;

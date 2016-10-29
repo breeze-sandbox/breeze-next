@@ -1,4 +1,4 @@
-﻿import { breeze, core, Callback, ErrorCallback } from './core-fns';
+﻿import { core, Callback, ErrorCallback } from './core';
 import { assertParam } from './assert-param';
 import { DataType } from './data-type';
 import { EntityAspect, IEntity  } from './entity-aspect';
@@ -260,7 +260,7 @@ export class EntityQuery {
     if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
     In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
     Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
-    to one of the breeze.DataType enumeration instances.
+    to one of the DataType enumeration instances.
     - or a null or undefined ( this causes any existing where clause to be removed)
 
   @return {EntityQuery}
@@ -1368,12 +1368,4 @@ class ExpandClause {
 
 }
 
-
-
-// expose
-breeze.FilterQueryOp = FilterQueryOp;
-breeze.EntityQuery = EntityQuery;
-
-// Not documented - only exposed for testing purposes
-breeze.OrderByClause = OrderByClause;
 

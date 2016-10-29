@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { assertConfig } from './assert-param';
 import { DataService } from './data-service';
 
@@ -110,6 +110,6 @@ export class SaveOptions {
 
 }
 
-breeze.SaveOptions = SaveOptions;
+
 
 

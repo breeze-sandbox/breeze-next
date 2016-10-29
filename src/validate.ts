@@ -1,4 +1,4 @@
-﻿import { core } from './core-fns';
+﻿import { core } from './core';
 import { assertParam } from './assert-param';
 import { config } from './config';
 

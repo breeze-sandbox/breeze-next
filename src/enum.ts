@@ -1,4 +1,4 @@
-﻿import { core } from './core-fns';
+﻿import { core } from './core';
 
 // TODO: think about CompositeEnum (flags impl).
 

@@ -1,4 +1,4 @@
-﻿import { core } from './core-fns';
+﻿import { core } from './core';
 import { BreezeEvent } from './event';
 import { EntityAspect } from './entity-aspect';
 import { DataProperty } from './entity-metadata';

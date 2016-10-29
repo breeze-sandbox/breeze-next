@@ -1,4 +1,4 @@
-﻿import { core  } from './core-fns';
+﻿import { core  } from './core';
 import { Enum } from './enum';
 
 interface IParamContext {

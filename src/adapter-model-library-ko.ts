@@ -1,5 +1,5 @@
 ﻿import { config } from './config';
-import { core } from './core-fns';
+import { core } from './core';
 
 import { DataProperty, ComplexType, StructuralType, EntityProperty, NavigationProperty } from './entity-metadata';
 import { makeRelationArray, makeComplexArray, makePrimitiveArray } from './array';

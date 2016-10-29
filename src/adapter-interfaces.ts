@@ -1,4 +1,4 @@
-import { core } from './core-fns';
+import { core } from './core';
 import { assertConfig } from './assert-param';
 import { config, InterfaceDef, IBaseAdapter } from './config';
 import { MappingContext } from './mapping-context';

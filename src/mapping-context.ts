@@ -1,5 +1,5 @@
 ﻿import { IDataServiceAdapter } from './adapter-interfaces';
-import { core } from './core-fns';
+import { core } from './core';
 import { DataType, DataTypeSymbol } from './data-type';
 import { DataService, JsonResultsAdapter, INodeContext, INodeMeta } from './data-service';
 import { EntityState  } from './entity-state';

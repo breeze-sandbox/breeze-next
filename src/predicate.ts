@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { breeze, core } from './core';
 import { EntityType, StructuralType, DataProperty  } from './entity-metadata';
 import { IQueryOp } from './entity-query';
 import { DataType, DataTypeSymbol } from './data-type';

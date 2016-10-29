@@ -2,14 +2,14 @@
 import { EntityAction } from '../src/entity-action';
 // import jasmine from 'jasmine';
 
-describe("EntityAction", function() {
+describe("EntityAction", function () {
   // var EntityAction = require('../src/entity-action.js').EntityAction;
 
-  beforeEach(function() {
+  beforeEach(function () {
 
   });
 
-  it("should have static members", function() {
+  it("should have static members", function () {
     expect(EntityAction.contains(EntityAction.Attach));
     expect(EntityAction.name).toBe("EntityAction");
     expect(EntityAction.Attach.name).toBe("Attach");

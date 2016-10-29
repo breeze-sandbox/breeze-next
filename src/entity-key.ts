@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { assertParam } from './assert-param';
 import { EntityType, MetadataStore } from './entity-metadata';
 import { DataType } from './data-type';
@@ -156,4 +156,4 @@ export class EntityKey {
 
 }
 
-breeze.EntityKey = EntityKey;
+

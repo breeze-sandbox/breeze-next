@@ -1,4 +1,4 @@
-import { core } from './core-fns';
+import { core } from './core';
 import { IEntity } from './entity-aspect';
 import { NavigationProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';

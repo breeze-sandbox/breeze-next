@@ -1,4 +1,4 @@
-﻿import { core } from './core-fns';
+﻿import { core } from './core';
 import { ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 // import { DataType } from './data-type';
 import { EntityKey } from './entity-key';

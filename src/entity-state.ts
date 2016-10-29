@@ -1,5 +1,4 @@
-﻿import { breeze } from './core-fns';
-import { EnumSymbol, TypedEnum } from './enum';
+﻿import { EnumSymbol, TypedEnum } from './enum';
 
 export class EntityStateSymbol extends EnumSymbol {
     /**
@@ -154,4 +153,4 @@ class EntityStateEnum extends TypedEnum<EntityStateSymbol> {
 }
 
 export const EntityState = new EntityStateEnum();
-breeze.EntityState = EntityState;
+

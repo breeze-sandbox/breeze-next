@@ -1,5 +1,5 @@
 ﻿import { DataProperty, ComplexType, StructuralType, EntityProperty } from './entity-metadata';
-import { breeze, core } from './core-fns';
+import { breeze, core } from './core';
 import { IEntity, EntityAspect } from './entity-aspect';
 import { IModelLibraryAdapter } from './adapter-interfaces';
 import { IStructuralObject } from './entity-aspect';

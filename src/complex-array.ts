@@ -1,4 +1,4 @@
-import { breeze, core  } from './core-fns';
+import { core  } from './core';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 import { IComplexObject, IStructuralObject } from './entity-aspect';
@@ -138,4 +138,3 @@ export function makeComplexArray(arr: any[], parent: IStructuralObject, parentPr
   return core.extend(arrX, complexArrayMixin) as IComplexArray;
 }
 
-breeze.makeComplexArray = makeComplexArray; 

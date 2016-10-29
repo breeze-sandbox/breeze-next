@@ -1,6 +1,6 @@
 ﻿import { IKeyMapping } from './entity-manager';
 import { IDataServiceAdapter, IUriBuilderAdapter } from './adapter-interfaces';
-import { breeze, core } from './core-fns';
+import { core } from './core';
 import { config } from './config';
 import { assertConfig } from './assert-param';
 import { EntityType, NavigationProperty } from './entity-metadata';
@@ -328,5 +328,3 @@ function extractKeyMappingsDefault(data: any) {
   return data.keyMappings || data.KeyMappings || [];
 }
 
-breeze.DataService = DataService;
-breeze.JsonResultsAdapter = JsonResultsAdapter;

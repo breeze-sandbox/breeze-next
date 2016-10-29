@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
@@ -1046,5 +1046,3 @@ function clearOriginalValues(target: any) {
 }
 
 
-breeze.EntityAspect = EntityAspect;
-breeze.ComplexAspect = ComplexAspect;

@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { assertConfig } from './assert-param';
 import { config } from './config';
 
@@ -96,6 +96,6 @@ export class LocalQueryComparisonOptions {
 
 }
 
-breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
+
 
 

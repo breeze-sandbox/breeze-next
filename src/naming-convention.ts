@@ -1,5 +1,5 @@
 ﻿import { assertConfig } from './assert-param';
-import { breeze, core } from './core-fns';
+import { core } from './core';
 import { config } from './config';
 
 export class NamingConventionConfig {
@@ -134,6 +134,6 @@ export class NamingConvention {
 
 }
 
-breeze.NamingConvention = NamingConvention;
+
 
 

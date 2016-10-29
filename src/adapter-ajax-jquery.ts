@@ -1,5 +1,5 @@
 ﻿import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
-import { breeze, core } from './core-fns';
+import { breeze, core } from './core';
 // declare var jQuery: any;
 
 export class AjaxJQueryAdapter implements IAjaxAdapter {

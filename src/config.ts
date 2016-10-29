@@ -1,4 +1,4 @@
-﻿import { core, breeze } from './core-fns';
+﻿import { core } from './core';
 import { assertParam  } from './assert-param';
 import { BreezeEvent } from './event';
 
@@ -240,6 +240,5 @@ export const config = new BreezeConfig();
 // legacy
 (core as any).config = config;
 
-breeze.config = config;
 
 

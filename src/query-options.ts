@@ -1,4 +1,4 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
 import { EnumSymbol, TypedEnum } from './enum';
 import { assertConfig } from './assert-param';
 
@@ -254,8 +254,6 @@ export class QueryOptions {
 
 }
 
-breeze.QueryOptions = QueryOptions;
-breeze.FetchStrategy = FetchStrategy;
-breeze.MergeStrategy = MergeStrategy;
+
 
 

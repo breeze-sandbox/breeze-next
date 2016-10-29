@@ -1,4 +1,4 @@
-﻿import { core } from './core-fns';
+﻿import { core } from './core';
 import { assertParam } from './assert-param';
 
 function publishCore(that: BreezeEvent, data: any, errorCallback?: (e: Error) => any) {

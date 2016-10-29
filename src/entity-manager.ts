@@ -1,6 +1,6 @@
 ﻿import { IHttpResponse } from './entity-manager';
 import { IDataServiceAdapter } from './adapter-interfaces';
-import { breeze, core, Callback, ErrorCallback } from './core-fns';
+import { breeze, core, Callback, ErrorCallback } from './core';
 import { assertParam, assertConfig } from './assert-param';
 import { config  } from './config';
 import { BreezeEvent } from './event';

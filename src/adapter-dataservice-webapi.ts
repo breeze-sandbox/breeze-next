@@ -1,4 +1,4 @@
-﻿import { breeze } from './core-fns';
+﻿import { breeze } from './core';
 import { ISaveContext, ISaveBundle  } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 import { MappingContext } from './mapping-context';

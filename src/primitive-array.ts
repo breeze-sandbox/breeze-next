@@ -1,4 +1,4 @@
-import { core  } from './core-fns';
+import { core  } from './core';
 import { observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 import { IStructuralObject } from './entity-aspect';

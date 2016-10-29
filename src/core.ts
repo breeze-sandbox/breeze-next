@@ -729,7 +729,6 @@ export interface ErrorCallback {
     (error: any): void;
 }
 
-breeze.core = core;
 
 // Unused
 /*

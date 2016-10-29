@@ -1,4 +1,4 @@
-import { core, Callback, ErrorCallback } from './core-fns';
+import { core, Callback, ErrorCallback } from './core';
 import { IObservableArray, observableArray } from './observable-array';
 import { BreezeEvent } from './event';
 import { IEntity  } from './entity-aspect';

@@ -1,4 +1,5 @@
-﻿import { breeze, core } from './core-fns';
+﻿import { core } from './core';
+import { config } from './config';
 import { IAjaxAdapter, IChangeRequestInterceptor } from './adapter-interfaces';
 
 export class AjaxAngularAdapter implements IAjaxAdapter {
@@ -129,7 +130,7 @@ export class AjaxAngularAdapter implements IAjaxAdapter {
   };
 }
 
-breeze.config.registerAdapter("ajax", AjaxAngularAdapter);
+config.registerAdapter("ajax", AjaxAngularAdapter);
 
 function encodeParams(obj: Object) {
   let query = '';

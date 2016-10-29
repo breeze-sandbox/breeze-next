@@ -1,4 +1,4 @@
-﻿import { breeze, core  } from './core-fns';
+﻿import { core  } from './core';
 import { assertConfig } from './assert-param';
 
 export interface IValidationOptionsConfig {
@@ -126,7 +126,7 @@ function updateWithConfig(options: ValidationOptions, config: IValidationOptions
   return options;
 }
 
-breeze.ValidationOptions = ValidationOptions;
+
 
 
 
