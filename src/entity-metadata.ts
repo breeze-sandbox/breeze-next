@@ -50,7 +50,7 @@ export class MetadataStore {
 
   static __id = 0;
   static ANONTYPE_PREFIX = "_IB_";
-  static metadataVersion = '1.99xxx'; // TODO: get the right version;
+  static metadataVersion = '1.0.5';
 
   name: string;
   dataServices: DataService[];
@@ -1926,8 +1926,10 @@ export class ComplexType  {
   concurrencyProperties: DataProperty[];
   unmappedProperties: DataProperty[];
   _mappedPropertiesCount: number;
-  // navigationProperties: DataProperty[]; // not yet supported
-  // keyProperties: DataPoperty[] // may be used later to enforce uniqueness on arrays of complextypes.
+  // keyProperties and navigationProperties are not used on complexTypes - but here to allow sharing of code between EntityType and ComplexType.
+  navigationProperties: DataProperty[];
+  // and may be used later to enforce uniqueness on arrays of complextypes.
+  keyProperties: DataProperty[];
   custom?: any;
 
   // copy entityType methods onto complexType
@@ -1944,7 +1946,7 @@ export class ComplexType  {
   _updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
   _setCtor = EntityType.prototype._setCtor;
   // note the name change.
-  createInstance = EntityType.prototype.createEntity;  // name change
+  createInstance = EntityType.prototype.createEntity;
   warnings: any[];
   serializerFn?: (prop: EntityProperty, val: any) => any;
   _extra?: any;
@@ -1970,8 +1972,9 @@ export class ComplexType  {
     this.concurrencyProperties = [];
     this.unmappedProperties = [];
     this._mappedPropertiesCount = 0;
-    // this.navigationProperties = []; // not yet supported
-    // this.keyProperties = []; // may be used later to enforce uniqueness on arrays of complextypes.
+    // keyProperties and navigationProperties are not used on complexTypes - but here to allow sharing of code between EntityType and ComplexType.
+    this.navigationProperties = [];
+    this.keyProperties = []; // may be used later to enforce uniqueness on arrays of complextypes.
     if (config.dataProperties) {
       addProperties(this, config.dataProperties, DataProperty);
     }
@@ -2118,6 +2121,7 @@ export class ComplexType  {
 
 }
 ComplexType.prototype._$typeName = "ComplexType";
+ComplexType.prototype.createInstance = EntityType.prototype.createEntity;
 
 interface DataPropertyConfig {
   name?: string;
