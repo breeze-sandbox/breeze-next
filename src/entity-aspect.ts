@@ -30,6 +30,15 @@ export interface IComplexObject {
 
 export type IStructuralObject = IEntity | IComplexObject;
 
+export interface IPropertyChangedEventArgs {
+  entity: IEntity;
+  parent?: IStructuralObject;
+  property?: EntityProperty;
+  propertyName?: string;
+  oldValue?: any;
+  newValue?: any;
+}
+
 /**
   An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property.
 
@@ -60,8 +69,9 @@ export class EntityAspect {
   _loadedNps: any[];
   _initialized?: boolean;
   wasLoaded?: boolean;
-  validationErrorsChanged: BreezeEvent;
-  propertyChanged: BreezeEvent;
+  validationErrorsChanged:  BreezeEvent<{ entity: IEntity;  added: ValidationError[]; removed: ValidationError[] } >;
+  // propertyChanged: BreezeEvent<{ entity: IEntity; propertyName?: string; }>;
+  propertyChanged: BreezeEvent<IPropertyChangedEventArgs>;
   extraMetadata?: any;
   _inProcessEntity?: IEntity; // used in EntityManager
 
@@ -305,8 +315,10 @@ export class EntityAspect {
         entityManager._linkRelatedEntities(entity);
       }
       this.setUnchanged();
-      // propertyChanged propertyName is null because more than one property may have changed.
-      this.propertyChanged.publish({ entity: entity, propertyName: null });
+      // propertyChanged propertyName is not specified because more than one property may have changed.
+      this.propertyChanged.publish({ entity: entity });
+      // old code
+      // this.propertyChanged.publish({ entity: entity, propertyName: null });
       entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
     }
   };

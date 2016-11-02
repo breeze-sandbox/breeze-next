@@ -13,7 +13,7 @@ export interface IObservableArray {
   slice: (a: number, b?: number) => any[]; // implemented on the native array
 
   getEntityAspect: () => EntityAspect;
-  arrayChanged: BreezeEvent;
+  arrayChanged: BreezeEvent<{ array: any[], added?: any[]; removed?: any[]; }>;
   parent?: Object;
   parentProperty?: DataProperty; // TODO: IProperty 
   _getEventParent: () => Object;

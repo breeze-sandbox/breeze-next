@@ -57,7 +57,7 @@ export class MetadataStore {
   namingConvention: NamingConvention;
   localQueryComparisonOptions: LocalQueryComparisonOptions;
   serializerFn?: (prop: EntityProperty, val: any) => any;
-  metadataFetched: BreezeEvent;
+  metadataFetched: BreezeEvent<{ metadataStore: MetadataStore; dataService: DataService | string; rawMetadata: any; }>;
 
   _resourceEntityTypeMap: {};
   _entityTypeResourceMap: {};

@@ -51,7 +51,7 @@ export class BreezeConfig {
     functionRegistry = {};
     typeRegistry = {};
     objectRegistry = {};
-    interfaceInitialized: BreezeEvent;
+    interfaceInitialized: BreezeEvent<{ interfaceName: string, instance: IBaseAdapter, isDefault: boolean }>;
 
     stringifyPad = '';
     _interfaceRegistry: any;  // will be set in adapter-interfaces. untyped here to avoid circularity issues.

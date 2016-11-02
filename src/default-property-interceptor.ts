@@ -430,7 +430,7 @@ function postChangeEvents(context: IContext) {
   let entityManager = entityAspect.entityManager;
   let entity = entityAspect.entity;
 
-  let propChangedArgs = { entity: entity, parent: context.parent, property: context.property, propertyName: context.propertyName, oldValue: context.oldValue, newValue: context.newValue };
+  let propChangedArgs = { entity: entity!, parent: context.parent, property: context.property, propertyName: context.propertyName, oldValue: context.oldValue, newValue: context.newValue };
   if (entityManager) {
     // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
     // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
