@@ -167,7 +167,7 @@ This object will be passed into the Validator's validation function whenever 'va
 of additional properties that will be automatically added to this object if not otherwise specified.
 **/
 export class Validator {
-  _$typeName = "Validator";
+  _$typeName: string; // on proto
 
   name: string;
   valFn: IValidationFn;
@@ -812,6 +812,7 @@ export class Validator {
   public static makeRegExpValidator = makeRegExpValidator;
 
 }
+Validator.prototype._$typeName = "Validator";
 
 // register all validators
 core.objectForEach(Validator, function (key: string, value: any) {

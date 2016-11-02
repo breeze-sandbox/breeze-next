@@ -17,7 +17,7 @@ export class NamingConventionConfig {
   @class NamingConvention
   **/
 export class NamingConvention {
-  _$typeName = "NamingConvention";
+  _$typeName: string;
 
   name: string;
   serverPropertyNameToClient: (nm: string, context?: any) => string;
@@ -53,7 +53,7 @@ export class NamingConvention {
     if (!this.name) {
       this.name = core.getUuid();
     }
-    config._storeObject(this, this._$typeName, this.name);
+    config._storeObject(this, "NamingConvention", this.name);
   };
 
   /**
@@ -133,6 +133,8 @@ export class NamingConvention {
   };
 
 }
+
+NamingConvention.prototype._$typeName = "NamingConvention";
 
 
 

@@ -15,7 +15,7 @@ export class SaveOptionsConfig {
   @class SaveOptions
   **/
 export class SaveOptions {
-  _$typeName = "SaveOptions";
+  _$typeName: string; // on proto
 
   resourceName: string;
   dataService: DataService;
@@ -109,7 +109,7 @@ export class SaveOptions {
   }
 
 }
-
+SaveOptions.prototype._$typeName = "SaveOptions";
 
 
 

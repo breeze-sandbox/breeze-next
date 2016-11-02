@@ -29,8 +29,7 @@ export interface DataServiceConfig {
   @class DataService
   **/
 export class DataService {
-  _$typeName = "DataService";
-
+  _$typeName: string; // actually put on prototype.
   serviceName: string;
   adapterName: string;
   uriBuilder?: IUriBuilderAdapter;
@@ -196,6 +195,7 @@ export class DataService {
   };
 
 }
+DataService.prototype._$typeName = "DataService";
 
 function updateWithConfig(obj: DataService, dsConfig?: DataServiceConfig) {
   if (dsConfig) {
@@ -245,7 +245,8 @@ export interface JsonResultsAdapterConfig {
   @class JsonResultsAdapter
   **/
 export class JsonResultsAdapter {
-  _$typeName = "JsonResultsAdapter";
+  _$typeName: string; // actually put on prototype.
+
 
   name: string;
 
@@ -311,10 +312,11 @@ export class JsonResultsAdapter {
         .whereParam("extractKeyMappings").isFunction().isOptional().withDefault(extractKeyMappingsDefault)
         .whereParam("visitNode").isFunction()
         .applyAll(this);
-    config._storeObject(this, this._$typeName, this.name);
+    config._storeObject(this, "JsonResultsAdapter", this.name);
   };
 
 }
+JsonResultsAdapter.prototype._$typeName = "JsonResultsAdapter";
 
 function extractResultsDefault(data: any) {
   return data.results;

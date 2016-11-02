@@ -9,7 +9,7 @@ export interface IValidationOptionsConfig {
 }
 
 export class ValidationOptions implements IValidationOptionsConfig {
-  _$typeName = "ValidationOptions";
+  _$typeName: string; // on proto
   validateOnAttach: boolean;
   validateOnSave: boolean;
   validateOnQuery: boolean;
@@ -113,6 +113,7 @@ export class ValidationOptions implements IValidationOptionsConfig {
     validateOnPropertyChange: true
   });
 }
+ValidationOptions.prototype._$typeName = "ValidationOptions";
 
 function updateWithConfig(options: ValidationOptions, config: IValidationOptionsConfig) {
   if (config) {

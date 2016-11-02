@@ -26,7 +26,7 @@ interface IMappingContextConfig {
 }
 
 export class MappingContext {
-  _$typeName = "MappingContext";
+  _$typeName: string; // on prototype
 
   rawValueFn = DataProperty.getRawValueFromServer; // think about passing this in later.
 
@@ -104,6 +104,7 @@ export class MappingContext {
     }
   }
 };
+MappingContext.prototype._$typeName = "MappingContext";
 
 
 function processMeta(mc: MappingContext, node: any, meta: INodeMeta, assignFn?: (val: any) => void) {

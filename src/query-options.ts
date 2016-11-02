@@ -116,7 +116,7 @@ export class QueryOptionsConfig {
   @class QueryOptions
   **/
 export class QueryOptions {
-  _$typeName = "QueryOptions";
+  _$typeName: string;
 
   fetchStrategy: FetchStrategySymbol;
   mergeStrategy: MergeStrategySymbol;
@@ -253,6 +253,7 @@ export class QueryOptions {
   }
 
 }
+QueryOptions.prototype._$typeName = "QueryOptions";
 
 
 

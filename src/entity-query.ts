@@ -28,7 +28,7 @@ interface IEntityQueryJsonContext {
   @class EntityQuery
   **/
 export class EntityQuery {
-  _$typeName = "EntityQuery";
+  _$typeName: string; // actually placed on prototype
   // top = this.take; // TODO: consider
 
   resourceName?: string;
@@ -899,6 +899,7 @@ export class EntityQuery {
   }
 
 }
+EntityQuery.prototype._$typeName = "EntityQuery";
 
 // private functions
 

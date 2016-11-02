@@ -19,7 +19,7 @@ export interface ILocalQueryComparisonOptionsConfig {
   @class LocalQueryComparisonOptions
   **/
 export class LocalQueryComparisonOptions {
-  _$typeName = "LocalQueryComparisonOptions";
+  _$typeName: string; // on prototype
 
   name: string;
   isCaseSensitive: boolean;
@@ -57,7 +57,7 @@ export class LocalQueryComparisonOptions {
     if (!this.name) {
       this.name = core.getUuid();
     }
-    config._storeObject(this, this._$typeName, this.name);
+    config._storeObject(this, "LocalQueryComparisonOptions", this.name);
   };
 
   /**
@@ -95,6 +95,7 @@ export class LocalQueryComparisonOptions {
   };
 
 }
+LocalQueryComparisonOptions.prototype._$typeName = "LocalQueryComparisonOptions";
 
 
 

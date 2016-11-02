@@ -31,13 +31,12 @@ import { DataType } from './data-type';
   **/
 
 export class EntityKey {
-
   static ENTITY_KEY_DELIMITER = ":::";
+  _$typeName: string; // actually placed on prototype
   entityType: EntityType;
   values: any[];
   _keyInGroup: string;
   _subtypes: EntityType[];
-  static _$typeName = "EntityKey";
 
   constructor(entityType: EntityType, keyValues: any) {
     assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
@@ -154,5 +153,6 @@ export class EntityKey {
   }
 
 }
+EntityKey.prototype._$typeName = "EntityKey";
 
 

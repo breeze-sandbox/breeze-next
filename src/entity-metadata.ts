@@ -1,5 +1,4 @@
-﻿import { EntityTypeConfig } from './entity-metadata';
-import { core, ErrorCallback } from './core';
+﻿import { core, ErrorCallback } from './core';
 import { config  } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
@@ -47,7 +46,7 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
 @class MetadataStore
 **/
 export class MetadataStore {
-  _$typeName = "MetadataStore";
+  _$typeName: string; // on proto
 
   static __id = 0;
   static ANONTYPE_PREFIX = "_IB_";
@@ -701,6 +700,7 @@ export class MetadataStore {
 
 
 }
+MetadataStore.prototype._$typeName = "MetadataStore";
 
 BreezeEvent.bubbleEvent(MetadataStore.prototype);
 
@@ -851,7 +851,7 @@ export interface EntityTypeSetConfig {
   @class EntityType
   **/
 export class EntityType {
-  _$typeName = "EntityType";
+  _$typeName: string; // on proto
   isComplexType = false;
 
   static __nextAnonIx = 0;
@@ -1765,6 +1765,7 @@ export class EntityType {
 
 
 }
+EntityType.prototype._$typeName = "EntityType";
 
 function getRawValueFromConfig(rawEntity: any, dp: DataProperty) {
   // 'true' fork can happen if an initializer contains an actaul instance of an already created complex object.
@@ -1913,7 +1914,7 @@ interface ComplexTypeConfig {
 @param [config.custom] {Object}
 **/
 export class ComplexType  {
-  _$typeName = "ComplexType";
+  _$typeName: string; // on proto
   isComplexType = true;
 
   metadataStore: MetadataStore;
@@ -2117,6 +2118,7 @@ export class ComplexType  {
   };
 
 }
+ComplexType.prototype._$typeName = "ComplexType";
 
 interface DataPropertyConfig {
   name?: string;
@@ -2146,7 +2148,7 @@ directly via the constructor.
 @class DataProperty
 **/
 export class DataProperty  {
-  _$typeName = "DataProperty";
+  _$typeName: string; // on proto
   isDataProperty = true;
   isNavigationProperty = false;
 
@@ -2512,6 +2514,7 @@ export class DataProperty  {
   };
 
 }
+DataProperty.prototype._$typeName = "DataProperty";
 
 export interface NavigationPropertyConfig {
   name?: string;
@@ -2536,7 +2539,7 @@ export interface NavigationPropertyConfig {
   @class NavigationProperty
   **/
 export class NavigationProperty  {
-  _$typeName = "NavigationProperty";
+  _$typeName: string;
   isDataProperty = false;
   isNavigationProperty = true;
 
@@ -2883,6 +2886,7 @@ export class NavigationProperty  {
   }
 
 }
+NavigationProperty.prototype._$typeName = "NavigationProperty";
 
 
 

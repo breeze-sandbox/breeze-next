@@ -26,7 +26,7 @@ export class DataTypeSymbol extends EnumSymbol {
   **/
 class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
 
-  constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
+  static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
   // for internal testing only
 
 
@@ -35,8 +35,8 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
     this.resolveSymbols();
   }
 
-  _resetConstants(): void {
-    this.constants = {
+  static _resetConstants(): void {
+    DataTypeEnum.constants = {
       stringPrefix: "K_",
       nextNumber: -1,
       nextNumberIncrement: -1
@@ -405,7 +405,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   //};
 }
 
-// resetConstants();
+
 
 function getValidatorCtor(symbol: DataTypeSymbol) {
   switch (symbol) {
@@ -444,12 +444,12 @@ function getValidatorCtor(symbol: DataTypeSymbol) {
 }
 
 function getNextString() {
-  return DataType.constants.stringPrefix + getNextNumber().toString();
+  return DataTypeEnum.constants.stringPrefix + getNextNumber().toString();
 };
 
 function getNextNumber() {
-  let result = DataType.constants.nextNumber;
-  DataType.constants.nextNumber += DataType.constants.nextNumberIncrement;
+  let result = DataTypeEnum.constants.nextNumber;
+  DataTypeEnum.constants.nextNumber += DataTypeEnum.constants.nextNumberIncrement;
   return result;
 };
 
@@ -623,7 +623,7 @@ function parseRawBinary(val: any) {
   return val;
 }
 
-
+DataTypeEnum._resetConstants();
 export const DataType = new DataTypeEnum();
 
 DataType.getSymbols().forEach(function (sym: DataTypeSymbol) {
