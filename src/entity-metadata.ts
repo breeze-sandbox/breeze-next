@@ -891,7 +891,6 @@ export class EntityType {
   initFn: Function | string;
   noTrackingFn: Function;
 
-  parseRawValue = DataType.parseRawValue;
   getEntityCtor = this.getCtor;
 
   static qualifyTypeName = qualifyTypeName;
@@ -1557,7 +1556,7 @@ export class EntityType {
   getEntityKeyFromRawEntity(rawEntity: any, rawValueFn: Function) {
     let keyValues = this.keyProperties.map((dp) => {
       let val = rawValueFn(rawEntity, dp);
-      return this.parseRawValue(val, dp.dataType as DataTypeSymbol);
+      return DataType.parseRawValue(val, dp.dataType as DataTypeSymbol);
     });
     return new EntityKey(this, keyValues);
   };
@@ -1597,14 +1596,14 @@ export class EntityType {
         }
       } else {
         if (dp.isScalar) {
-          let newVal = this.parseRawValue(rawVal, dataType as DataTypeSymbol);
+          let newVal = DataType.parseRawValue(rawVal, dataType as DataTypeSymbol);
           target.setProperty(dp.name, newVal);
         } else {
           oldVal = target.getProperty(dp.name);
           if (Array.isArray(rawVal)) {
             // need to compare values
             let newVal = rawVal.map( (rv) => {
-              return this.parseRawValue(rv, dataType as DataTypeSymbol);
+              return DataType.parseRawValue(rv, dataType as DataTypeSymbol);
             });
             if (!core.arrayEquals(oldVal, newVal)) {
               // clear the old array and push new objects into it.

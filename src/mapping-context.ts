@@ -153,8 +153,6 @@ function processMeta(mc: MappingContext, node: any, meta: INodeMeta, assignFn?: 
   }
 }
 
-let parseRawValue = DataType.parseRawValue;
-
 function processNoMerge(mc: MappingContext, stype: StructuralType, node: any) {
   let result = {};
 
@@ -164,7 +162,7 @@ function processNoMerge(mc: MappingContext, stype: StructuralType, node: any) {
         return processNoMerge(mc, dp.dataType as any, v);
       });
     } else {
-      result[dp.name] = parseRawValue(node[dp.nameOnServer], dp.dataType as DataTypeSymbol);
+      result[dp.name] = DataType.parseRawValue(node[dp.nameOnServer], dp.dataType as DataTypeSymbol);
     }
   });
 
