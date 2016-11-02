@@ -1,15 +1,14 @@
-import { assertParam, assertConfig, Param } from './assert-param';
+
 import { AbstractDataServiceAdapter} from './abstract-data-service-adapter';
 import { DataService, JsonResultsAdapter, INodeContext } from './data-service';
 import { DataType, DataTypeSymbol } from './data-type';
 import { EntityAction, EntityActionSymbol } from './entity-action';
 import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entity-aspect';
 import { EntityKey } from './entity-key';
-import { EntityManager } from './entity-manager';
+import { EntityManager, ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
 import { EntityQuery, FilterQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, IInterfaceRegistryConfig } from './interface-registry';
-import { ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
 import { KeyGenerator } from './key-generator';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 import { MappingContext } from './mapping-context';
@@ -18,6 +17,9 @@ import { NamingConvention } from './naming-convention';
 import { Predicate, IVisitContext, IVisitor, IExpressionContext, UnaryPredicate, BinaryPredicate, AnyAllPredicate, AndOrPredicate, LitExpr, FnExpr, PropExpr } from './predicate';
 import { QueryOptions,  FetchStrategy, MergeStrategy } from './query-options';
 import { SaveOptions } from './save-options';
+import { ValidationError, Validator } from './validate';
+import { ValidationOptions } from './validation-options';
+import { assertParam, assertConfig, Param } from './assert-param';
 import { config, IBaseAdapter } from './config';
 import { core } from './core';
 import { makeRelationArray, makePrimitiveArray, makeComplexArray } from './array';
@@ -85,6 +87,9 @@ export {
   SelectClause,
   StructuralType,
   UnaryPredicate,
+  Validator,
+  ValidationError,
+  ValidationOptions,
   assertConfig,
   assertParam,
   config,
@@ -124,6 +129,7 @@ export const breeze = {
   Predicate: Predicate,
   QueryOptions: QueryOptions,
   SaveOptions: SaveOptions,
+  ValidationOptions: ValidationOptions,
   core: core,
   config: config,
   assertConfig: assertConfig,
