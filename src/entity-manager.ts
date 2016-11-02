@@ -652,33 +652,31 @@ export class EntityManager {
 
     let tempKeyMap: ITempKeyMap = {};
     json.tempKeys.forEach((k: any) => {
-      let oldKey = EntityKey.fromJSON(k, that.metadataStore);
+      let oldKey = EntityKey.fromJSON(k, this.metadataStore);
       // try to use oldKey if not already used in this keyGenerator.
       tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, this.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
     });
 
     let entitiesToLink: IEntity[] = [];
     let impConfig = importConfig as IImportConfigExt;
-    let that = this;
+
     impConfig.tempKeyMap = tempKeyMap;
-    core.wrapExecution(function () {
-      that._pendingPubs = [];
-    }, function (state) {
-      that._pendingPubs!.forEach(function (fn) {
-        fn();
-      });
-      that._pendingPubs = undefined;
-      that._hasChangesAction && that._hasChangesAction();
-    }, function () {
+    core.wrapExecution( () => {
+      this._pendingPubs = [];
+    }, (state) => {
+      this._pendingPubs!.forEach( (fn) => fn());
+      this._pendingPubs = undefined;
+      this._hasChangesAction && this._hasChangesAction();
+    }, () => {
       core.objectForEach(json.entityGroupMap, (entityTypeName, jsonGroup) => {
-        let entityType = that.metadataStore._getStructuralType(entityTypeName, false) as EntityType;
-        let targetEntityGroup = findOrCreateEntityGroup(that, entityType);
+        let entityType = this.metadataStore._getStructuralType(entityTypeName, false) as EntityType;
+        let targetEntityGroup = findOrCreateEntityGroup(this, entityType);
         let entities = importEntityGroup(targetEntityGroup, jsonGroup, impConfig);
         Array.prototype.push.apply(entitiesToLink, entities);
       });
-      entitiesToLink.forEach(function (entity) {
+      entitiesToLink.forEach((entity) => {
         if (!entity.entityAspect.entityState.isDeleted()) {
-          that._linkRelatedEntities(entity);
+          this._linkRelatedEntities(entity);
         }
       });
     });
@@ -791,18 +789,17 @@ export class EntityManager {
       }
     }
 
-    let that = this;
     let attachedEntity = {} as IEntity;
-    core.using(this, "isLoading", true, function () {
+    core.using(this, "isLoading", true,  () => {
       if (esSymbol.isAdded()) {
-        checkEntityKey(that, entity);
+        checkEntityKey(this, entity);
       }
       // attachedEntity === entity EXCEPT in the case of a merge.
-      attachedEntity = that._attachEntityCore(entity, esSymbol, msSymbol);
+      attachedEntity = this._attachEntityCore(entity, esSymbol, msSymbol);
       aspect._inProcessEntity = attachedEntity;
       try {
         // entity ( not attachedEntity) is deliberate here.
-        attachRelatedEntities(that, entity, esSymbol, msSymbol);
+        attachRelatedEntities(this, entity, esSymbol, msSymbol);
       } finally {
         // insure that _inProcessEntity is cleared.
         aspect._inProcessEntity = undefined;

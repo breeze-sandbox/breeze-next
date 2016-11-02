@@ -5,7 +5,7 @@ import { Validator } from './validate';
 let _localTimeRegex = /.\d{3}$/;
 
 export class DataTypeSymbol extends EnumSymbol {
-  validatorCtor?:  (context?: any) => Validator ;
+  validatorCtor?: (context?: any) => Validator;
   normalize?: Function;
   parseRawValue?: Function;
   defaultValue?: any;
@@ -27,22 +27,11 @@ export class DataTypeSymbol extends EnumSymbol {
 class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
 
   static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
-  // for internal testing only
-
 
   constructor() {
     super("DataType", DataTypeSymbol);
     this.resolveSymbols();
   }
-
-  static _resetConstants(): void {
-    DataTypeEnum.constants = {
-      stringPrefix: "K_",
-      nextNumber: -1,
-      nextNumberIncrement: -1
-    };
-  }
-
 
   /**
   The default value of this DataType.
@@ -295,12 +284,12 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
       return dataType.normalize;
     } else if (dataType === DataType.Time) {
       // durations must be converted to compare them
-      return function(value: any) {
+      return function (value: any) {
         return value && core.durationToSeconds(value);
       };
     } else {
       // TODO: __identity
-      return function(value: any) {
+      return function (value: any) {
         return value;
       };
     }
@@ -387,11 +376,14 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
     return val;
   }
 
-  //function hasTimeZone(source) {
-  //  var ix = source.indexOf("T");
-  //  var timePart = source.substring(ix+1);
-  //  return  timePart.indexOf("-") >= 0 || timePart.indexOf("+") >= 0 || timePart.indexOf("Z");
-  //}
+  // used during initialization; visible on instance for testing purposes.
+  _resetConstants() {
+    DataTypeEnum.constants = {
+      stringPrefix: "K_",
+      nextNumber: -1,
+      nextNumberIncrement: -1
+    };
+  }
 
   // NOT YET NEEDED --------------------------------------------------
   // var _utcOffsetMs = (new Date()).getTimezoneOffset() * 60000;
@@ -405,6 +397,14 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   //};
 }
 
+export const DataType = new DataTypeEnum();
+DataType._resetConstants();
+
+DataType.getSymbols().forEach(function (sym: DataTypeSymbol) {
+  sym.validatorCtor = getValidatorCtor(sym);
+});
+
+// private functions;
 
 
 function getValidatorCtor(symbol: DataTypeSymbol) {
@@ -599,7 +599,7 @@ function fmtBinary(val: any) {
   return "binary'" + val + "'";
 };
 
-// TODO: __identity;
+// TODO: use __identity instead;
 function fmtUndefined(val: any) {
   return val;
 };
@@ -623,12 +623,10 @@ function parseRawBinary(val: any) {
   return val;
 }
 
-DataTypeEnum._resetConstants();
-export const DataType = new DataTypeEnum();
-
-DataType.getSymbols().forEach(function (sym: DataTypeSymbol) {
-  sym.validatorCtor = getValidatorCtor(sym);
-});
-
+//function hasTimeZone(source) {
+//  var ix = source.indexOf("T");
+//  var timePart = source.substring(ix+1);
+//  return  timePart.indexOf("-") >= 0 || timePart.indexOf("+") >= 0 || timePart.indexOf("Z");
+//}
 
 

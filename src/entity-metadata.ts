@@ -332,16 +332,14 @@ export class MetadataStore {
       }
     }
 
-    let that = this;
-
     //noinspection JSHint
-    json.dataServices && json.dataServices.forEach(function (ds: Object) {
+    json.dataServices && json.dataServices.forEach((ds) => {
       let realDs = DataService.fromJSON(ds);
-      that.addDataService(realDs, true);
+      this.addDataService(realDs, true);
     });
 
-    json.structuralTypes && json.structuralTypes.forEach(function (stype: any) {
-      structuralTypeFromJson(that, stype, allowMerge);
+    json.structuralTypes && json.structuralTypes.forEach((stype) => {
+      structuralTypeFromJson(this, stype, allowMerge);
     });
     core.extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
     core.extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -453,9 +451,9 @@ export class MetadataStore {
       if (this.hasMetadataFor(dataService.serviceName)) {
         throw new Error("Metadata for a specific serviceName may only be fetched once per MetadataStore. ServiceName: " + dataService.serviceName);
       }
-      let that = this;
-      return dataService.adapterInstance!.fetchMetadata(this, dataService).then(function (rawMetadata: any) {
-        that.metadataFetched.publish({ metadataStore: that, dataService: dataService, rawMetadata: rawMetadata });
+
+      return dataService.adapterInstance!.fetchMetadata(this, dataService).then((rawMetadata: any) => {
+        this.metadataFetched.publish({ metadataStore: this, dataService: dataService, rawMetadata: rawMetadata });
         if (callback) callback(rawMetadata);
         return Promise.resolve(rawMetadata);
       }, function (error: any) {

@@ -81,7 +81,7 @@ FetchStrategy is an 'Enum' that determines how and where entities are retrieved 
 **/
 class FetchStrategyEnum extends TypedEnum<FetchStrategySymbol> {
   constructor() {
-    super("FetchStategy", FetchStrategySymbol);
+    super("FetchStrategy", FetchStrategySymbol);
     this.resolveSymbols();
   }
 
