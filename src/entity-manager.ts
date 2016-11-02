@@ -1139,7 +1139,7 @@ export class EntityManager {
     try { // Guard against exception thrown in dataservice adapter before it goes async
       updateConcurrencyProperties(entitiesToSave);
       return dataService.adapterInstance!.saveChanges(saveContext, saveBundle)
-        .then(saveSuccess).then(() => { }, saveFail);
+        .then(saveSuccess).then((r) => r, saveFail);
     } catch (err) {
       // undo the marking by updateConcurrencyProperties
       markIsBeingSaved(entitiesToSave, false);
@@ -1165,7 +1165,6 @@ export class EntityManager {
     }
 
     function processSavedEntities(saveResult: ISaveResult) {
-
       let savedEntities = saveResult.entities;
 
       if (savedEntities.length === 0) {
