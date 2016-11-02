@@ -39,7 +39,7 @@ export class EntityKey {
   _subtypes: EntityType[];
   static _$typeName = "EntityKey";
 
-  constructor(entityType: EntityType, ...keyValues: any[]) {
+  constructor(entityType: EntityType, keyValues: any) {
     assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
     let subtypes = entityType.getSelfAndSubtypes();
     if (subtypes.length > 1) {
@@ -48,10 +48,9 @@ export class EntityKey {
       });
     }
 
-    // TODO: check if no longer needed.
-    // if (!Array.isArray(keyValues)) {
-    //   keyValues = core.arraySlice(arguments, 1);
-    // }
+    if (!Array.isArray(keyValues)) {
+      keyValues = [ keyValues ];
+    }
 
     this.entityType = entityType;
     entityType.keyProperties.forEach(function (kp, i) {

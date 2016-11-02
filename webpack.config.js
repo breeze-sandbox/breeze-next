@@ -6,18 +6,20 @@ module.exports = {
   debug: true,
 
   entry: {
-      'breeze-core': [
-        './src/entity-manager',
-        './src/relation-array',
-        './src/primitive-array',
-        './src/complex-array'
-      ],
-      'breeze-default': [
-        './src/entity-manager',
-        './src/relation-array',
-        './src/primitive-array',
-        './src/complex-array'
-      ]
+    'breeze-core.debug': [
+      './src/breeze',
+      './src/interface-registry',
+    ],
+    'breeze.debug': [
+      './src/breeze',
+      './src/interface-registry',
+      './src/adapter-ajax-jquery',
+      './src/adapter-ajax-angular',
+      './src/adapter-model-library-backing-store',
+      './src/adapter-data-service-webapi',
+      './src/adapter-uri-builder-odata',
+      './src/adapter-uri-builder-json',
+    ]
   },
 
   output: {
@@ -29,15 +31,15 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['','.ts','.js','.json', '.css', '.html']
+    extensions: ['', '.ts', '.js', '.json', '.css', '.html']
   },
 
   module: {
     loaders: [
       {
         test: /\.ts$/,
-        loaders: ['ts' ],
-        exclude: [ /node_modules/ ]
+        loaders: ['ts'],
+        exclude: [/node_modules/]
       },
       {
         test: /\.html$/,
@@ -51,17 +53,18 @@ module.exports = {
     ]
   },
 
-   plugins: [
-      // new webpack.optimize.UglifyJsPlugin({
-      //       compress: {
-      //           warnings: false,
-      //       },
-      //       output: {
-      //           comments: false,
-      //       },
-      // }),
-      
-   ],
-  
-  target:'node-webkit'
+  plugins: [
+    // new webpack.optimize.UglifyJsPlugin({
+    //       compress: {
+    //           warnings: false,
+    //       },
+    //       output: {
+    //           comments: false,
+    //       },
+    // }),
+
+  ],
+
+  // target:'node-webkit'
+  target: 'web'
 };

@@ -8,7 +8,7 @@ import { EntityKey } from './entity-key';
 import { EntityManager } from './entity-manager';
 import { EntityQuery, FilterQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
 import { EntityState, EntityStateSymbol } from './entity-state';
-import { IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter } from './interface-registry';
+import { IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, IInterfaceRegistryConfig } from './interface-registry';
 import { ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
 import { KeyGenerator } from './key-generator';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
@@ -57,6 +57,7 @@ export {
   IHttpResponse,
   IKeyMapping,
   IModelLibraryAdapter,
+  IInterfaceRegistryConfig,
   INodeContext,
   ISaveBundle,
   ISaveContext,
@@ -124,9 +125,17 @@ export const breeze = {
   QueryOptions: QueryOptions,
   SaveOptions: SaveOptions,
   core: core,
+  config: config,
   assertConfig: assertConfig,
   assertParam: assertParam,
   makeRelationArray: makeRelationArray,
   makeComplexArray: makeComplexArray,
   makePrimitiveArray: makePrimitiveArray
 };
+
+declare var window: any;
+declare var global: any;
+let win = window || global ? global.window : undefined;
+if (win) {
+  win.breeze = breeze;
+}

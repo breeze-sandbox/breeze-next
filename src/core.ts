@@ -1,4 +1,6 @@
-﻿
+﻿declare var global: any;
+declare var window: any;
+
 export interface ErrorCallback {
     (error: Error): void;
 }
@@ -413,15 +415,15 @@ function requireLib(libNames: string, errMessage?: string) {
     }
 }
 
-let global: any; // TODO for TS compile of function below.  What are runtime implications?
+
 
 /** Returns the 'libName' module if loaded or else returns undefined */
 function requireLibCore(libName: string) {
-    let window = global.window;
-    if (!window) return; // Must run in a browser. Todo: add commonjs support
+    let win = window || global ? global.window : undefined;
+    if (!win) return; // Must run in a browser. Todo: add commonjs support
 
     // get library from browser globals if we can
-    let lib = window[libName];
+    let lib = win[libName];
     if (lib) return lib;
 
     // if require exists, maybe require can get it.
@@ -430,7 +432,7 @@ function requireLibCore(libName: string) {
     // Developer should bootstrap such that the breeze module
     // loads after all other libraries that breeze should find with this method
     // See documentation
-    let r = window.require;
+    let r = win.require;
     if (r) { // if require exists
         if (r.defined) { // require.defined is not standard and may not exist
             // require.defined returns true if module has been loaded
@@ -484,7 +486,7 @@ function wrapExecution(startFn: () => any, endFn: (state: any) => any, fn: () =>
 }
 
 /** Remember & return the value of fn() when it was called with its current args */
-function memoize( fn: any): any {
+function memoize(fn: any): any {
     return function () {
         let args = arraySlice(<any>arguments),
             hash = "",
@@ -657,7 +659,7 @@ function uncurry(f: any) {
 
 if (!Object.create) {
     Object.create = function (parent: any) {
-        let F = <any>function() {
+        let F = <any>function () {
         };
         F.prototype = parent;
         return new F();
@@ -670,7 +672,7 @@ export const core = {
     hasOwnProperty: hasOwnProperty,
     getOwnPropertyValues: getOwnPropertyValues,
     getPropertyDescriptor: getPropDescriptor,
-    objectForEach:  objectForEach,
+    objectForEach: objectForEach,
     objectFirst: objectFirst,
     objectMap: objectMap, // TODO: replace this with something strongly typed.
     extend: extend,

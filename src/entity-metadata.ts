@@ -438,7 +438,7 @@ export class MetadataStore {
 
   @return {Promise} Promise
   **/
-  fetchMetadata(dataService: DataService, callback?: (schema: any) => void, errorCallback?: ErrorCallback) {
+  fetchMetadata(dataService: string | DataService, callback?: (schema: any) => void, errorCallback?: ErrorCallback) {
     try {
       assertParam(dataService, "dataService").isString().or().isInstanceOf(DataService).check();
       assertParam(callback, "callback").isFunction().isOptional().check();

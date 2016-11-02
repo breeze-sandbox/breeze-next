@@ -883,6 +883,7 @@ export class EntityManager {
       // legacy support for when dataService was not an arg. i.e. first arg was callback
       errorCallback = callback;
       callback = dataService;
+      dataService = undefined;
     } else {
       assertParam(dataService, "dataService").isInstanceOf(DataService).isOptional().check();
       assertParam(callback, "callback").isFunction().isOptional().check();
