@@ -46,7 +46,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
         type: "GET",
         url: url,
         dataType: 'json',
-        success: function (httpResponse: IHttpResponse) {
+        success: (httpResponse: IHttpResponse) => {
 
           // might have been fetched by another query
           if (metadataStore.hasMetadataFor(serviceName)) {
@@ -70,7 +70,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
           return resolve(metadata);
 
         },
-        error: function (httpResponse: IHttpResponse) {
+        error: (httpResponse: IHttpResponse) => {
           this._handleHttpError(reject, httpResponse, "Metadata query failed for: " + url);
         }
       });

@@ -1,5 +1,6 @@
 ﻿import * as breeze from './breeze';
 
+declare var jQuery: any;
 let core = breeze.core;
 
 export class AjaxJQueryAdapter implements breeze.IAjaxAdapter {
@@ -16,10 +17,11 @@ export class AjaxJQueryAdapter implements breeze.IAjaxAdapter {
 
 
   initialize() {
-    // this.jQuery = jQuery;
+    this.jQuery = jQuery;
     // look for the jQuery lib but don't fail immediately if not found
-    // TODO: fix this - how to we determine if jQuery is loaded.
-    this.jQuery = core.requireLib("jQuery;jquery");
+    if (!jQuery) {
+      this.jQuery = core.requireLib("jQuery;jquery");
+    }
   };
 
   ajax(config: any) {

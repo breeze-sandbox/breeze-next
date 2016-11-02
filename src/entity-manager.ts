@@ -245,9 +245,6 @@ export class EntityManager {
 
   };
 
-  // TODO: add this back
-  // Event.bubbleEvent(proto, null);
-
   /**
   General purpose property set method.  Any of the properties documented below
   may be set.
@@ -1717,6 +1714,8 @@ an option to check the local cache first.
 }
 
 EntityManager.prototype._$typeName = "EntityManager";
+
+BreezeEvent.bubbleEvent(EntityManager.prototype);
 
 function clearServerErrors(entities: IEntity[]) {
   entities.forEach(function (entity) {

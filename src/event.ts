@@ -199,8 +199,10 @@ export class BreezeEvent<T> {
     };
 
     /** event bubbling - document later. */
+
+    // null or undefined 'getParentFn' means Event does not need to bubble i.e. that it is always enabled - .
     static bubbleEvent(target: any, getParentFn?: (() => any)) {
-        target._getEventParent = getParentFn;
+        target._getEventParent = getParentFn || null;
     };
 
     /**
@@ -290,3 +292,6 @@ export class BreezeEvent<T> {
 
 
 }
+
+// legacy support - deliberately not typed
+(core as any).Event = BreezeEvent;

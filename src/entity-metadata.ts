@@ -111,7 +111,6 @@ export class MetadataStore {
 
   };
 
-  // BreezeEvent.bubbleEvent(MetadataStore.prototype, null);
 
 
   // needs to be made avail to dataService.xxx files
