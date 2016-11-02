@@ -57,32 +57,32 @@ let relationArrayMixin = {
   @param [errorCallback] {Function}
   @return {Promise}
   **/
-  load: (callback: Callback, errorCallback: ErrorCallback) => {
+  load: function(callback: Callback, errorCallback: ErrorCallback) {
     let parent = this.parentEntity;
     let query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
     let em = parent.entityAspect.entityManager;
     return em.executeQuery(query, callback, errorCallback);
   },
 
-  _getEventParent: () => {
+  _getEventParent: function() {
     return this.parentEntity.entityAspect;
   },
 
-  _getPendingPubs: () => {
+  _getPendingPubs: function() {
     let em = this.parentEntity.entityAspect.entityManager;
     return em && em._pendingPubs;
   },
 
   // virtual impls
-  _getGoodAdds: (adds: IEntity[]) => {
+  _getGoodAdds: function(adds: IEntity[]) {
     return getGoodAdds(this, adds);
   },
 
-  _processAdds: (adds: IEntity[]) => {
+  _processAdds: function(adds: IEntity[]) {
     processAdds(this, adds);
   },
 
-  _processRemoves: (removes: IEntity[]) => {
+  _processRemoves: function(removes: IEntity[]) {
     processRemoves(this, removes);
   }
 

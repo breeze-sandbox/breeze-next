@@ -51,11 +51,11 @@ let primitiveArrayMixin = {
   **/
 
     // virtual impls
-  _getGoodAdds:  (adds: any[]) => {
+  _getGoodAdds:  function(adds: any[]) {
     return adds;
   },
 
-  _beforeChange: () => {
+  _beforeChange: function() {
     let entityAspect = this.getEntityAspect();
     if (entityAspect.entityState.isUnchanged()) {
       entityAspect.setModified();
@@ -65,22 +65,22 @@ let primitiveArrayMixin = {
     }
   },
 
-  _processAdds: (adds: any[]) => {
+  _processAdds: function(adds: any[]) {
     // nothing needed
   },
 
-  _processRemoves: (removes: any[]) => {
+  _processRemoves: function(removes: any[]) {
     // nothing needed;
   },
 
 
-  _rejectChanges: () => {
+  _rejectChanges: function() {
     if (!this._origValues) return;
     this.length = 0;
     Array.prototype.push.apply(this, this._origValues);
   },
 
-  _acceptChanges: () => {
+  _acceptChanges: function() {
     this._origValues = null;
   }
 };

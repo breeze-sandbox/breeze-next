@@ -26,7 +26,7 @@ export interface IObservableArray {
 }
 
 let mixin = {
-  push: (...args: any[]) => {
+  push: function(...args: any[]) {
     if (this._inProgress) {
       return -1;
     }
@@ -41,7 +41,7 @@ let mixin = {
     return result;
   },
 
-  _push: (...args: any[]) => {
+  _push: function(...args: any[]) {
     if (this._inProgress) {
       return -1;
     }
@@ -52,7 +52,7 @@ let mixin = {
     return result;
   },
 
-  unshift: (...args: any[]) =>  {
+  unshift: function(...args: any[]) {
     let goodAdds = this._getGoodAdds(args);
     if (!goodAdds.length) {
       return this.length;
@@ -63,21 +63,21 @@ let mixin = {
     return result;
   },
 
-  pop: () => {
+  pop: function() {
     this._beforeChange();
     let result = Array.prototype.pop.apply(this);
     processRemoves(this, [result]);
     return result;
   },
 
-  shift: () => {
+  shift: function() {
     this._beforeChange();
     let result = Array.prototype.shift.apply(this);
     processRemoves(this, [result]);
     return result;
   },
 
-  splice: (...args: any[]) => {
+  splice: function(...args: any[]) {
     let goodAdds = this._getGoodAdds(core.arraySlice(args, 2));
     let newArgs = core.arraySlice(args, 0, 2).concat(goodAdds);
     this._beforeChange();
@@ -90,11 +90,11 @@ let mixin = {
     return result;
   },
 
-  getEntityAspect: () => {
+  getEntityAspect: function() {
     return this.parent.entityAspect || this.parent.complexAspect.getEntityAspect();
   },
 
-  _getEventParent: () => {
+  _getEventParent: function() {
     return this.getEntityAspect();
   },
 

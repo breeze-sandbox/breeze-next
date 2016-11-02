@@ -50,23 +50,23 @@ let complexArrayMixin = {
   **/
 
     // virtual impls
-  _getGoodAdds: (adds: any[]) => {
+  _getGoodAdds: function(adds: any[]) {
     return getGoodAdds(this, adds);
   },
 
-  _beforeChange: () => {
+  _beforeChange: function() {
     observableArray.updateEntityState(this);
   },
 
-  _processAdds: (adds: any[]) => {
+  _processAdds: function(adds: any[]) {
     processAdds(this, adds);
   },
 
-  _processRemoves: (removes: any[]) => {
+  _processRemoves: function(removes: any[]) {
     processRemoves(this, removes);
   },
 
-  _rejectChanges: () => {
+  _rejectChanges: function() {
     if (!this._origValues) return;
     let that = this;
     this.forEach(function (co: IComplexObject) {
@@ -78,7 +78,7 @@ let complexArrayMixin = {
     });
   },
 
-  _acceptChanges: () => {
+  _acceptChanges: function() {
     this._origValues = null;
   }
 };

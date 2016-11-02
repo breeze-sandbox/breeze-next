@@ -15,6 +15,11 @@ Next version of Breeze, built using TypeScript 2.
 ## Build using WebPack
 Run `npm run build`.  This will create a breeze.core.js file in the \build dir.
 
+## Misc Notes
+Api is almost identical to the original but small changes are noted below:
+
+1. Methods that could return null may now return undefined instead. Return value checks on these methods should be '==' null instead of '===' null. 
+
 
 ## Compile Notes
 We are compiling the code with `--strictNullChecks`, and have used `Object` instead of `any` where possible in parameter declarations, to ensure that null checking is taking place.
