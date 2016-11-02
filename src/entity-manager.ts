@@ -1419,7 +1419,6 @@ an option to check the local cache first.
   // backdoor to "really" check for changes.
   _hasChangesCore(entityTypes?: EntityType | EntityType[] | string | string[]) {
     let ets = checkEntityTypes(this, entityTypes);
-    if (!ets) return false;
     let entityGroups = getEntityGroups(this, ets);
     return entityGroups.some(function (eg) {
       return eg && eg.hasChanges();
