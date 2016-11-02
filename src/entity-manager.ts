@@ -1251,7 +1251,7 @@ Attempts to locate an entity within this EntityManager by its key.
   @param entityKey {EntityKey} The  {{#crossLink "EntityKey"}}{{/crossLink}} of the Entity to be located.
   @return {Entity} An Entity or null;
   **/
-  getEntityByKey(...args: any[]) {
+  getEntityByKey(...args: any[])  {
     let entityKey = createEntityKey(this, args).entityKey;
     let entityTypes = entityKey._subtypes || [entityKey.entityType];
     let e: IEntity | undefined;
@@ -1262,7 +1262,7 @@ Attempts to locate an entity within this EntityManager by its key.
       e = group && group.findEntityByKey(entityKey);
       return e != null;
     });
-    return e as IEntity;
+    return e || null;
   };
 
   /**
@@ -1754,7 +1754,7 @@ function processServerErrors(saveContext: ISaveContext, saveError: ISaveServerEr
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
   let entityErrors = serverErrors.map((serr) => {
-    let entity: IEntity | undefined;
+    let entity: IEntity | null = null;
     let entityType: EntityType | undefined;
     if (serr.keyValues) {
       entityType = metadataStore._getStructuralType(serr.entityTypeName) as EntityType;
@@ -1820,7 +1820,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
   let entityKey = tpl.entityKey;
 
   let checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
-  let entity: IEntity | undefined;
+  let entity: IEntity | null = null;
   let foundIt = false;
   if (checkLocalCacheFirst) {
     entity = em.getEntityByKey(entityKey);
@@ -1828,7 +1828,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
     if (entity != null &&
       // null the entity if it is deleted and we should exclude deleted entities
       !em.queryOptions.includeDeleted && entity.entityAspect.entityState.isDeleted()) {
-      entity = undefined;
+      entity = null;
       // but resume looking if we'd overwrite deleted entity with a remote entity
       // note: em.queryOptions is always fully resolved by now
       foundIt = em.queryOptions.mergeStrategy !== MergeStrategy.OverwriteChanges;
