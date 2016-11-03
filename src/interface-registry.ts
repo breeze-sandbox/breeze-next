@@ -15,13 +15,12 @@ export interface IInterfaceRegistryConfig {
     uriBuilder?: InterfaceDef<IUriBuilderAdapter>;
 }
 
-class InterfaceRegistry {
+export class InterfaceRegistry {
     ajax = new InterfaceDef<IAjaxAdapter>("ajax");
     modelLibrary = new InterfaceDef<IModelLibraryAdapter>("modelLibrary");
     dataService = new InterfaceDef<IDataServiceAdapter>("dataService");
     uriBuilder = new InterfaceDef<IUriBuilderAdapter>("uriBuilder");
 }
-
 
 // This module describes the interfaceRegistry by extending config
 declare module "./config" {

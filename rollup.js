@@ -4,13 +4,13 @@ import multiEntry  from 'rollup-plugin-multi-entry';
 export default {
   entry: [
       './src/breeze.js',
-      './src/interface-registry',
-      './src/adapter-ajax-jquery',
-      './src/adapter-ajax-angular',
-      './src/adapter-model-library-backing-store',
-      './src/adapter-data-service-webapi',
-      './src/adapter-uri-builder-odata',
-      './src/adapter-uri-builder-json',
+      './src/interface-registry.js',
+      './src/adapter-ajax-jquery.js',
+      './src/adapter-ajax-angular.js',
+      './src/adapter-model-library-backing-store.js',
+      './src/adapter-data-service-webapi.js',
+      './src/adapter-uri-builder-odata.js',
+      './src/adapter-uri-builder-json.js',
       ],
 
   dest: 'build/breeze.es2015.js', // must be transpiled after

@@ -419,7 +419,7 @@ function requireLib(libNames: string, errMessage?: string) {
 
 /** Returns the 'libName' module if loaded or else returns undefined */
 function requireLibCore(libName: string) {
-    let win = window || global ? global.window : undefined;
+    let win = window || (global ? global.window : undefined);
     if (!win) return; // Must run in a browser. Todo: add commonjs support
 
     // get library from browser globals if we can
