@@ -1,6 +1,6 @@
 ﻿import { core, Callback, ErrorCallback } from './core';
 import { assertParam } from './assert-param';
-import { DataType } from './data-type';
+import { DataType, DataTypeSymbol } from './data-type';
 import { EntityAspect, IEntity } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { EnumSymbol, TypedEnum } from './enum';
@@ -1282,9 +1282,13 @@ class OrderByItem {
   };
 
   getComparer(entityType: EntityType) {
-    let lastProperty = this.lastProperty || this.validate(entityType);
-    let propDataType = (lastProperty as any).dataType; // may be undefined;
-    let isCaseSensitive = lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive;
+    let propDataType: DataTypeSymbol;
+    let isCaseSensitive: boolean;
+    if (!this.lastProperty) this.validate(entityType);
+    if (this.lastProperty) {
+      propDataType = (this.lastProperty as any).dataType;
+      isCaseSensitive = this.lastProperty.parentType.metadataStore.localQueryComparisonOptions.isCaseSensitive;
+    }
 
     let propertyPath = this.propertyPath;
     let isDesc = this.isDesc;
