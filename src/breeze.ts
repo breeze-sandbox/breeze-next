@@ -7,7 +7,7 @@ import { EntityAction, EntityActionSymbol } from './entity-action';
 import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { EntityManager, ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
-import { EntityQuery, FilterQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
+import { EntityQuery, FilterQueryOp, BooleanQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
 import { EntityState, EntityStateSymbol } from './entity-state';
 import { IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, IInterfaceRegistryConfig } from './interface-registry';
 import { KeyGenerator } from './key-generator';
@@ -122,6 +122,7 @@ export const breeze = {
   Event: BreezeEvent,
   FetchStrategy: FetchStrategy,
   FilterQueryOp: FilterQueryOp,
+  BooleanQueryOp: BooleanQueryOp,
   JsonResultsAdapter: JsonResultsAdapter,
   KeyGenerator: KeyGenerator,
   LocalQueryComparisonOptions: LocalQueryComparisonOptions,
@@ -147,7 +148,7 @@ export const breeze = {
 
 declare var window: any;
 declare var global: any;
-let win = window || global ? global.window : undefined;
+let win = window || (global ? global.window : undefined);
 if (win) {
   win.breeze = breeze;
 }
