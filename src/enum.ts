@@ -61,7 +61,6 @@ export class Enum {
     name: string;
     _symbolPrototype: EnumSymbol;
 
-
     /**
     Enum constructor - may be used to create new Enums.
     @example
@@ -77,16 +76,18 @@ export class Enum {
     @param name {String}
     @param [methodObj] {Object}
     **/
-    constructor(name: string, methodObj: Object) {
+    constructor(name: string, methodObj?: Object) {
         this.name = name;
         let prototype: EnumSymbol;
         if (methodObj instanceof EnumSymbol) {
             prototype = methodObj;
         } else {
-            prototype = new EnumSymbol(methodObj || {});
-            Object.keys(methodObj).forEach(function (key) {
-                prototype[key] = methodObj[key];
-            });
+            prototype = new EnumSymbol();
+            if (methodObj) {
+                Object.keys(methodObj).forEach(function (key) {
+                    prototype[key] = methodObj[key];
+                });
+            }
         }
 
         prototype.parentEnum = this;
@@ -167,7 +168,7 @@ export class Enum {
     **/
     getSymbols() {
         return this.getNames().map(function (key: string) {
-            return <EnumSymbol> this[key];
+            return <EnumSymbol>this[key];
         }, this);
     };
 
@@ -182,7 +183,7 @@ export class Enum {
         let result: string[] = [];
         for (let key in this) {
             if (this.hasOwnProperty(key)) {
-                if (key !== "name" && key.substr(0, 1) !== "_" && ! core.isFunction(this[key])) {
+                if (key !== "name" && key.substr(0, 1) !== "_" && !core.isFunction(this[key])) {
                     result.push(key);
                 }
             }
@@ -229,7 +230,7 @@ export class EnumSymbol {
     **/
     parentEnum: Enum;
 
-    constructor(methodObj: Object) {
+    constructor() {
     }
 
     /**
@@ -281,3 +282,5 @@ export class TypedEnum<T extends EnumSymbol> extends Enum {
     }
 }
 
+// for legacy support.
+(core as any).Enum = Enum;

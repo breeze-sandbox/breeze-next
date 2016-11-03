@@ -129,6 +129,7 @@ export const breeze = {
   MetadataStore: MetadataStore,
   NamingConvention: NamingConvention,
   NavigationProperty: NavigationProperty,
+  OrderByClause: OrderByClause, // for testing only
   Predicate: Predicate,
   QueryOptions: QueryOptions,
   SaveOptions: SaveOptions,
