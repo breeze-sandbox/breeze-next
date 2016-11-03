@@ -276,7 +276,7 @@ export class EntityQuery {
   where(anArray: IRecursiveArray<string | number | FilterQueryOpSymbol | Predicate>): EntityQuery;
   where(...args: any[]) {
     let wherePredicate: Predicate | undefined;
-    if (args.length > 0) {
+    if (args.length > 0 && args[0] != null) {
       wherePredicate = Predicate.create(...<any>args);
       if (this.fromEntityType) wherePredicate._validate(this.fromEntityType);
       if (this.wherePredicate) {
