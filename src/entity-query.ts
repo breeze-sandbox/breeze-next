@@ -1,7 +1,7 @@
 ﻿import { core, Callback, ErrorCallback } from './core';
 import { assertParam } from './assert-param';
 import { DataType } from './data-type';
-import { EntityAspect, IEntity  } from './entity-aspect';
+import { EntityAspect, IEntity } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { EnumSymbol, TypedEnum } from './enum';
 import { DataService, JsonResultsAdapter } from './data-service';
@@ -11,7 +11,7 @@ import { QueryOptions, MergeStrategySymbol, FetchStrategySymbol } from './query-
 import { Predicate } from './predicate';
 
 export interface IRecursiveArray<T> {
-    [i: number]: T | IRecursiveArray<T>;
+  [i: number]: T | IRecursiveArray<T>;
 }
 
 interface IEntityQueryJsonContext {
@@ -874,7 +874,7 @@ export class EntityQuery {
 
   };
 
-  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | undefined  {
+  _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | undefined {
     // skipFromCheck is to avoid recursion if called from _getFromEntityType;
     if (this.resultEntityType instanceof EntityType) {
       return this.resultEntityType;
@@ -1196,7 +1196,7 @@ export const BooleanQueryOp = new BooleanQueryOpEnum();
 export class OrderByClause {
   items: OrderByItem[];
 
-  constructor(propertyPaths: string[] | OrderByClause[], isDesc: boolean = false) {
+  constructor(propertyPaths: string[] | OrderByClause[], isDesc?: boolean) {
     if (propertyPaths.length === 0) {
       throw new Error("OrderByClause cannot be empty");
     }
@@ -1217,7 +1217,7 @@ export class OrderByClause {
 
   validate(entityType: EntityType) {
     if (entityType == null || entityType.isAnonymous) return;
-    this.items.forEach( (item) => {
+    this.items.forEach((item) => {
       item.validate(entityType);
     });
   };
@@ -1250,7 +1250,7 @@ class OrderByItem {
   isDesc: boolean;
   lastProperty: EntityProperty;
 
-  constructor(propertyPath: string, isDesc: boolean) {
+  constructor(propertyPath: string, isDesc?: boolean) {
     if (!(typeof propertyPath === 'string')) {
       throw new Error("propertyPath is not a string");
     }
@@ -1258,7 +1258,8 @@ class OrderByItem {
 
     let parts = propertyPath.split(' ');
     // parts[0] is the propertyPath; [1] would be whether descending or not.
-    if (parts.length > 1 && isDesc !== true && isDesc !== false) {
+    // if (parts.length > 1 && isDesc !== true && isDesc !== false) {
+    if (parts.length > 1 && isDesc == null) {
       isDesc = core.stringStartsWith(parts[1].toLowerCase(), "desc");
       if (!isDesc) {
         // isDesc is false but check to make sure its intended.
@@ -1270,7 +1271,7 @@ class OrderByItem {
       }
     }
     this.propertyPath = parts[0];
-    this.isDesc = isDesc;
+    this.isDesc = isDesc || false;
   };
 
   validate(entityType: EntityType) {

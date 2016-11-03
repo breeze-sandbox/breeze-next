@@ -45,7 +45,8 @@ export class UriBuilderODataAdapter implements breeze.IUriBuilderAdapter {
     function toWhereODataFragment(wherePredicate: breeze.Predicate) {
       if (!wherePredicate) return undefined;
       // validation occurs inside of the toODataFragment call here.
-      return wherePredicate.visit({ entityType: entityType }, toODataFragmentVisitor);
+      let frag = wherePredicate.visit({ entityType: entityType }, toODataFragmentVisitor);
+      return (frag && frag.length > 0) ? frag : undefined;
     }
 
     function toOrderByODataFragment(orderByClause: breeze.OrderByClause) {
