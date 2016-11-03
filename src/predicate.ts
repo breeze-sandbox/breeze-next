@@ -644,10 +644,9 @@ class PredicateExpression {
     this.visitorMethodName = visitorMethodName;
     // give expressions the Predicate prototype method
     this.visit = Predicate.prototype.visit;
-    // default impls - may be overridden
-    this._validate = core.noop;
   }
 
+  // default impls - may/will be overridden be subclass expressions
   _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     // noop;
   }

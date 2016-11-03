@@ -1,5 +1,4 @@
 import { BreezeEvent } from './event';
-
 import { AbstractDataServiceAdapter} from './abstract-data-service-adapter';
 import { DataService, JsonResultsAdapter, INodeContext } from './data-service';
 import { DataType, DataTypeSymbol } from './data-type';
