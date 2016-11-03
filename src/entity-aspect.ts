@@ -32,9 +32,9 @@ export type IStructuralObject = IEntity | IComplexObject;
 
 export interface IPropertyChangedEventArgs {
   entity: IEntity;
+  propertyName: string | null;
   parent?: IStructuralObject;
   property?: EntityProperty;
-  propertyName?: string;
   oldValue?: any;
   newValue?: any;
 }
@@ -316,9 +316,7 @@ export class EntityAspect {
       }
       this.setUnchanged();
       // propertyChanged propertyName is not specified because more than one property may have changed.
-      this.propertyChanged.publish({ entity: entity });
-      // old code
-      // this.propertyChanged.publish({ entity: entity, propertyName: null });
+      this.propertyChanged.publish({ entity: entity, propertyName: null });
       entityManager.entityChanged.publish({ entityAction: EntityAction.RejectChanges, entity: entity });
     }
   };
@@ -476,18 +474,17 @@ export class EntityAspect {
   loadNavigationProperty(navigationProperty: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>
   loadNavigationProperty(navigationProperty: NavigationProperty, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
   loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: QuerySuccessCallback, errorCallback: QueryErrorCallback) {
-    if (!this.entity || this.entity.entityAspect || this.entity.entityAspect!.entityManager) return;
-    let entity = this.entity;
+    let entity = this.entity!;
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
     let query = EntityQuery.fromEntityNavigation(entity, navProperty);
     // return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
     let promise = entity.entityAspect.entityManager!.executeQuery(query);
-    let that = this;
-    return promise.then(function (data) {
-      that._markAsLoaded(navProperty.name);
+
+    return promise.then( (data) => {
+      this._markAsLoaded(navProperty.name);
       if (callback) callback(data);
       return Promise.resolve(data);
-    }, function (error) {
+    }, (error) => {
       if (errorCallback) errorCallback(error);
       return Promise.reject(error);
     });

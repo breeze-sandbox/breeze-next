@@ -152,7 +152,6 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
   };
 
 
-
   saveChanges(saveContext: ODataSaveContext, saveBundle: breeze.ISaveBundle) {
     let adapter = saveContext.adapter = this;
 

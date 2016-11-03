@@ -27,7 +27,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   };
 
   initialize() {
-    this.ajaxImpl = config.getAdapterInstance<IAjaxAdapter>("ajax")!;
+    this.ajaxImpl = config.getAdapterInstance<IAjaxAdapter>("ajax") !;
 
     // don't cache 'ajax' because then we would need to ".bind" it, and don't want to because of brower support issues.
     if (this.ajaxImpl && this.ajaxImpl.ajax) {
@@ -59,7 +59,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
             metadataStore.importMetadata(metadata);
           } catch (e) {
             let errMsg = "Unable to either parse or import metadata: " + e.message;
-            return this._handleHttpError(reject, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
+            handleHttpError(reject, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
           }
 
           // import may have brought in the service.
@@ -67,11 +67,11 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
             metadataStore.addDataService(dataService);
           }
 
-          return resolve(metadata);
+          resolve(metadata);
 
         },
         error: (httpResponse: IHttpResponse) => {
-          this._handleHttpError(reject, httpResponse, "Metadata query failed for: " + url);
+          handleHttpError(reject, httpResponse, "Metadata query failed for: " + url);
         }
       });
     });
@@ -104,13 +104,13 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
             if (e instanceof Error) {
               reject(e);
             } else {
-              this._handleHttpError(reject, httpResponse);
+              handleHttpError(reject, httpResponse);
             }
           }
 
         },
         error: function (httpResponse: IHttpResponse) {
-          this._handleHttpError(reject, httpResponse);
+          handleHttpError(reject, httpResponse);
         },
         crossDomain: false
       };
@@ -141,7 +141,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
           httpResponse.saveContext = saveContext;
           let data = httpResponse.data;
           if (data.Errors || data.errors) {
-            this._handleHttpError(reject, httpResponse);
+            handleHttpError(reject, httpResponse);
           } else {
             let saveResult = adapter._prepareSaveResult(saveContext, data);
             saveResult.httpResponse = httpResponse;
@@ -150,7 +150,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
         },
         error: function (httpResponse: IHttpResponse) {
           httpResponse.saveContext = saveContext;
-          this._handleHttpError(reject, httpResponse);
+          handleHttpError(reject, httpResponse);
         }
       });
     });
@@ -219,14 +219,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     throw new Error("Need a concrete implementation of _prepareSaveResult");
   };
 
-  _handleHttpError(reject: (reason?: any) => void, httpResponse: IHttpResponse, messagePrefix?: string) {
-    let err = createError(httpResponse);
-    AbstractDataServiceAdapter._catchNoConnectionError(err);
-    if (messagePrefix) {
-      err.message = messagePrefix + "; " + err.message;
-    }
-    return reject(err);
-  }
+
 
   // Put this at the bottom of your http error analysis
   static _catchNoConnectionError(err: IServerError) {
@@ -245,7 +238,16 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   });
 }
 
-function createError(httpResponse: IHttpResponse)   {
+function handleHttpError(reject: (reason?: any) => void, httpResponse: IHttpResponse, messagePrefix?: string) {
+  let err = createError(httpResponse);
+  AbstractDataServiceAdapter._catchNoConnectionError(err);
+  if (messagePrefix) {
+    err.message = messagePrefix + "; " + err.message;
+  }
+  reject(err);
+}
+
+function createError(httpResponse: IHttpResponse) {
   let err = new Error() as IServerError;
   err.httpResponse = httpResponse;
   err.status = httpResponse.status;

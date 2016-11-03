@@ -270,7 +270,7 @@ function mergeEntity(mc: MappingContext, node: any, meta: INodeMeta) {
         targetEntity.entityAspect.entityState = EntityState.Unchanged;
         clearOriginalValues(targetEntity);
         // propertyName not specified because multiple props IEntityChangedEventArgs
-        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity });
+        targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
         let action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
         em.entityChanged.publish({ entityAction: action, entity: targetEntity });
         // this is needed to handle an overwrite of a modified entity with an unchanged entity
