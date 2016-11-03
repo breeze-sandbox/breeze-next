@@ -1315,7 +1315,7 @@ export class EntityType {
     let initFn = this.initFn;
     if (initFn) {
       let fn = (typeof initFn === "string") ? instance[initFn] : initFn;
-      fn[instance];
+      fn(instance);
     }
     this.complexProperties && this.complexProperties.forEach(function (cp) {
       let complexType = cp.dataType as ComplexType;
