@@ -15,18 +15,29 @@ Next version of Breeze, built using TypeScript 2.
 ## Build using WebPack
 Run `npm run build`.  This will create a breeze.core.js file in the \build dir.
 
-## Misc Notes
+## Breaking changes
 Api is almost identical to the original but small changes are noted below:
 
-1. Methods that could return null may now return undefined instead. Return value checks on these methods should be '==' null instead of '===' null. 
+Breeze no longer depends upon Q.js.  But it does depend on a ES6 promise implementation. i.e. the existence of a global Promise object. 
 
 
 ## Compile Notes
-We are compiling the code with `--strictNullChecks`, and have used `Object` instead of `any` where possible in parameter declarations, to ensure that null checking is taking place.
+In general we have avoided using null parameters in favor of undefined parameters thoughout the API. This means that signatures will look like
 
-Use of `Object` often means casting to `any` within methods, but the payoff should be better compile-time bug catching.
+a(p1: string, p2?: Entity)
 
-We can consider creating an `IObject` base interface for all Breeze classes, and use that instead of `Object` in method parameters.  That way String and Number types won't be accepted erroneously.
+as opposed to 
+
+a(p1: string, p2?: Entity | null);
+
+This IS deliberate.  In general, with very few exceptions input parameters will rarely say 'p: x | null'.  The only exceptions are where
+we need to be able to pass a null parameter followed by one or more non null params.  This is very rare. SaveEntities(entities: Entity[] | null, ...)
+is one exception. 
+
+Note that this is not a breaking change because the underlying code will always check for either a null or undefined. i.e. 'if (p2 == null) {'
+so this convention only affects typescript consumers of the api.  Pure javascript users can still pass a null in ( if they want to)
+
+Note that it is still acceptable for api calls to return a null to indicate that nothing was found.  i.e. like getEntityType().  
 
 ## Jasmine tests 
 

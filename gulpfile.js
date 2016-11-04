@@ -24,7 +24,7 @@ gulp.task('help', taskListing.withFilters(function (taskName) {
 }));
 
 gulp.task('build-docs', function() {
-    var spawnInfo = spawnExt('typedoc', ['--out ./docs/ ./src/']);
+    var spawnInfo = spawnExt('typedoc', ['--out','./docs/','./src']);
 });
 
 gulp.task('watch-tsc', function() {
