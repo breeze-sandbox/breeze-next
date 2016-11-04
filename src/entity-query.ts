@@ -887,8 +887,12 @@ export class EntityQuery {
       // do not cache this value in this case
       // cannot determine the resultEntityType if a selectClause is present.
       // return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
-      if (skipFromCheck || !this.selectClause) return undefined;
-      return this._getFromEntityType(metadataStore, false);
+      if (skipFromCheck || this.selectClause) {
+        return undefined;
+      } else {
+        this._getFromEntityType(metadataStore, false);
+      }
+
     }
   };
 
