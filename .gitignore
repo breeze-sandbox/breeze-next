@@ -18,7 +18,10 @@ TestResults
 
 src/**/*.js
 src/**/*.js.map
+spec/**/*.js
+spec/**/*.js.map
 build/**/*.*
+docs/**/*.*
 
 
 ### node setup ###

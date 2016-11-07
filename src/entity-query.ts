@@ -65,11 +65,11 @@ export class EntityQuery {
   @param [resourceName] {String}
   **/
   constructor(resourceName?: string | Object) {
-    if (resourceName != null && !(typeof resourceName === 'string')) {
+    if (resourceName != null && (typeof resourceName !== 'string')) {
       return fromJSON(this, resourceName);
     }
-
-    this.resourceName = resourceName;
+    // TODO: cast as string below needed for early versions of TypeDoc - but not for regular compile - check later
+    this.resourceName = resourceName as string;
     this.fromEntityType = undefined;
     this.wherePredicate = undefined;
     this.orderByClause = undefined;

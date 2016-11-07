@@ -12,7 +12,7 @@ export class DataTypeSymbol extends EnumSymbol {
   isNumeric?: boolean;
   isInteger?: boolean;
   quoteJsonOData?: boolean;
-  parse?: Function;
+  parse?: (source: any, sourceTypeName: string) => any;
   fmtOData?: Function;
   getNext?: Function;
   getConcurrencyValue?: Function;

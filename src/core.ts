@@ -268,13 +268,14 @@ function toArray(item: any): any[] {
 }
 
 /** a version of Array.map that doesn't require an array, i.e. works on arrays and scalars. */
-function map<T, U>(items: T | T[], fn: (v: T, ix?: number) => U, includeNull?: boolean): U | U[] {
+// function map<T, U>(items: T | T[], fn: (v: T, ix?: number) => U, includeNull?: boolean): U | U[] {
+ function map<T>(items: T | T[], fn: (v: T, ix?: number) => any, includeNull?: boolean): any | any[] {
     // whether to return nulls in array of results; default = true;
     includeNull = includeNull == null ? true : includeNull;
     if (items == null) return items;
     // let result: U[];
     if (Array.isArray(items)) {
-        let result: U[] = [];
+        let result: any[] = [];
         items.forEach(function (v: any, ix: number) {
             let r = fn(v, ix);
             if (r != null || includeNull) {

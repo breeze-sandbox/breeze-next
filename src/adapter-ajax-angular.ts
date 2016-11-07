@@ -51,7 +51,7 @@ export class AjaxAngularAdapter implements breeze.IAjaxAdapter {
       contentType: config.contentType,
       crossDomain: config.crossDomain,
       headers: config.headers || {},
-      data: undefined
+      data: undefined as any
     };
 
     if (config.params) {

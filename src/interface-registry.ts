@@ -37,7 +37,7 @@ declare module "./config" {
         **/
         initializeAdapterInstances(irConfig: IInterfaceRegistryConfig): void;
 
-        // stronly typed version
+        // strongly typed version
         interfaceRegistry: InterfaceRegistry;
     }
 }

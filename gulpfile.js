@@ -27,6 +27,10 @@ gulp.task('build-docs', function() {
     var spawnInfo = spawnExt('typedoc', ['--out','./docs/','./src']);
 });
 
+gulp.task('webpack-breeze', function() {
+   var spawnInfo = spawnExt('webpack', ['--progress','--profile','--display-error-details', '--display-cached']);
+}); 
+
 gulp.task('watch-tsc', function() {
     var spawnInfo = spawnExt('tsc', ['-w']);
 });

@@ -1089,7 +1089,7 @@ export class EntityManager {
     let entitiesToSave = getEntitiesToSave(this, entities ? entities : undefined);
 
     if (entitiesToSave.length === 0) {
-      let result = { entities: [], keyMappings: [] };
+      let result = { entities: [],  keyMappings: [] } as ISaveResult;
       if (callback) callback(result);
       return Promise.resolve(result);
     }

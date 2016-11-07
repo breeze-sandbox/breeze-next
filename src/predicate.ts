@@ -664,7 +664,8 @@ export class LitExpr extends PredicateExpression {
     // if the DataType comes in as Undefined this means
     // that we should NOT attempt to parse it but just leave it alone
     // for now - this is usually because it is part of a Func expr.
-    let dt2 = dt1 || DataType.fromValue(value);
+    // TODO: cast as DataTypeSymbol seems to be needed by early version of TypeDoc - may be able to remove later
+    let dt2 = (dt1 || DataType.fromValue(value)) as DataTypeSymbol;
 
     if (dt2.parse) {
       if (Array.isArray(value)) {

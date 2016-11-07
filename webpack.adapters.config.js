@@ -1,25 +1,16 @@
 var path = require('path');
 var webpack = require('webpack');
+var ExternalsPlugin = require('webpack-externals-plugin');
 
 module.exports = {
   devtool: 'source-map',
   debug: true,
 
   entry: {
-    'breeze-core.debug': [
-      './src/breeze',
-    ],
-    'breeze.debug': [
-      './src/breeze',
-      './src/adapter-ajax-jquery',
-      './src/adapter-ajax-angular',
-      './src/adapter-model-library-backing-store',
-      // './src/adapter-model-library-ko',
-      './src/adapter-data-service-webapi',
-      './src/adapter-uri-builder-odata',
-      './src/adapter-uri-builder-json',
-    ],
-   
+    '_adapter.model-library-ko': [
+      './src/adapter-model-library-ko',
+    ]
+
   },
 
   output: {
@@ -27,7 +18,13 @@ module.exports = {
     publicPath: 'build/',
     filename: '[name].js',
     sourceMapFilename: '[name].js.map',
-    chunkFilename: '[id].chunk.js'
+    chunkFilename: '[id].chunk.js',
+
+  },
+  externals: {
+    // require("breeze") is external and available
+    //  on the global var breeze
+    "./breeze": "breeze"
   },
 
   resolve: {
@@ -53,18 +50,12 @@ module.exports = {
     ]
   },
 
-  plugins: [
-    // new webpack.optimize.UglifyJsPlugin({
-    //       compress: {
-    //           warnings: false,
-    //       },
-    //       output: {
-    //           comments: false,
-    //       },
-    // }),
-
-  ],
-
+  // plugins: [
+  //   new ExternalsPlugin({
+  //     type: 'commonjs',
+  //     exclude: __dirname + '/src/breeze',
+  //   }),
+  // ],
   // target:'node-webkit'
   target: 'web'
 };
