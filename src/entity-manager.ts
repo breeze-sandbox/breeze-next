@@ -141,10 +141,16 @@ export interface EntityManagerConfig {
   metadataStore?: MetadataStore;
 }
 
+export interface IEntityChangedArgs {
+  entityAction: EntityActionSymbol;
+  entity?: IEntity;
+  args?: IPropertyChangedEventArgs;
+}
+
 /**
-  Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client.
-  @class EntityManager
-  **/
+Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client.
+
+**/
 export class EntityManager {
   /** @hidden */
   _$typeName: string; // actually defined on prototype
@@ -170,9 +176,11 @@ export class EntityManager {
   // events
   /**
   A [[BreezeEvent]] that fires whenever a change to any entity in this EntityManager occurs. __Read Only__
-  @param entityAction {EntityAction} The [[EntityAction]] that occured.
-  @param entity {Object} The entity that changed.  If this is null, then all entities in the entityManager were affected.
-  @param args {Object} Additional information about this event. This will differ based on the entityAction.
+
+  @eventArgs - 
+  - entityAction - The [[EntityAction]] that occured.
+  - entity - The entity that changed.  If this is null, then all entities in the entityManager were affected.
+  - args - Additional information about this event. This will differ based on the entityAction.
   @example -
 >      let em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 >      em.entityChanged.subscribe(function(changeArgs) {
@@ -185,14 +193,14 @@ export class EntityManager {
 >  });
   @event
   **/
-  entityChanged: BreezeEvent<{ entityAction: EntityActionSymbol; entity?: IEntity; args?: IPropertyChangedEventArgs }>;
+  entityChanged: BreezeEvent<IEntityChangedArgs>;
 
   /**
   An [[BreezeEvent]] that fires whenever validationErrors change for any entity in this EntityManager. __Read Only__
-    - entity {Entity} The entity on which the validation errors have been added or removed.
-    - added {Array of ValidationError} An array containing any newly added [[ValidationError]]s
-    - removed {Array of ValidationError} An array containing any newly removed [[ValidationError]]s. This is those
-  errors that have been 'fixed'  
+  @eventArgs -
+    - entity - The entity on which the validation errors have been added or removed.
+    - added - An array containing any newly added [[ValidationError]]s
+    - removed - An array containing any newly removed [[ValidationError]]s. This is those errors that have been 'fixed'  
   @example -
 >      let em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 >      em.validationErrorsChanged.subscribe(function(changeArgs) {
@@ -211,8 +219,9 @@ export class EntityManager {
 
   /**
   A [[BreezeEvent]] that fires whenever an EntityManager transitions to or from having changes. __Read Only__
-  @param entityManager {EntityManager} The EntityManager whose 'hasChanges' status has changed.
-  @param hasChanges {Boolean} Whether or not this EntityManager has changes.
+  @eventArgs -
+    - entityManager - The EntityManager whose 'hasChanges' status has changed.
+    - hasChanges - Whether or not this EntityManager has changes.
   @example -
 >      let em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 >      em.hasChangesChanged.subscribe(function(args) {
