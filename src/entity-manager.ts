@@ -1248,7 +1248,13 @@ export class EntityManager {
     return nextKeyValue;
   };
 
+  hasChanges(): boolean;
+  hasChanges(entityTypeNames: string | string[]): boolean;
+  hasChanges(entityTypes: EntityType | EntityType[]): boolean;
   /**
+  Returns whether there are any changed entities of the specified [[EntityType]]s. A 'changed' Entity has
+  has an [[EntityStateEnum]] of either Added, Modified or Deleted.
+
   This method can be used to determine if an EntityManager has any changes
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
   >      if ( em1.hasChanges() {
@@ -1269,14 +1275,6 @@ export class EntityManager {
   >      if ( em1.hasChanges( [custType, orderType]) {
   >          // do something interesting
   >      }
-  @return Whether there are any changed entities on this EntityManager.    
-  **/
-  hasChanges(): boolean;
-  hasChanges(entityTypeNames: string | string[]): boolean;
-  hasChanges(entityTypes: EntityType | EntityType[]): boolean;
-  /**
-  Returns whether there are any changed entities of the specified [[EntityType]]s. A 'changed' Entity has
-  has an [[EntityStateEnum]] of either Added, Modified or Deleted.
   @param entityTypes - The [[EntityType]] or EntityTypes for which 'changed' entities will be found.
   @param entityTypeNames - The [[EntityType]] name or names for which 'changed' entities will be found.
   @return Whether there are any changed entities that match the types specified..
