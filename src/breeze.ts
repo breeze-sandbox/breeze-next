@@ -147,8 +147,13 @@ export const breeze = {
   makeRelationArray: makeRelationArray,
 };
 
+/** @hidden */
 declare var window: any;
+
+/** @hidden */
 declare var global: any;
+
+/** @hidden */
 let win = window || (global ? global.window : undefined);
 if (win) {
   win.breeze = breeze;
