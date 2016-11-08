@@ -256,14 +256,7 @@ export class EntityManager {
 
   /**
   EntityManager constructor.
-  @param emConfig - Configuration settings or a service name.
-  @param emConfig.serviceName 
-  @param emConfig.dataService An entire DataService (instead of just the serviceName above).
-  @param emConfig.queryOptions {QueryOptions}
-  @param emConfig.saveOptions] {SaveOptions}
-  @param emConfig.metadataStore=MetadataStore.defaultInstance {MetadataStore}
-  @param emConfig.validationOptions=ValidationOptions.defaultInstance {ValidationOptions}
-  @param emConfig.keyGeneratorCtor {Function}
+
   At its most basic an EntityManager can be constructed with just a service name
   @example
 ```
@@ -301,6 +294,7 @@ export class EntityManager {
   >         queryOptions: queryOptions,
   >         validationOptions: validationOptions
   >     });
+  @param emConfig - Configuration settings or a service name.  
   **/
   constructor(emConfig?: EntityManagerConfig | string) {
 
@@ -866,9 +860,9 @@ export class EntityManager {
   };
 
   /**
-  Executes the specified query.
+  Executes the specified query. 
+  @async Returns a promise
 
-  This method can be called using a 'promises' syntax ( recommended)
   @example -
 >      let em = new EntityManager(serviceName);
 >      let query = new EntityQuery("Orders");
@@ -900,43 +894,23 @@ export class EntityManager {
 >      }).fail( function(err) {
 >          ... query failure processed here
 >      });
-
-  @async
-  @param query {EntityQuery|String}  The [[EntityQuery]] or OData query string to execute.
-  @param [callback] {Function} Function called on success.
-
-  successFunction([data])
-  @param callback.data {Object}
-  @param callback.data.results {Array of Entity}
-  @param callback.data.query {EntityQuery} The original query
-  @param callback.data.entityManager {EntityManager} The EntityManager.
-  @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
-  @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of
-  items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
-  would have been applied.
-  @param callback.data.retrievedEntities {Array of Entity} All entities returned by the query.  Differs from results when .expand() is used.
-
-  @param [errorCallback] {Function} Function called on failure.
-
-  failureFunction([error])
-  @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-  @param [errorCallback.error.query] The query that caused the error.
-  @param [errorCallback.error.entityManager] The query that caused the error.
-  @param [errorCallback.error.httpResponse] {HttpResponse} The HttpResponse returned from the server.
-
-
-  @return {Promise}
-    - Properties on the promise success result
-      - results {Array of Entity}
-      - query {EntityQuery} The original query
-      - entityManager {EntityManager} The EntityManager.
-      - httpResponse {HttpResponse} The  HttpResponse returned from the server.
-      - [inlineCount] {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of
-    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
-    would have been applied.
   **/
   executeQuery(query: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
   executeQuery(query: EntityQuery, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  /**
+  @param query - The [[EntityQuery]] or OData query string to execute.
+  @param callback - Function called on success.
+  @param errorCallback - {Function} Function called on failure.
+  @return Promise of 
+    - results - An array of entities
+    - retrievedEntities - A array of all of the entities returned by the query.  Differs from results (above) when .expand() is used.
+    - query - The original [[EntityQuery]] or query string
+    - entityManager -  The EntityManager.
+    - httpResponse - The [[IHttpResponse]] returned from the server.
+    - inlineCount -  Only available if 'inlineCount(true)' was applied to the query.  Returns the count of
+    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
+    would have been applied.
+  **/
   executeQuery(query: EntityQuery | string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback) {
     assertParam(query, "query").isInstanceOf(EntityQuery).or().isString().check();
     assertParam(callback, "callback").isFunction().isOptional().check();
