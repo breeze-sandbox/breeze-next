@@ -257,15 +257,12 @@ export class EntityManager {
   EntityManager constructor.
 
   At its most basic an EntityManager can be constructed with just a service name
-  
   >     let entityManager = new EntityManager( "breeze/NorthwindIBModel");
 
   This is the same as calling it with the following configuration object
-  
   >     let entityManager = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
 
   Usually however, configuration objects will contain more than just the 'serviceName';
-  
   >     let metadataStore = new MetadataStore();
   >     let entityManager = new EntityManager( {
   >       serviceName: "breeze/NorthwindIBModel",
@@ -273,7 +270,6 @@ export class EntityManager {
   >     });
 
   or
-  
   >     return new QueryOptions({
   >         mergeStrategy: obj,
   >         fetchStrategy: this.fetchStrategy
@@ -319,21 +315,14 @@ export class EntityManager {
   };
 
   /**
-  General purpose property set method.  Any of the properties documented below
+  General purpose property set method.  Any of the properties in the [[EntityManagerConfig]]
   may be set.
- 
->      // assume em1 is a previously created EntityManager
->      // where we want to change some of its settings.
->      em1.setProperties( {
->          serviceName: "breeze/foo"
->      });
-  @param config {Object}
-  @param config.serviceName 
-  @param config.dataService 
-  @param config.queryOptions
-  @param config.saveOptions 
-  @param config.validationOptions 
-  @param config.keyGeneratorCtor 
+  >      // assume em1 is a previously created EntityManager
+  >      // where we want to change some of its settings.
+  >      em1.setProperties( {
+  >          serviceName: "breeze/foo"
+  >      });
+  @param config - An object containing the selected properties and values to set.
   **/
   setProperties(config: EntityManagerConfig) {
     EntityManager._updateWithConfig(this, config, false);
@@ -376,9 +365,12 @@ export class EntityManager {
     }
   }
 
-  // class methods
-
+  createEntity(typeName: string, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
+  createEntity(entityType: EntityType, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
   /**
+  Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
+  but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added
+  to the EntityManager. 
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
   >      // create and add an entity;
   >      let emp1 = em1.createEntity("Employee");
@@ -388,13 +380,6 @@ export class EntityManager {
   >      let emp3 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Unchanged);
   >      // create but don't attach an entity;
   >      let emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: "John" }, EntityState.Detached);
-  **/
-  createEntity(typeName: string, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
-  createEntity(entityType: EntityType, initialValues?: Object, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol): IEntity;
-  /**
-  Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added
-  but you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added
-  to the EntityManager. 
   @param typeName - The name of the EntityType for which an instance should be created.
   @param entityType - The EntityType of the type for which an instance should be created.
   @param initialValues - (default=null) Configuration object of the properties to set immediately after creation.
@@ -419,21 +404,19 @@ export class EntityManager {
     return entity;
   };
 
-
   static importEntities(exportedString: string, config?: IImportConfig): EntityManager;
   static importEntities(exportedData: Object, config?: IImportConfig): EntityManager;
   /**
   Creates a new EntityManager and imports a previously exported result into it.
-
->      // assume em1 is an EntityManager containing a number of preexisting entities.
->      let bundle = em1.exportEntities();
->      // can be stored via the web storage api
->      window.localStorage.setItem("myEntityManager", bundle);
->      // assume the code below occurs in a different session.
->      let bundleFromStorage = window.localStorage.getItem("myEntityManager");
->      // and imported
->      let em2 = EntityManager.importEntities(bundleFromStorage);
->      // em2 will now have a complete copy of what was in em1
+  >      // assume em1 is an EntityManager containing a number of preexisting entities.
+  >      let bundle = em1.exportEntities();
+  >      // can be stored via the web storage api
+  >      window.localStorage.setItem("myEntityManager", bundle);
+  >      // assume the code below occurs in a different session.
+  >      let bundleFromStorage = window.localStorage.getItem("myEntityManager");
+  >      // and imported
+  >      let em2 = EntityManager.importEntities(bundleFromStorage);
+  >      // em2 will now have a complete copy of what was in em1
   @param exportedString - The result of a previous 'exportEntities' call as a string
   @param exportedData - The result of a previous 'exportEntities' call as an Object.
   @param config - A configuration object.
@@ -513,13 +496,13 @@ export class EntityManager {
   @param entities - The entities to export or the EntityType(s) of the entities to export;
     all entities are exported if this parameter is omitted or null.
   @param exportConfig - Export configuration options or a boolean
-  @param exportConfig.asString - If true (default), return export bundle as a string.
-  @param [exportConfig.includeMetadata=true] - If true (default), include metadata in the export bundle.
+    - asString - (boolean) - If true (default), return export bundle as a string.
+    - includeMetadata - (boolean) - If true (default), include metadata in the export bundle.
   @return The export bundle either serialized (default) or as a JSON object.
   The bundle contains the metadata (unless excluded) and the entity data grouped by type.
   The entity data include property values, change-state, and temporary key mappings (if any).
 
-  The export bundle is an undocumented, Breeze-internal representation of entity data
+  The export bundle internals are deliberately undocumented.  This Breeze-internal representation of entity data is
   suitable for export, storage, and import. The schema and contents of the bundle may change in future versions of Breeze.
   Manipulate it at your own risk with appropriate caution.
   **/
@@ -654,7 +637,6 @@ export class EntityManager {
     };
   };
 
-
   /**
   Clears this EntityManager's cache but keeps all other settings. Note that this
   method is not as fast as creating a new EntityManager via 'new EntityManager'.
@@ -676,7 +658,6 @@ export class EntityManager {
     this.entityChanged.publish({ entityAction: EntityAction.Clear });
     this._setHasChanges(false);
   };
-
 
   /**
   Creates an empty copy of this EntityManager but with the same DataService, MetadataStore, QueryOptions, SaveOptions, ValidationOptions, etc. 
@@ -805,7 +786,7 @@ export class EntityManager {
   /**
   Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call
   occurs internally before the first query to any service if the metadata hasn't already been
-  loaded.
+  loaded. __Async__
 
   Usually you will not actually process the results of a fetchMetadata call directly, but will instead
   ask for the metadata from the EntityManager after the fetchMetadata call returns.
@@ -817,7 +798,7 @@ export class EntityManager {
   >       }).fail(function(exception) {
   >           // handle exception here
   >       });
-  @async
+  
   @param callback - Function called on success.
   @param errorCallback - Function called on failure.
   @return {Promise}
@@ -840,9 +821,12 @@ export class EntityManager {
     return promiseWithCallbacks(promise, callback, errorCallback);
   };
 
+
+  executeQuery(query: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  executeQuery(query: EntityQuery, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
   /**
-  Executes the specified query. 
-  @async Returns a promise
+  Executes the specified query. __Async__ 
+  
   >     let em = new EntityManager(serviceName);
   >     let query = new EntityQuery("Orders");
   >     em.executeQuery(query).then( function(data) {
@@ -873,10 +857,6 @@ export class EntityManager {
   >     }).fail( function(err) {
   >         ... query failure processed here
   >     });
-  **/
-  executeQuery(query: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
-  executeQuery(query: EntityQuery, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
-  /**
   @param query - The [[EntityQuery]] or OData query string to execute.
   @param callback - Function called on success.
   @param errorCallback - {Function} Function called on failure.
@@ -939,7 +919,7 @@ export class EntityManager {
 
   /**
   Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities
-  specified then there will be no server side call made but a valid 'empty' saveResult will still be returned.
+  specified then there will be no server side call made but a valid 'empty' saveResult will still be returned. __Async__
 
   Often we will be saving all of the entities within an EntityManager that are either added, modified or deleted
   and we will let the 'saveChanges' call determine which entities these are.
@@ -972,7 +952,7 @@ export class EntityManager {
   >              // e is any exception that was thrown.
   >          }
   >      );
-  @async
+
   @param entities - The list of entities to save.
   Every entity in that list will be sent to the server, whether changed or unchanged,
   as long as it is attached to this EntityManager.
@@ -1318,7 +1298,13 @@ export class EntityManager {
     });
   };
 
+  getChanges(): IEntity[];
+  getChanges(entityTypeNames: string | string[]): IEntity[];
+  getChanges(entityTypes: EntityType | EntityType[]): IEntity[];
   /**
+  Returns a array of all changed entities of the specified [[EntityType]]s. A 'changed' Entity has
+  has an [[EntityStateSymbol]] of either Added, Modified or Deleted.
+  
   This method can be used to get all of the changed entities within an EntityManager
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
   >      let changedEntities = em1.getChanges();
@@ -1333,17 +1319,9 @@ export class EntityManager {
   >      let custType = em1.metadataStore.getEntityType("Customer");
   >      let orderType = em1.metadataStore.getEntityType("Order");
   >      let changedCustomersAndOrders = em1.getChanges([custType, orderType]);
-  **/
-  getChanges(): IEntity[];
-  getChanges(entityTypeNames: string | string[]): IEntity[];
-  getChanges(entityTypes: EntityType | EntityType[]): IEntity[];
-  /**
-  Returns a array of all changed entities of the specified [[EntityType]]s. A 'changed' Entity has
-  has an [[EntityStateSymbol]] of either Added, Modified or Deleted.
-   
   @param entityTypes - The [[EntityType]] or EntityTypes for which 'changed' entities will be found.
   @param entityTypeNames - The [[EntityType]] name or names for which 'changed' entities will be found.
-  @return Array of Entities
+  @return An array of Entities
   **/
   getChanges(entityTypes?: EntityType | EntityType[] | string | string[]) {
     let ets = checkEntityTypes(this, entityTypes);
@@ -1373,6 +1351,8 @@ export class EntityManager {
     return changes;
   };
 
+  getEntities(entityTypeNames?: string | string[], entityStates?: EntityStateSymbol | EntityStateSymbol[]): IEntity[];
+  getEntities(entityTypes?: EntityType | EntityType[], entityStates?: EntityStateSymbol | EntityStateSymbol[]): IEntity[];
   /**
   Returns a array of all entities of the specified [[EntityType]]s with the specified [[EntityStateSymbol]]s.
 
@@ -1396,20 +1376,12 @@ export class EntityManager {
   >      let custType = em1.metadataStore.getEntityType("Customer");
   >      let orderType = em1.metadataStore.getEntityType("Order");
   >      let addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState.Added);
-
-  **/
-  getEntities(entityTypeName: string, entityState?: EntityStateSymbol): IEntity[];
-  getEntities(entityTypeNames?: string[], entityState?: EntityStateSymbol): IEntity[];
-  getEntities(entityTypeName?: string, entityStates?: EntityStateSymbol[]): IEntity[];
-  getEntities(entityTypeNames?: string[], entityStates?: EntityStateSymbol[]): IEntity[];
-  getEntities(entityType: EntityType, entityState?: EntityStateSymbol): IEntity[];
-  getEntities(entityTypes?: EntityType[], entityState?: EntityStateSymbol): IEntity[];
-  getEntities(entityType?: EntityType, entityStates?: EntityStateSymbol[]): IEntity[];
-  getEntities(entityTypes?: EntityType[], entityStates?: EntityStateSymbol[]): IEntity[];
-  /**
-  @param entityTypes - [[EntityType]]s for which entities will be found.
-  If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.
-  @param entityState - The [[EntityStateSymbol]]s for which entities will be found.
+ 
+  @param entityTypeName - The [[EntityType]] name or names for which entities will be found.
+  If this parameter is omitted, all EntityTypes are searched.  
+  @param entityTypes - The [[EntityType]] or EntityTypes for which entities will be found.
+  If this parameter is omitted, all EntityTypes are searched. 
+  @param entityStates - The [[EntityStateSymbol]]s for which entities will be found.
   If this parameter is omitted, entities of all EntityStates are returned.
   @return An array of Entities
   **/
