@@ -1291,14 +1291,14 @@ export class EntityManager {
   /**
   [Deprecated] - Attempts to locate an entity within this EntityManager by its  {{#crossLink "EntityKey"}}{{/crossLink}}.
   @example - 
->    // assume em1 is an EntityManager containing a number of preexisting entities.
->    let employeeType = em1.metadataStore.getEntityType("Employee");
->    let employeeKey = new EntityKey(employeeType, 1);
->    let employee = em1.findEntityByKey(employeeKey);
->    // employee will either be an entity or null.
+>     // assume em1 is an EntityManager containing a number of preexisting entities.
+>     let employeeType = em1.metadataStore.getEntityType("Employee");
+>     let employeeKey = new EntityKey(employeeType, 1);
+>     let employee = em1.findEntityByKey(employeeKey);
+>     // employee will either be an entity or null.
   @deprecated    Use getEntityByKey instead
-  @param entityKey The  [EntityKey] of the Entity to be located.
-  @return {Entity} An Entity or null;
+  @param entityKey - The  [[EntityKey]] of the Entity to be located.
+  @return An Entity or null;
   **/
   findEntityByKey(entityKey: EntityKey) {
     return this.getEntityByKey(entityKey);
@@ -1309,10 +1309,10 @@ export class EntityManager {
   created entities have unique keys and to register that these keys are temporary and
   need to be automatically replaced with 'real' key values once these entities are saved.
   
-  The [EntityManager.keyGeneratorCtor] property is used internally by this method to actually generate
+  The [[EntityManager.keyGeneratorCtor]] property is used internally by this method to actually generate
   the keys - See the  KeyGenerator interface interface description to see
   how a custom key generator can be plugged in.
-  @example
+  @example -
 >      // assume em1 is an EntityManager containing a number of preexisting entities.
 >      let custType = em1.metadataStore.getEntityType("Customer");
 >      let customer = custType.createEntity();
@@ -1328,8 +1328,8 @@ export class EntityManager {
 >          // and the client will have been updated with this
 >          // new id.
 >      })
-  @param entity {Entity} The Entity to generate a key for.
-  @return {Object} The new key value
+  @param entity - The Entity to generate a key for.
+  @return The new key value
   **/
   generateTempKeyValue(entity: IEntity) {
     // TODO - check if this entity is attached to this EntityManager.
@@ -1343,39 +1343,43 @@ export class EntityManager {
   };
 
   /**
-  Returns whether there are any changed entities of the specified {{#crossLink "EntityType"}}{{/crossLink}}s. A 'changed' Entity has
-  has an {{#crossLink "EntityState"}}{{/crossLink}} of either Added, Modified or Deleted.
-  @example
   This method can be used to determine if an EntityManager has any changes
-  @example
+  @example -
 >      // assume em1 is an EntityManager containing a number of preexisting entities.
 >      if ( em1.hasChanges() {
 >          // do something interesting
 >      }
-  or if it has any changes on to a specific {{#crossLink "EntityType"}}{{/crossLink}}
-  @example
+  or if it has any changes on to a specific [[EntityType]].
+  @example -
 >      // assume em1 is an EntityManager containing a number of preexisting entities.
 >      let custType = em1.metadataStore.getEntityType("Customer");
 >      if ( em1.hasChanges(custType) {
 >          // do something interesting
 >      }
-  or to a collection of {{#crossLink "EntityType"}}{{/crossLink}}s
-  @example
+  or to a collection of [[EntityType]]s
+  @example -
 >      // assume em1 is an EntityManager containing a number of preexisting entities.
 >      let custType = em1.metadataStore.getEntityType("Customer");
 >      let orderType = em1.metadataStore.getEntityType("Order");
 >      if ( em1.hasChanges( [custType, orderType]) {
 >          // do something interesting
 >      }
-  @param [entityTypes] {String|Array of String|EntityType|Array of EntityType} The {{#crossLink "EntityType"}}{{/crossLink}}s for which 'changed' entities will be found.
-  If this parameter is omitted, all EntityTypes are searched. String parameters are treated as EntityType names.
-  @return {Boolean} Whether there were any changed entities.
+  @return {Boolean} Whether there are any changed entities on this EntityManager.    
   **/
   hasChanges(): boolean;
   hasChanges(entityTypeName: string): boolean;
   hasChanges(entityTypeNames: string[]): boolean;
   hasChanges(entityType: EntityType): boolean;
   hasChanges(entityTypes: EntityType[]): boolean;
+  /**
+  Returns whether there are any changed entities of the specified [[EntityType]]s. A 'changed' Entity has
+  has an [[EntityStateEnum]] of either Added, Modified or Deleted.
+  @param entityType - The [[EntityType]] for which 'changed' entities will be found.
+  @param entityTypes - The [[EntityType]]s for which 'changed' entities will be found.
+  @param entityTypeName - The name of the [[EntityType]] for which 'changed' entities will be found.
+  @param entityTypeNames - The names of the [[EntityType]]s for which 'changed' entities will be found.
+  @return Whether there are any changed entities that match the types specified..
+  **/
   hasChanges(entityTypes?: EntityType | EntityType[] | string | string[]) {
     if (!this._hasChanges) return false;
     if (entityTypes === undefined) return this._hasChanges;
