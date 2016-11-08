@@ -13,7 +13,10 @@ Next version of Breeze, built using TypeScript 2.
 5. Test more
 
 ## Build using WebPack
-Run `npm run build`.  This will create a breeze.core.js file in the \build dir.
+Run `npm run build`.  This will create a breeze.core.js file in the '\build' dir.
+
+## Build API Docs
+Run `npm run tsdocs`.  This will create a '\docs' dir. click on the 'index.html' in this folder to see the docs.
 
 ## Breaking changes
 Api is almost identical to the original but small changes are noted below:
