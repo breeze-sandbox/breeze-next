@@ -2,7 +2,7 @@
 import { ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 // import { DataType } from './data-type';
 import { EntityKey } from './entity-key';
-import { EntityAspect, IEntity, IStructuralObject } from './entity-aspect';
+import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entity-aspect';
 import { EntityState } from './entity-state';
 import { EntityAction } from './entity-action';
 
@@ -34,11 +34,11 @@ export function defaultPropertyInterceptor(this: IStructuralObject, property: En
   // let entityAspect = new EntityAspect(this);
 
   let propertyName: string;
-  let entityAspect = (this as any).entityAspect;
+  let entityAspect = (this as any).entityAspect as EntityAspect;
   if (entityAspect) {
     propertyName = property.name;
   } else {
-    let localAspect = (this as any).complexAspect;
+    let localAspect = (this as any).complexAspect as ComplexAspect;
     if (localAspect) {
       entityAspect = localAspect.getEntityAspect();
       propertyName = localAspect.getPropertyPath(property.name);

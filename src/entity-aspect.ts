@@ -1,5 +1,7 @@
-﻿import { core } from './core';
-import { config  } from './config';
+﻿import { IComplexArray } from './complex-array';
+import { IValidationErrorsChangedEventArgs } from './entity-aspect';
+import { core } from './core';
+import { config } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
 import { EntityState, EntityStateSymbol } from './entity-state';
@@ -39,44 +41,115 @@ export interface IPropertyChangedEventArgs {
   newValue?: any;
 }
 
+export interface IValidationErrorsChangedEventArgs {
+  entity: IEntity;
+  added: ValidationError[];
+  removed: ValidationError[];
+}
+
 /**
-  An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property.
+An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property.
 
-  The EntityAspect itself provides properties to determine and modify the EntityState of the entity and has methods
-  that provide a variety of services including validation and change tracking.
+The EntityAspect itself provides properties to determine and modify the EntityState of the entity and has methods
+that provide a variety of services including validation and change tracking.
 
-  An EntityAspect will almost never need to be constructed directly. You will usually get an EntityAspect by accessing
-  an entities 'entityAspect' property.  This property will be automatically attached when an entity is created via either
-  a query, import or EntityManager.createEntity call.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var aspect = order.entityAspect;
-      var currentState = aspect.entityState;
-  @class EntityAspect
-  **/
+An EntityAspect will almost never need to be constructed directly. You will usually get an EntityAspect by accessing
+an entities 'entityAspect' property.  This property will be automatically attached when an entity is created via either
+a query, import or [[EntityManager.createEntity]] call.
+>      // assume order is an order entity attached to an EntityManager.
+>      var aspect = order.entityAspect;
+>      var currentState = aspect.entityState;
+
+**/
+
+
 export class EntityAspect {
+  /** The Entity that this aspect is associated with. __Read Only__  **/
   entity?: IEntity;
+  /** The [[EntityManager]] that contains this entity. __Read Only__ **/
   entityManager?: EntityManager;
+  /**  @hidden */
   entityGroup?: EntityGroup;
+  /** The [[EntityState]] of this entity. __Read Only__ **/
   entityState: EntityStateSymbol;
+  /**   Whether this entity is in the process of being saved. __Read Only__ */
   isBeingSaved: boolean;
+  /** The 'original values' of this entity where they are different from the 'current values'.
+  This is a map where the key is a property name and the value is the 'original value' of the property. */
   originalValues: {};
+  /**  Whether this entity has any validation errors. __Read Only__ */
   hasValidationErrors: boolean;
+  /** Whether this entity has a temporary [[EntityKey]]. */
   hasTempKey: boolean;
-  _validationErrors: { [index: string]: ValidationError };
-  _pendingValidationResult: any;
-  _entityKey: EntityKey;
-  _loadedNps: any[];
-  _initialized?: boolean;
+  /** Whether this entity was created by being loaded from the database */
   wasLoaded?: boolean;
-  validationErrorsChanged:  BreezeEvent<{ entity: IEntity;  added: ValidationError[]; removed: ValidationError[] } >;
-  // propertyChanged: BreezeEvent<{ entity: IEntity; propertyName?: string; }>;
-  propertyChanged: BreezeEvent<IPropertyChangedEventArgs>;
+  /** Extra metadata about this entity such as the entity's etag.
+  You may extend this object with your own metadata information.
+  Breeze (de)serializes this object when importing/exporting the entity. **/
   extraMetadata?: any;
+  /**
+  A [[BreezeEvent]] that fires whenever any of the validation errors on this entity change.
+  Note that this might be the removal of an error when some data on the entity is fixed.
+  @eventArgs - 
+    - entity - The entity on which the validation errors are being added or removed.
+    - added - An array containing any newly added [[ValidationError]]s
+    - removed - An array containing any newly removed [[ValidationError]]s. This is those
+      errors that have been 'fixed'.
+
+>      // assume order is an order entity attached to an EntityManager.
+>      order.entityAspect.validationErrorsChanged.subscribe(
+>      function (validationChangeArgs) {
+>          // this code will be executed anytime a property value changes on the 'order' entity.
+>          var entity == validationChangeArgs.entity; // Note: entity === order
+>          var errorsAdded = validationChangeArgs.added;
+>          var errorsCleared = validationChangeArgs.removed;
+>      });
+  @event
+  **/
+  validationErrorsChanged: BreezeEvent<IValidationErrorsChangedEventArgs>;
+  /**
+  A [[BreezeEvent]] that fires whenever a value of one of this entity's properties change.
+  @eventArgs -
+    - entity - The entity whose property has changed.
+    - property - The [[DataProperty]] that changed.
+    - propertyName - The name of the property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
+      queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
+      for any properties of a complex type.
+    - oldValue - The old value of this property before the change.
+    - newValue - The new value of this property after the change.
+    - parent - The immediate parent object for the changed property.  This will be a ComplexType instance as opposed to an Entity 
+      for any complex type or nested complex type properties.
+
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.propertyChanged.subscribe(
+  >      function (propertyChangedArgs) {
+  >          // this code will be executed anytime a property value changes on the 'order' entity.
+  >          var entity = propertyChangedArgs.entity; // Note: entity === order
+  >          var propertyNameChanged = propertyChangedArgs.propertyName;
+  >          var oldValue = propertyChangedArgs.oldValue;
+  >          var newValue = propertyChangedArgs.newValue;
+  >      });
+  @event
+  **/
+  propertyChanged: BreezeEvent<IPropertyChangedEventArgs>;
+
+  /** @hidden */
+  _validationErrors: { [index: string]: ValidationError };
+  /** @hidden */
+  _pendingValidationResult: any;
+  /** @hidden */
+  _entityKey: EntityKey;
+  /** @hidden */
+  _loadedNps: any[];
+  /** @hidden */
+  _initialized?: boolean;
+  /** @hidden */
+  _inProcess: any[]; // used in defaultPropertyInterceptor for temp storage.
+  /** @hidden */
   _inProcessEntity?: IEntity; // used in EntityManager
-
+  /** @hidden */
   static _nullInstance = new EntityAspect(); // TODO: determine if this works
-
+  /** @hidden */
   constructor(entity?: IEntity) {
 
     // if called without new
@@ -118,141 +191,50 @@ export class EntityAspect {
     }
   };
 
+  /** @hidden */
   // type-guard
   static isEntity(obj: IStructuralObject): obj is IEntity {
     return (obj as any).entityAspect != null;
   }
 
-  static createFrom(entity: IEntity): EntityAspect {
-    if (entity == null) {
-      return EntityAspect._nullInstance;
-    } else if (entity.entityAspect) {
-      return entity.entityAspect;
-    }
+  // No longer used
+  // static createFrom(entity: IEntity): EntityAspect {
+  //   if (entity == null) {
+  //     return EntityAspect._nullInstance;
+  //   } else if (entity.entityAspect) {
+  //     return entity.entityAspect;
+  //   }
+  //   return new EntityAspect(entity);
+  // }
 
-    return new EntityAspect(entity);
+  // TODO: refactor this and the instance getPropertyValue method.
+  /**
+  Returns the value of a specified 'property path' for a specified entity.
 
-  }
-
+  The propertyPath can be either a string delimited with '.' or a string array.  
+  **/
   // used by EntityQuery and Predicate
   static getPropertyPathValue(obj: IEntity, propertyPath: string | string[]) {
-  let properties = Array.isArray(propertyPath) ? propertyPath : propertyPath.split(".");
-  if (properties.length === 1) {
-    return obj.getProperty(propertyPath as string);
-  } else {
-    let nextValue = obj;
-    // hack use of some to perform mapFirst operation.
-    properties.some((prop) => {
-      nextValue = nextValue.getProperty(prop);
-      return nextValue == null;
-    });
-    return nextValue;
+    let properties = Array.isArray(propertyPath) ? propertyPath : propertyPath.split(".");
+    if (properties.length === 1) {
+      return obj.getProperty(propertyPath as string);
+    } else {
+      let nextValue = obj;
+      // hack use of some to perform mapFirst operation.
+      properties.some((prop) => {
+        nextValue = nextValue.getProperty(prop);
+        return nextValue == null;
+      });
+      return nextValue;
+    }
   }
-}
 
   /**
-  The Entity that this aspect is associated with.
-
-  __readOnly__
-  @property entity {Entity}
-  **/
-
-  /**
-  The {{#crossLink "EntityManager"}}{{/crossLink}} that contains this entity.
-
-  __readOnly__
-  @property entityManager {EntityManager}
-  **/
-
-  /**
-  The {{#crossLink "EntityState"}}{{/crossLink}} of this entity.
-
-  __readOnly__
-  @property entityState {EntityState}
-  **/
-
-  /**
-  Extra metadata about this entity such as the entity's etag.
-  You may extend this object with your own metadata information.
-  Breeze (de)serializes this object when importing/exporting the entity.
-
-  @property extraMetadata {Object}
-  **/
-
-  /**
-  Whether this entity is in the process of being saved.
-
-  __readOnly__
-  @property isBeingSaved {Boolean}
-  **/
-
-  /**
-  Whether this entity has any validation errors.
-
-  __readOnly__
-  @property hasValidationErrors {Boolean}
-  **/
-
-  /**
-  The 'original values' of this entity where they are different from the 'current values'.
-  This is a map where the key is a property name and the value is the 'original value' of the property.
-
-  __readOnly__
-  @property originalValues {Object}
-  **/
-
-  /**
-  An {{#crossLink "Event"}}{{/crossLink}} that fires whenever a value of one of this entity's properties change.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.propertyChanged.subscribe(
-      function (propertyChangedArgs) {
-          // this code will be executed anytime a property value changes on the 'order' entity.
-          var entity = propertyChangedArgs.entity; // Note: entity === order
-          var propertyNameChanged = propertyChangedArgs.propertyName;
-          var oldValue = propertyChangedArgs.oldValue;
-          var newValue = propertyChangedArgs.newValue;
-      });
-  @event propertyChanged
-  @param entity {Entity} The entity whose property has changed.
-  @param property {DataProperty} The DataProperty that changed.
-  @param propertyName {String} The name of the property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
-  queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
-  for any properties of a complex type.
-  @param oldValue {Object} The old value of this property before the change.
-  @param newValue {Object} The new value of this property after the change.
-  @param parent {Object} The immediate parent object for the changed property.  This will be different from the 'entity' for any complex type or nested complex type properties.
-  @readOnly
-  **/
-
-  /**
-  An {{#crossLink "Event"}}{{/crossLink}} that fires whenever any of the validation errors on this entity change.
-  Note that this might be the removal of an error when some data on the entity is fixed.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.validationErrorsChanged.subscribe(
-      function (validationChangeArgs) {
-          // this code will be executed anytime a property value changes on the 'order' entity.
-          var entity == validationChangeArgs.entity; // Note: entity === order
-          var errorsAdded = validationChangeArgs.added;
-          var errorsCleared = validationChangeArgs.removed;
-      });
-  @event validationErrorsChanged
-  @param entity {Entity} The entity on which the validation errors are being added or removed.
-  @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
-  @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
-  errors that have been 'fixed'
-  @readOnly
-  **/
-
-  /**
-  Returns the {{#crossLink "EntityKey"}}{{/crossLink}} for this Entity.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var entityKey = order.entityAspect.getKey();
-  @method getKey
-  @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
-  @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
+  Returns the [[EntityKey]] for this Entity.
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var entityKey = order.entityAspect.getKey();
+  @param forceRefresh - (boolean=false) Forces the recalculation of the key.  This should normally be unnecessary.
+  @return The [[EntityKey]] associated with this Entity.
   **/
   getKey(forceRefresh: boolean = false) {
     forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
@@ -268,13 +250,11 @@ export class EntityAspect {
   };
 
   /**
-  Returns the entity to an {{#crossLink "EntityState"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried
+  Returns the entity to an [[EntityState]] of 'Unchanged' by committing all changes made since the entity was last queried
   had 'acceptChanges' called on it.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.acceptChanges();
-      // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
-  @method acceptChanges
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.acceptChanges();
+  >      // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
   **/
   acceptChanges() {
     if (!this.entity) return;
@@ -289,13 +269,11 @@ export class EntityAspect {
   };
 
   /**
-  Returns the entity to an EntityState of 'Unchanged' by rejecting all changes made to it since the entity was last queried
+  Returns the entity to an [[EntityState]] of 'Unchanged' by rejecting all changes made to it since the entity was last queried
   had 'rejectChanges' called on it.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.rejectChanges();
-      // The 'order' entity will now be in an 'Unchanged' state with any changes rejected.
-  @method rejectChanges
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.rejectChanges();
+  >      // The 'order' entity will now be in an 'Unchanged' state with any changes rejected.
   **/
   rejectChanges() {
     this._checkOperation("rejectChanges");
@@ -321,35 +299,31 @@ export class EntityAspect {
     }
   };
 
-
+  /**  @hidden */
+  // TODO: rename - and use '_'; used on both EntityAspect and ComplexAspect for polymorphic reasons.
   getPropertyPath(propName: string) {
     return propName;
   }
 
-
   /**
-  Sets the entity to an EntityState of 'Added'.  This is NOT the equivalent of calling {{#crossLink "EntityManager/addEntity"}}{{/crossLink}}
+  Sets the entity to an EntityState of 'Added'.  This is NOT the equivalent of calling [[EntityManager.addEntity]]
   because no key generation will occur for autogenerated keys as a result of this operation. As a result this operation can be problematic
   unless you are certain that the entity being marked 'Added' does not already exist in the database and does not have an autogenerated key.
-  The same operation can be performed by calling  {{#crossLink "EntityAspect/setEntityState"}}{{/crossLink}}.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setAdded();
-      // The 'order' entity will now be in an 'Added' state.
-  @method setAdded
+  The same operation can be performed by calling [[EntityAspect.setEntityState]].
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setAdded();
+  >      // The 'order' entity will now be in an 'Added' state.
   **/
   setAdded() {
     return this.setEntityState(EntityState.Added);
   }
 
   /**
-  Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}.
-  The same operation can be performed by calling  {{#crossLink "EntityAspect/setEntityState"}}{{/crossLink}}.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setUnchanged();
-      // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
-  @method setUnchanged
+  Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling [[EntityAspect.acceptChanges]].
+  The same operation can be performed by calling [[EntityAspect.setEntityState]].
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setUnchanged();
+  >      // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
   **/
   setUnchanged = function () {
     return this.setEntityState(EntityState.Unchanged);
@@ -358,12 +332,10 @@ export class EntityAspect {
 
   /**
   Sets the entity to an EntityState of 'Modified'.  This can also be achieved by changing the value of any property on an 'Unchanged' entity.
-  The same operation can be performed by calling  {{#crossLink "EntityAspect/setEntityState"}}{{/crossLink}}.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setModified();
-      // The 'order' entity will now be in a 'Modified' state.
-  @method setModified
+  The same operation can be performed by calling [[EntityAspect.setEntityState]].
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setModified();
+  >      // The 'order' entity will now be in a 'Modified' state.
   **/
   setModified = function () {
     return this.setEntityState(EntityState.Modified);
@@ -372,12 +344,10 @@ export class EntityAspect {
   /**
   Sets the entity to an EntityState of 'Deleted'.  This both marks the entity as being scheduled for deletion during the next 'Save' call
   but also removes the entity from all of its related entities.
-  The same operation can be performed by calling  {{#crossLink "EntityAspect/setEntityState"}}{{/crossLink}}.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setDeleted();
-      // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities.
-  @method setDeleted
+  The same operation can be performed by calling [[EntityAspect.setEntityState]].
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setDeleted();
+  >      // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities.
   **/
   setDeleted = function () {
     return this.setEntityState(EntityState.Deleted);
@@ -385,12 +355,10 @@ export class EntityAspect {
 
   /**
   Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities.
-  The same operation can be performed by calling  {{#crossLink "EntityAspect/setEntityState"}}{{/crossLink}}.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setDetached();
-      // The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities.
-  @method setDetached
+  The same operation can be performed by calling [[EntityAspect.setEntityState]].
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setDetached();
+  >      // The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities.
   **/
   setDetached = function () {
     return this.setEntityState(EntityState.Detached);
@@ -398,11 +366,9 @@ export class EntityAspect {
 
   /**
   Sets the entity to the specified EntityState. See also 'setUnchanged', 'setModified', 'setDetached', etc.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      order.entityAspect.setEntityState(EntityState.Unchanged);
-      // The 'order' entity will now be in a 'Unchanged' state.
-  @method setEntityState
+  >      // assume order is an order entity attached to an EntityManager.
+  >      order.entityAspect.setEntityState(EntityState.Unchanged);
+  >      // The 'order' entity will now be in a 'Unchanged' state.
   **/
   setEntityState(entityState: EntityStateSymbol) {
     if (this.entityState === entityState) return false;
@@ -450,29 +416,23 @@ export class EntityAspect {
     return true;
   }
 
-
-
-  /**
-  Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
-  @example
-      emp.entityAspect.loadNavigationProperty("Orders").then(function (data) {
-          var orders = data.results;
-      }).fail(function (exception) {
-          // handle exception here;
-      });
-  @method loadNavigationProperty
-  @async
-  @param navigationProperty {NavigationProperty|String} The NavigationProperty or the name of the NavigationProperty to 'load'.
-  @param [callback] {Function} Function to call on success.
-  @param [errorCallback] {Function} Function to call on failure.
-  @return {Promise}
-    - properties of success promise
-      - results {Array of Entity}
-      - query {EntityQuery} The original query
-      - httpResponse {httpResponse} The HttpResponse returned from the server.
-  **/
   loadNavigationProperty(navigationProperty: string, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>
   loadNavigationProperty(navigationProperty: NavigationProperty, callback?: QuerySuccessCallback, errorCallback?: QueryErrorCallback): Promise<IQueryResult>;
+  /**
+  Performs a query for the value of a specified [[NavigationProperty]]. __Async__
+  >      emp.entityAspect.loadNavigationProperty("Orders").then(function (data) {
+  >          var orders = data.results;
+  >      }).fail(function (exception) {
+  >          // handle exception here;
+  >      });
+  @param navigationProperty - The NavigationProperty or the name of the NavigationProperty to 'load'.
+  @param callback - Function to call on success.
+  @param errorCallback - Function to call on failure.
+  @return Promise with shape
+    - results {Array of Entity}
+    - query {EntityQuery} The original query
+    - httpResponse {httpResponse} The HttpResponse returned from the server.
+  **/
   loadNavigationProperty(navigationProperty: NavigationProperty | string, callback: QuerySuccessCallback, errorCallback: QueryErrorCallback) {
     let entity = this.entity!;
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
@@ -480,7 +440,7 @@ export class EntityAspect {
     // return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
     let promise = entity.entityAspect.entityManager!.executeQuery(query);
 
-    return promise.then( (data) => {
+    return promise.then((data) => {
       this._markAsLoaded(navProperty.name);
       if (callback) callback(data);
       return Promise.resolve(data);
@@ -493,12 +453,8 @@ export class EntityAspect {
 
   /**
   Marks this navigationProperty on this entity as already having been loaded.
-  @example
-      emp.entityAspect.markNavigationPropertyAsLoaded("Orders");
-
-  @method markAsLoaded
-  @async
-  @param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.
+  >      emp.entityAspect.markNavigationPropertyAsLoaded("Orders");
+  @param navigationProperty - The NavigationProperty or name of NavigationProperty to 'load'.
   **/
   markNavigationPropertyAsLoaded(navigationProperty: NavigationProperty | string) {
     if (!this.entity) return;
@@ -506,26 +462,22 @@ export class EntityAspect {
     this._markAsLoaded(navProperty.name);
   }
 
+  isNavigationPropertyLoaded(navigationProperty: string): boolean;
+  isNavigationPropertyLoaded(navigationProperty: NavigationProperty): boolean;
   /**
   Determines whether a navigationProperty on this entity has already been loaded.
 
-  @example
-      A navigation property is considered loaded when any of the following three conditions applies:
+  A navigation property is considered loaded when any of the following three conditions applies:
 
-      1) It was fetched from the backend server.
-      a) This can be the result of an expand query or a call to the EntityAspect.loadNavigationProperty method.
-      b) Note that even if the fetch returns nothing the property is still marked as loaded in this case.
-      2) The property is scalar and has been set to a nonnull value.
-      3) The EntityAspect.markNavigationPropertyAsLoaded was called.
-
-  @example
-      var wasLoaded = emp.entityAspect.isNavigationPropertyLoaded("Orders");
-
-  @method isNavigationPropertyLoaded
-  @param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.
+    1. It was fetched from the backend server.
+        <br/>   This can be the result of an expand query or a call to the [[EntityAspect.loadNavigationProperty]] method.
+        <br/>   Note that even if the fetch returns nothing the property is still marked as loaded in this case.
+    1. The property is scalar and has been set to a nonnull value.
+    1. The [[EntityAspect.markNavigationPropertyAsLoaded]] was called.
+  
+  >     var wasLoaded = emp.entityAspect.isNavigationPropertyLoaded("Orders");
+  @param navigationProperty - The NavigationProperty or name of NavigationProperty to 'load'.
   **/
-  isNavigationPropertyLoaded(navigationProperty: string): boolean;
-  isNavigationPropertyLoaded(navigationProperty: NavigationProperty): boolean;
   isNavigationPropertyLoaded(navigationProperty: NavigationProperty | string) {
     if (!this.entity) return;
     let navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
@@ -535,6 +487,7 @@ export class EntityAspect {
     return this._loadedNps && this._loadedNps.indexOf(navProperty.name) >= 0;
   }
 
+  /** @hidden */
   _markAsLoaded(navPropName: string) {
     this._loadedNps = this._loadedNps || [];
     core.arrayAddItemUnique(this._loadedNps, navPropName);
@@ -543,17 +496,15 @@ export class EntityAspect {
 
   /**
   Performs validation on the entity, any errors encountered during the validation are available via the
-  {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating an entity means executing
+  [[EntityAspect.getValidationErrors]] method. Validating an entity means executing
   all of the validators on both the entity itself as well as those on each of its properties.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var isOk = order.entityAspect.validateEntity();
-      // isOk will be 'true' if there are no errors on the entity.
-      if (!isOk) {
-          var errors = order.entityAspect.getValidationErrors();
-      }
-  @method validateEntity
-  @return {Boolean} Whether the entity passed validation.
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var isOk = order.entityAspect.validateEntity();
+  >      // isOk will be 'true' if there are no errors on the entity.
+  >      if (!isOk) {
+  >          var errors = order.entityAspect.getValidationErrors();
+  >      }
+  @return Whether the entity passed validation.
   **/
   validateEntity() {
     let ok = true;
@@ -563,28 +514,25 @@ export class EntityAspect {
     return ok;
   };
 
-  /**
-  Performs validation on a specific property of this entity, any errors encountered during the validation are available via the
-  {{#crossLink "EntityAspect.getValidationErrors"}}{{/crossLink}} method. Validating a property means executing
-  all of the validators on the specified property.  This call is also made automatically anytime a property
-  of an entity is changed.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var isOk = order.entityAspect.validateProperty("Order");
-  or
-  @example
-      var orderDateProperty = order.entityType.getProperty("OrderDate");
-      var isOk = order.entityAspect.validateProperty(OrderDateProperty);
-  @method validateProperty
-  @param property {DataProperty|NavigationProperty|String} The {{#crossLink "DataProperty"}}{{/crossLink}} or
-  {{#crossLink "NavigationProperty"}}{{/crossLink}} to validate or a string with the name of the property or a property path with
-  the path to a property of a complex object.
-  @param [context] {Object} A context object used to pass additional information to each  {{#crossLink "Validator"}}{{/crossLink}}
-  @return {Boolean} Whether the entity passed validation.
-  **/
   validateProperty(property: string, context?: any): boolean;
   validateProperty(property: DataProperty, context?: any): boolean;
   validateProperty(property: NavigationProperty, context?: any): boolean;
+  /**
+  Performs validation on a specific property of this entity, any errors encountered during the validation are available via the
+  [[EntityAspect.getValidationErrors]] method. Validating a property means executing
+  all of the validators on the specified property.  This call is also made automatically anytime a property
+  of an entity is changed.
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var isOk = order.entityAspect.validateProperty("Order");
+
+  or
+  >      var orderDateProperty = order.entityType.getProperty("OrderDate");
+  >      var isOk = order.entityAspect.validateProperty(OrderDateProperty);
+  @param property - The [[DataProperty]] or [[NavigationProperty]] to validate or a string 
+  with the name of the property or a property path with the path to a property of a complex object.
+  @param context -  A context object used to pass additional information to each [[Validator]].
+  @return Whether the entity passed validation.
+  **/
   validateProperty(property: EntityProperty | string, context: any) {
     let value = this.getPropertyValue(property); // performs validations
     if (value && value.complexAspect) {
@@ -603,30 +551,28 @@ export class EntityAspect {
     return this._validateProperty(value, context);
   };
 
-  /**
-  Returns the validation errors associated with either the entire entity or any specified property.
-  @example
-  This method can return all of the errors for an Entity
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var valErrors = order.entityAspect.getValidationErrors();
-  as well as those for just a specific property.
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var orderDateErrors = order.entityAspect.getValidationErrors("OrderDate");
-  which can also be expressed as
-  @example
-      // assume order is an order entity attached to an EntityManager.
-      var orderDateProperty = order.entityType.getProperty("OrderDate");
-      var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
-  @method getValidationErrors
-  @param [property] {DataProperty|NavigationProperty} The property for which validation errors should be retrieved.
-  If omitted, all of the validation errors for this entity will be returned.
-  @return {Array of ValidationError}
-  **/
   getValidationErrors(): ValidationError[];
   getValidationErrors(property: string): ValidationError[];
   getValidationErrors(property: EntityProperty): ValidationError[];
+  /**
+  Returns the validation errors associated with either the entire entity or any specified property.
+  
+  This method can return all of the errors for an Entity
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var valErrors = order.entityAspect.getValidationErrors();
+
+  as well as those for just a specific property.
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var orderDateErrors = order.entityAspect.getValidationErrors("OrderDate");
+
+  which can also be expressed as
+  >      // assume order is an order entity attached to an EntityManager.
+  >      var orderDateProperty = order.entityType.getProperty("OrderDate");
+  >      var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
+  @param property - The property for which validation errors should be retrieved.
+  If omitted, all of the validation errors for this entity will be returned.
+  @return A array of validation errors.
+  **/
   getValidationErrors(property?: DataProperty | NavigationProperty | string) {
     assertParam(property, "property").isOptional().isEntityProperty().or().isString().check();
     let result = core.getOwnPropertyValues(this._validationErrors);
@@ -641,8 +587,6 @@ export class EntityAspect {
 
   /**
   Adds a validation error.
-  @method addValidationError
-  @param validationError {ValidationError}
   **/
   addValidationError(validationError: ValidationError) {
     assertParam(validationError, "validationError").isInstanceOf(ValidationError).check();
@@ -651,13 +595,12 @@ export class EntityAspect {
     });
   };
 
-  /**
-  Removes a validation error.
-  @method removeValidationError
-  @param validationErrorOrKey {ValidationError|String} Either a ValidationError or a ValidationError 'key' value
-  **/
   removeValidationError(validationError: ValidationError): void;
   removeValidationError(validationKey: string): void;
+  /**
+  Removes a validation error.
+  @param validationErrorOrKey - Either a ValidationError or a ValidationError 'key' value
+  **/
   removeValidationError(validationErrorOrKey: ValidationError | string) {
     assertParam(validationErrorOrKey, "validationErrorOrKey").isString().or().isInstanceOf(ValidationError).or().isInstanceOf(Validator).check();
 
@@ -669,7 +612,6 @@ export class EntityAspect {
 
   /**
   Removes all of the validation errors for a specified entity
-  @method clearValidationErrors
   **/
   clearValidationErrors() {
     this._processValidationOpAndPublish(function (that: any) {
@@ -683,10 +625,17 @@ export class EntityAspect {
     });
   };
 
+  /**
+  Returns an [[EntityKey]] for the entity pointed to by the specified scalar NavigationProperty.
+  This only returns an EntityKey if the current entity is a 'child' entity along the specified NavigationProperty. 
+  i.e. has a single parent.
 
-  // returns null for np's that do not have a parentKey
+  @param navigationProperty - The [[NavigationProperty]] ( pointing to a parent). 
+  @returns Either a parent EntityKey if this is a 'child' entity or null;  
+  */
   getParentKey(navigationProperty: NavigationProperty) {
     if (!this.entity) return null;
+    // TODO: review this - not sure about the comment.
     // NavigationProperty doesn't yet exist
     // assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
     let fkNames = navigationProperty.foreignKeyNames;
@@ -698,6 +647,10 @@ export class EntityAspect {
     return new EntityKey(navigationProperty.entityType, fkValues);
   };
 
+  // TODO: refactor this and the static getPropertyPathValue.
+  /**
+  Returns the value of a specified DataProperty or NavigationProperty or 'property path'.  
+  **/
   getPropertyValue(property: string | DataProperty | NavigationProperty) {
     assertParam(property, "property").isString().or().isEntityProperty().check();
     let value: any;
@@ -721,7 +674,7 @@ export class EntityAspect {
   };
 
   // internal methods
-
+  /** @hidden */
   _checkOperation(operationName: string) {
     if (this.isBeingSaved) {
       throw new Error("Cannot perform a '" + operationName + "' on an entity that is in the process of being saved");
@@ -730,6 +683,7 @@ export class EntityAspect {
     return this;
   }
 
+  /** @hidden */
   _detach() {
     this.entityGroup = undefined;
     this.entityManager = undefined;
@@ -743,6 +697,7 @@ export class EntityAspect {
 
 
   // called from defaultInterceptor.
+  /** @hidden */
   _validateProperty(value: any, context: any) {
     let ok = true;
     this._processValidationOpAndPublish(function (that: any) {
@@ -753,6 +708,7 @@ export class EntityAspect {
     return ok;
   };
 
+  /** @hidden */
   _processValidationOpAndPublish(validationFn: any) {
     if (this._pendingValidationResult) {
       // only top level processValidations call publishes
@@ -773,6 +729,7 @@ export class EntityAspect {
     }
   };
 
+  /** @hidden */
   // TODO: add/use a ValidationError type
   _addValidationError(validationError: any) {
     this._validationErrors[validationError.key] = validationError;
@@ -780,6 +737,7 @@ export class EntityAspect {
     this._pendingValidationResult.added.push(validationError);
   };
 
+  /** @hidden */
   _removeValidationError(key: string) {
     let valError = this._validationErrors[key];
     if (valError) {
@@ -848,7 +806,7 @@ function removeFromRelationsCore(entity: IEntity) {
     } else {
       if (inverseNp != null) {
         // npValue is a live list so we need to copy it first.
-        npValue.slice(0).forEach( (v: any) => {
+        npValue.slice(0).forEach((v: any) => {
           if (inverseNp!.isScalar) {
             v.setProperty(inverseNp!.name, null);
           } else {
@@ -883,7 +841,7 @@ function validateTarget(target: any, coIndex?: number) {
   let stype = target.entityType || target.complexType;
   let aspect = target.entityAspect || target.complexAspect;
   let entityAspect = target.entityAspect || target.complexAspect.getEntityAspect();
-  let context = <any> { entity: entityAspect.entity };
+  let context = <any>{ entity: entityAspect.entity };
   if (coIndex !== undefined) {
     context.index = coIndex;
   }
@@ -1023,13 +981,8 @@ export class ComplexAspect {
     return entityAspect || new EntityAspect();
   }
 
-  /**
-  Executes the specified query against this EntityManager's local cache.
-
-  @method getPropertyPath
-  @param propName {String}  The property name of a property on this complex aspect for which we want the full path.
-  @return  {String}    The 'property path' from the top level entity that contains this complex object to this object.
-  **/
+  /**  @hidden */
+  // TODO: rename - and use '_'; used on both EntityAspect and ComplexAspect for polymorphic reasons.
   getPropertyPath(propName: string) {
     let parent = <any>this.parent;
     if (!parent) return null;
