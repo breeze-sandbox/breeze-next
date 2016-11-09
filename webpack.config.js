@@ -14,7 +14,7 @@ module.exports = {
       './src/adapter-ajax-jquery',
       './src/adapter-ajax-angular',
       './src/adapter-model-library-backing-store',
-      // './src/adapter-model-library-ko',
+      './src/adapter-model-library-ko',
       './src/adapter-data-service-webapi',
       './src/adapter-uri-builder-odata',
       './src/adapter-uri-builder-json',

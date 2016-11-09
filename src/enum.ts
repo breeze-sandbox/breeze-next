@@ -60,6 +60,7 @@ Unlike enums in some other environments, each 'symbol' can have both methods and
 export class Enum {
   name: string;
   _symbolPrototype: EnumSymbol;
+  _resolvedNamesAndSymbols: { name: string, symbol: EnumSymbol }[];
 
   /**
   Enum constructor - may be used to create new Enums.
@@ -122,6 +123,7 @@ export class Enum {
     return this[name];
   };
 
+
   /**
   Adds a new symbol to an Enum.
   @example
@@ -140,24 +142,11 @@ export class Enum {
         newSymbol[key] = propertiesObj[key];
       });
     }
-    setTimeout(function () {
-      newSymbol.getName();
-    }, 0);
     return newSymbol;
   };
 
-  /**
-  Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
-  have already been added to the Enum.
-  @example
-      DayOfWeek.resolveSymbols();
-  @method resolveSymbols
-  **/
-  resolveSymbols() {
-    this.getSymbols().forEach(function (sym: EnumSymbol) {
-      return sym.getName();
-    });
-  };
+
+
 
   /**
   Returns all of the symbols contained within this Enum.
@@ -167,9 +156,7 @@ export class Enum {
   @return {Array of EnumSymbol} All of the symbols contained within this Enum.
   **/
   getSymbols() {
-    return this.getNames().map(function (key: string) {
-      return <EnumSymbol>this[key];
-    }, this);
+    return this.resolveSymbols().map(ks => ks.symbol);
   };
 
   /**
@@ -180,16 +167,32 @@ export class Enum {
   @return {Array of String} All of the names of the symbols contained within this Enum.
   **/
   getNames() {
-    let result: string[] = [];
-    for (let key in this) {
-      if (this.hasOwnProperty(key)) {
-        if (key !== "name" && key.substr(0, 1) !== "_" && !core.isFunction(this[key])) {
-          result.push(key);
+    return this.resolveSymbols().map(ks => ks.name);
+  };
+
+  /**
+  Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
+  have already been added to the Enum.
+  >       DayOfWeek.resolveSymbols();
+  **/
+  resolveSymbols() {
+    if (this._resolvedNamesAndSymbols) return this._resolvedNamesAndSymbols;
+    let result: {name: string, symbol: EnumSymbol }[] = [];
+    let enumType = Object.getPrototypeOf(this);
+    let ctor = enumType.constructor;
+    for (let key in ctor) {
+      if (ctor.hasOwnProperty(key)) {
+        let symb = ctor[key];
+        if (symb instanceof EnumSymbol) {
+          result.push( { name: key, symbol: symb });
+          this[key] = symb;
+          symb.name = key;
         }
       }
     }
+    this._resolvedNamesAndSymbols = result;
     return result;
-  };
+  }
 
   /**
   Returns whether an Enum contains a specified symbol.
@@ -206,7 +209,9 @@ export class Enum {
     if (!(sym instanceof EnumSymbol)) {
       return false;
     }
-    return this[sym.getName()] === sym;
+    let enumType = Object.getPrototypeOf(this);
+    let ctor = enumType.constructor;
+    return ctor[sym.name] != null;
   };
 
 
@@ -242,10 +247,8 @@ export class EnumSymbol {
   **/
   getName() {
     if (!this.name) {
-      let that = this;
-      this.name = core.arrayFirst(this.parentEnum.getNames(), function (name: string) {
-        return that.parentEnum[name] === that;
-      }) || '';
+      let ns = core.arrayFirst(this.parentEnum.resolveSymbols(), (ns) => ns.symbol === this);
+      this.name = ns ? ns.name : '';
     }
     return this.name;
   };
@@ -279,6 +282,10 @@ export class TypedEnum<T extends EnumSymbol> extends Enum {
 
   addSymbol(propertiesObj?: Object) {
     return <T>super.addSymbol(propertiesObj);
+  }
+
+  getSymbols() {
+    return <T[]> super.getSymbols();
   }
 }
 

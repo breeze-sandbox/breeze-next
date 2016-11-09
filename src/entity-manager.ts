@@ -1923,7 +1923,7 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[
     let newAspect = rawEntity.entityAspect;
 
     let entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, rawValueFn);
-    let entityState = EntityState.fromName(newAspect.entityState) as EntityStateSymbol;
+    let entityState = EntityState.instance.fromName(newAspect.entityState) as EntityStateSymbol;
     if (!entityState || entityState === EntityState.Detached) {
       throw new Error("Only entities with a non detached entity state may be imported.");
     }
@@ -2072,7 +2072,7 @@ function validateEntityStates(em: EntityManager, entityStates?: EntityStateSymbo
   if (!entityStates) return [] as EntityStateSymbol[];
   let entStates = core.toArray(entityStates) as EntityStateSymbol[];
   entStates.forEach((es) => {
-    if (!EntityState.contains(es)) {
+    if (!(es instanceof EntityStateSymbol)) {
       throw new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
     }
   });

@@ -15,43 +15,44 @@ export class EntityActionSymbol extends EnumSymbol {
   }
 };
 
-class EntityActionEnum extends TypedEnum<EntityActionSymbol> {
+export class EntityAction extends TypedEnum<EntityActionSymbol> {
+  static instance = new EntityAction();
   constructor() {
     super("EntityAction", EntityActionSymbol);
-    this.resolveSymbols();
   }
   // Attach - Entity was attached via an AttachEntity call.
-  Attach = this.addSymbol( { _isAttach: true });
+  static Attach = EntityAction.instance.addSymbol( { _isAttach: true });
   // AttachOnQuery - Entity was attached as a result of a query.
-  AttachOnQuery = this.addSymbol({ _isAttach: true});
+  static AttachOnQuery = EntityAction.instance.addSymbol({ _isAttach: true});
   // AttachOnImport - Entity was attached as a result of an import.
-  AttachOnImport = this.addSymbol({ _isAttach: true});
+  static AttachOnImport = EntityAction.instance.addSymbol({ _isAttach: true});
 
-  Detach = this.addSymbol( { _isDetach: true });
+  static Detach = EntityAction.instance.addSymbol( { _isDetach: true });
 
   // MergeOnQuery - Properties on the entity were merged as a result of a query.
-  MergeOnQuery = this.addSymbol({ _isModification: true });
+  static MergeOnQuery = EntityAction.instance.addSymbol({ _isModification: true });
   // MergeOnImport - Properties on the entity were merged as a result of an import.
-  MergeOnImport = this.addSymbol({ _isModification: true });
+  static MergeOnImport = EntityAction.instance.addSymbol({ _isModification: true });
   // MergeOnSave - Properties on the entity were merged as a result of a save
-  MergeOnSave = this.addSymbol({ _isModification: true });
+  static MergeOnSave = EntityAction.instance.addSymbol({ _isModification: true });
 
 
   // PropertyChange - A property on the entity was changed.
-  PropertyChange = this.addSymbol({ _isModification: true});
+  static PropertyChange = EntityAction.instance.addSymbol({ _isModification: true});
 
   // EntityStateChange - The EntityState of the entity was changed.
-  EntityStateChange = this.addSymbol();
+  static EntityStateChange = EntityAction.instance.addSymbol();
 
   // AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
-  AcceptChanges = this.addSymbol();
+  static AcceptChanges = EntityAction.instance.addSymbol();
   // RejectChanges - RejectChanges was called on the entity.
-  RejectChanges = this.addSymbol({ _isModification: true});
+  static RejectChanges = EntityAction.instance.addSymbol({ _isModification: true});
 
   // Clear - The EntityManager was cleared.  All entities detached.
-  Clear = this.addSymbol({ _isDetach: true});
+  static Clear = EntityAction.instance.addSymbol({ _isDetach: true});
 }
 
-export const EntityAction = new EntityActionEnum();
+EntityAction.instance.resolveSymbols();
+
 
 

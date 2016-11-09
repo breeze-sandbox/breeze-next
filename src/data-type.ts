@@ -24,13 +24,13 @@ export class DataTypeSymbol extends EnumSymbol {
   @class DataType
   @static
   **/
-class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
+export class DataType extends TypedEnum<DataTypeSymbol> {
 
+  static instance = new DataType();
   static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
 
   constructor() {
     super("DataType", DataTypeSymbol);
-    this.resolveSymbols();
   }
 
   /**
@@ -96,7 +96,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  String = this.addSymbol({
+  static String = DataType.instance.addSymbol({
     defaultValue: "",
     parse: coerceToString,
     fmtOData: fmtString,
@@ -107,7 +107,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Int64 = this.addSymbol({
+  static Int64 = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -121,7 +121,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Int32 = this.addSymbol({
+  static Int32 = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -134,7 +134,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Int16 = this.addSymbol({
+  static Int16 = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -147,7 +147,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Byte = this.addSymbol({
+  static Byte = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -159,7 +159,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Decimal = this.addSymbol({
+  static Decimal = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     quoteJsonOData: true,
@@ -173,7 +173,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Double = this.addSymbol({
+  static Double = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isFloat: true,
@@ -186,7 +186,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Single = this.addSymbol({
+  static Single = DataType.instance.addSymbol({
     defaultValue: 0,
     isNumeric: true,
     isFloat: true,
@@ -199,7 +199,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  DateTime = this.addSymbol({
+  static DateTime = DataType.instance.addSymbol({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
     parse: coerceToDate,
@@ -215,7 +215,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  DateTimeOffset = this.addSymbol({
+  static DateTimeOffset = DataType.instance.addSymbol({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
     parse: coerceToDate,
@@ -230,17 +230,17 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Time = this.addSymbol({
+  static Time = DataType.instance.addSymbol({
     defaultValue: "PT0S",
     fmtOData: fmtTime,
-    parseRawValue: this.parseTimeFromServer
+    parseRawValue: DataType.instance.parseTimeFromServer
   });
   /**
   @property Boolean {DataType}
   @final
   @static
   **/
-  Boolean = this.addSymbol({
+  static Boolean = DataType.instance.addSymbol({
     defaultValue: false,
     parse: coerceToBool,
     fmtOData: fmtBoolean
@@ -250,7 +250,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Guid = this.addSymbol({
+  static Guid = DataType.instance.addSymbol({
     defaultValue: "00000000-0000-0000-0000-000000000000",
     parse: coerceToGuid,
     fmtOData: fmtGuid,
@@ -264,7 +264,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Binary = this.addSymbol({
+  static Binary = DataType.instance.addSymbol({
     defaultValue: null,
     fmtOData: fmtBinary,
     parseRawValue: parseRawBinary
@@ -274,12 +274,12 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  Undefined = this.addSymbol({
+  static Undefined = DataType.instance.addSymbol({
     defaultValue: undefined,
     fmtOData: fmtUndefined
   });
 
-  getComparableFn(dataType?: DataTypeSymbol) {
+  static getComparableFn(dataType?: DataTypeSymbol) {
     if (dataType && dataType.normalize) {
       return dataType.normalize;
     } else if (dataType === DataType.Time) {
@@ -302,7 +302,7 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   @param typeName {String}
   @return {DataType} A DataType.
   **/
-  fromEdmDataType(typeName: string) {
+  static fromEdmDataType(typeName: string) {
     let dt: DataTypeSymbol | undefined;
     let parts = typeName.split(".");
     if (parts.length > 1) {
@@ -322,7 +322,11 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
     return dt;
   };
 
-  fromValue(val: any) {
+  static fromName(name: string) {
+    return DataType.instance.fromName(name);
+  }
+
+  static fromValue(val: any) {
     if (core.isDate(val)) return DataType.DateTime;
     switch (typeof val) {
       case "string":
@@ -363,9 +367,9 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
     return source;
   };
 
-  parseDateFromServer = this.parseDateAsUTC;
+  static parseDateFromServer = DataType.instance.parseDateAsUTC;
 
-  parseRawValue(val: any, dataType?: DataTypeSymbol) {
+  static parseRawValue(val: any, dataType?: DataTypeSymbol) {
     // undefined values will be the default for most unmapped properties EXCEPT when they are set
     // in a jsonResultsAdapter ( an unusual use case).
     if (val === undefined) return undefined;
@@ -377,8 +381,8 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   }
 
   // used during initialization; visible on instance for testing purposes.
-  _resetConstants() {
-    DataTypeEnum.constants = {
+  static _resetConstants() {
+    DataType.constants = {
       stringPrefix: "K_",
       nextNumber: -1,
       nextNumberIncrement: -1
@@ -397,12 +401,9 @@ class DataTypeEnum extends TypedEnum<DataTypeSymbol> {
   //};
 }
 
-export const DataType = new DataTypeEnum();
 DataType._resetConstants();
-
-DataType.getSymbols().forEach(function (sym: DataTypeSymbol) {
-  sym.validatorCtor = getValidatorCtor(sym);
-});
+DataType.instance.resolveSymbols();
+DataType.instance.getSymbols().forEach(sym => sym.validatorCtor = getValidatorCtor(sym));
 
 // private functions;
 
@@ -444,12 +445,12 @@ function getValidatorCtor(symbol: DataTypeSymbol) {
 }
 
 function getNextString() {
-  return DataTypeEnum.constants.stringPrefix + getNextNumber().toString();
+  return DataType.constants.stringPrefix + getNextNumber().toString();
 };
 
 function getNextNumber() {
-  let result = DataTypeEnum.constants.nextNumber;
-  DataTypeEnum.constants.nextNumber += DataTypeEnum.constants.nextNumberIncrement;
+  let result = DataType.constants.nextNumber;
+  DataType.constants.nextNumber += DataType.constants.nextNumberIncrement;
   return result;
 };
 

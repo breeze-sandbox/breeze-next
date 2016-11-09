@@ -5,24 +5,24 @@ class DayOfWeekSymbol extends EnumSymbol {
     isWeekend?: boolean;
     nextDay() {
         let nextIndex = (this.dayIndex + 1) % 7;
-        return DayOfWeek.getSymbols()[nextIndex];
+        return DayOfWeek.instance.getSymbols()[nextIndex];
     }
 }
 
-class DayOfWeekEnum extends TypedEnum<DayOfWeekSymbol> {
+class DayOfWeek extends TypedEnum<DayOfWeekSymbol> {
+  static instance = new DayOfWeek();
   constructor() {
     super("DayOfWeek", DayOfWeekSymbol);
   }
-  Monday = this.addSymbol( { dayIndex: 0});
-  Tuesday = this.addSymbol( { dayIndex: 1 });
-  Wednesday = this.addSymbol( { dayIndex: 2 });
-  Thursday = this.addSymbol( { dayIndex: 3 });
-  Friday = this.addSymbol( { dayIndex: 4 });
-  Saturday = this.addSymbol( { dayIndex: 5, isWeekend: true });
-  Sunday = this.addSymbol( { dayIndex: 6, isWeekend: true });
+  static Monday = DayOfWeek.instance.addSymbol( { dayIndex: 0});
+  static Tuesday = DayOfWeek.instance.addSymbol( { dayIndex: 1 });
+  static Wednesday = DayOfWeek.instance.addSymbol( { dayIndex: 2 });
+  static Thursday = DayOfWeek.instance.addSymbol( { dayIndex: 3 });
+  static Friday = DayOfWeek.instance.addSymbol( { dayIndex: 4 });
+  static Saturday = DayOfWeek.instance.addSymbol( { dayIndex: 5, isWeekend: true });
+  static Sunday = DayOfWeek.instance.addSymbol( { dayIndex: 6, isWeekend: true });
 }
 
-let DayOfWeek = new DayOfWeekEnum();
 
 describe("DayOfWeek", () => {
 
@@ -34,11 +34,13 @@ describe("DayOfWeek", () => {
       expect(DayOfWeek.Tuesday.isWeekend).toBe(undefined);
       expect(DayOfWeek.Saturday.isWeekend).toBe(true);
     // // Standard enum capabilities
-      expect(DayOfWeek instanceof Enum).toBe(true);
+      expect(DayOfWeek.instance instanceof Enum).toBe(true);
       expect(Enum.isSymbol(DayOfWeek.Wednesday)).toBe(true);
-      expect(DayOfWeek.contains(DayOfWeek.Thursday)).toBe(true);
-      expect(DayOfWeek.Tuesday.parentEnum).toBe(DayOfWeek);
-      expect(DayOfWeek.getSymbols().length).toBe(7);
+      expect(DayOfWeek.Wednesday instanceof DayOfWeekSymbol).toBe(true);
+      expect(DayOfWeek.instance.contains(DayOfWeek.Thursday)).toBe(true);
+      expect(DayOfWeek.Tuesday.parentEnum).toBe(DayOfWeek.instance);
+      expect(DayOfWeek.instance.getSymbols().length).toBe(7);
+
       expect(DayOfWeek.Friday.toString()).toBe("Friday");
     });
 

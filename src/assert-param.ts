@@ -93,11 +93,18 @@ export class Param {
     };
 
 
-    isEnumOf(enumType: Enum): Param {
+    // isEnumOf(enumType: Enum): Param {
+    //     return addContext(this, {
+    //         fn: isEnumOf,
+    //         enumType: enumType,
+    //         msg: "must be an instance of the '" + enumType.name + "' enumeration"
+    //     });
+    // };
+    isEnumOf(enumType: any): Param {
         return addContext(this, {
             fn: isEnumOf,
             enumType: enumType,
-            msg: "must be an instance of the '" + enumType.name + "' enumeration"
+            msg: "must be an instance of the '" + (enumType.instance ? enumType.instance.name : 'unknown') + "' enumeration"
         });
     };
 
@@ -236,8 +243,8 @@ function isInstanceOf(context: IParamContext, v: any) {
 }
 
 function isEnumOf(context: IParamContext, v: any) {
-    if (v == null || context.enumType == null) return false;
-    return context.enumType.contains(v);
+    if (v == null || context.enumType == null || (context.enumType as any).instance == null) return false;
+    return (context.enumType as any).instance.contains(v);
 }
 
 function hasProperty(context: IParamContext, v: any) {

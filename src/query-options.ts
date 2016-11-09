@@ -13,10 +13,10 @@ MergeStrategy is an 'Enum' that determines how entities are merged into an Entit
 @class MergeStrategy
 @static
 **/
-class MergeStrategyEnum extends TypedEnum<MergeStrategySymbol> {
+export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
+  static instance = new MergeStrategy();
   constructor() {
     super("MergeStrategy", MergeStrategySymbol);
-    this.resolveSymbols();
   }
 
 
@@ -30,7 +30,7 @@ class MergeStrategyEnum extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  PreserveChanges = this.addSymbol();
+  static PreserveChanges = MergeStrategy.instance.addSymbol();
   /**
   MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
   a changed state (added, modified, deleted). After the merge, the pending changes are lost.
@@ -41,7 +41,7 @@ class MergeStrategyEnum extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  OverwriteChanges = this.addSymbol();
+  static OverwriteChanges = MergeStrategy.instance.addSymbol();
 
   /**
   SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key.
@@ -51,7 +51,7 @@ class MergeStrategyEnum extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  SkipMerge = this.addSymbol();
+  static SkipMerge = MergeStrategy.instance.addSymbol();
 
   /**
   Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.
@@ -62,12 +62,12 @@ class MergeStrategyEnum extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  Disallowed = this.addSymbol();
+  static Disallowed = MergeStrategy.instance.addSymbol();
 
 
 }
+MergeStrategy.instance.resolveSymbols();
 
-export const MergeStrategy = new MergeStrategyEnum();
 
 export class FetchStrategySymbol extends EnumSymbol {
 
@@ -79,10 +79,10 @@ FetchStrategy is an 'Enum' that determines how and where entities are retrieved 
 @class FetchStrategy
 @static
 **/
-class FetchStrategyEnum extends TypedEnum<FetchStrategySymbol> {
+export class FetchStrategy extends TypedEnum<FetchStrategySymbol> {
+  static instance = new FetchStrategy();
   constructor() {
     super("FetchStrategy", FetchStrategySymbol);
-    this.resolveSymbols();
   }
 
   /**
@@ -91,18 +91,18 @@ class FetchStrategyEnum extends TypedEnum<FetchStrategySymbol> {
   @final
   @static
   **/
-  FromServer = this.addSymbol();
+  static FromServer = FetchStrategy.instance.addSymbol();
   /**
   FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
   @property FromLocalCache {MergeStrategy}
   @final
   @static
   **/
-  FromLocalCache = this.addSymbol();
+  static FromLocalCache = FetchStrategy.instance.addSymbol();
 
 }
 
-export const FetchStrategy = new FetchStrategyEnum();
+FetchStrategy.instance.resolveSymbols();
 
 export class QueryOptionsConfig {
     fetchStrategy?: FetchStrategySymbol;
@@ -235,8 +235,8 @@ export class QueryOptions {
 
   static fromJSON(json: any) {
     return new QueryOptions({
-      fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
-      mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+      fetchStrategy: FetchStrategy.instance.fromName(json.fetchStrategy),
+      mergeStrategy: MergeStrategy.instance.fromName(json.mergeStrategy),
       includeDeleted: json.includeDeleted === true
     });
   };

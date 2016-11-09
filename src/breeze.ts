@@ -154,7 +154,12 @@ declare var window: any;
 declare var global: any;
 
 /** @hidden */
-let win = window || (global ? global.window : undefined);
+let win: any;
+try {
+  win = window ? window : (global ? global.window : undefined);
+} catch (e) {
+
+}
 if (win) {
   win.breeze = breeze;
 }

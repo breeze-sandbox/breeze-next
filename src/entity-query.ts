@@ -1055,10 +1055,10 @@ export class FilterQueryOpSymbol extends EnumSymbol implements IQueryOp {
    @class FilterQueryOp
    @static
    **/
-class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
+export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
+  static instance = new FilterQueryOp();
   constructor() {
     super("FilterQueryOp", FilterQueryOpSymbol);
-    this.resolveSymbols();
   }
 
   /**
@@ -1067,42 +1067,42 @@ class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  Equals = this.addSymbol({ operator: "eq" });
+  static Equals = FilterQueryOp.instance.addSymbol({ operator: "eq" });
   /**
    Aliases: "ne", "!="
    @property NotEquals {FilterQueryOp}
    @final
    @static
    **/
-  NotEquals = this.addSymbol({ operator: "ne" });
+  static NotEquals = FilterQueryOp.instance.addSymbol({ operator: "ne" });
   /**
    Aliases: "gt", ">"
    @property GreaterThan {FilterQueryOp}
    @final
    @static
    **/
-  GreaterThan = this.addSymbol({ operator: "gt" });
+  static GreaterThan = FilterQueryOp.instance.addSymbol({ operator: "gt" });
   /**
    Aliases: "lt", "<"
    @property LessThan {FilterQueryOp}
    @final
    @static
    **/
-  LessThan = this.addSymbol({ operator: "lt" });
+  static LessThan = FilterQueryOp.instance.addSymbol({ operator: "lt" });
   /**
    Aliases: "ge", ">="
    @property GreaterThanOrEqual {FilterQueryOp}
    @final
    @static
    **/
-  GreaterThanOrEqual = this.addSymbol({ operator: "ge" });
+  static GreaterThanOrEqual = FilterQueryOp.instance.addSymbol({ operator: "ge" });
   /**
    Aliases: "le", "<="
    @property LessThanOrEqual {FilterQueryOp}
    @final
    @static
    **/
-  LessThanOrEqual = this.addSymbol({ operator: "le" });
+  static LessThanOrEqual = FilterQueryOp.instance.addSymbol({ operator: "le" });
   /**
    String operation: Is a string a substring of another string.
    Aliases: "substringof"
@@ -1110,19 +1110,19 @@ class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  Contains = this.addSymbol({ operator: "contains" });
+  static Contains = FilterQueryOp.instance.addSymbol({ operator: "contains" });
   /**
    @property StartsWith {FilterQueryOp}
    @final
    @static
    **/
-  StartsWith = this.addSymbol({ operator: "startswith" });
+  static StartsWith = FilterQueryOp.instance.addSymbol({ operator: "startswith" });
   /**
    @property EndsWith {FilterQueryOp}
    @final
    @static
    **/
-  EndsWith = this.addSymbol({ operator: "endswith" });
+  static EndsWith = FilterQueryOp.instance.addSymbol({ operator: "endswith" });
 
   /**
    Aliases: "some"
@@ -1130,7 +1130,7 @@ class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  Any = this.addSymbol({ operator: "any" });
+  static Any = FilterQueryOp.instance.addSymbol({ operator: "any" });
 
   /**
    Aliases: "every"
@@ -1138,24 +1138,25 @@ class FilterQueryOpEnum extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  All = this.addSymbol({ operator: "all" });
+  static All = FilterQueryOp.instance.addSymbol({ operator: "all" });
 
   /**
    @property In {FilterQueryOp}
    @final
    @static
    **/
-  In = this.addSymbol({ operator: "in" });
+  static In = FilterQueryOp.instance.addSymbol({ operator: "in" });
 
   /**
    @property IsTypeOf {FilterQueryOp}
    @final
    @static
    **/
-  IsTypeOf = this.addSymbol({ operator: "isof" });
+  static IsTypeOf = FilterQueryOp.instance.addSymbol({ operator: "isof" });
 }
+FilterQueryOp.instance.resolveSymbols();
 
-export const FilterQueryOp = new FilterQueryOpEnum();
+
 
 export class BooleanQueryOpSymbol extends EnumSymbol implements IQueryOp {
   operator: string;
@@ -1168,19 +1169,20 @@ export class BooleanQueryOpSymbol extends EnumSymbol implements IQueryOp {
    @class BooleanQueryOp
    @static
    **/
-class BooleanQueryOpEnum extends TypedEnum<BooleanQueryOpSymbol> {
+export class BooleanQueryOp extends TypedEnum<BooleanQueryOpSymbol> {
+  static instance = new BooleanQueryOp();
   constructor() {
     super("BooleanQueryOp", BooleanQueryOpSymbol);
-    this.resolveSymbols();
   }
 
-  And = this.addSymbol({ operator: "and" });
-  Or = this.addSymbol({ operator: "or" });
-  Not = this.addSymbol({ operator: "not" });
+  static And = BooleanQueryOp.instance.addSymbol({ operator: "and" });
+  static Or = BooleanQueryOp.instance.addSymbol({ operator: "or" });
+  static Not = BooleanQueryOp.instance.addSymbol({ operator: "not" });
 
 }
+BooleanQueryOp.instance.resolveSymbols();
 
-export const BooleanQueryOp = new BooleanQueryOpEnum();
+
 
 /*
  An OrderByClause is a description of the properties and direction that the result
