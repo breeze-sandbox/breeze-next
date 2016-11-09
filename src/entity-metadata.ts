@@ -38,58 +38,91 @@ export interface MetadataStoreConfig {
   serializerFn?: (prop: EntityProperty, val: any) => any;
 }
 
+export interface IMetadataFetchedEventArgs {
+  metadataStore: MetadataStore;
+  dataService: DataService | string;
+  rawMetadata: any;
+}
 
 /**
-An instance of the MetadataStore contains all of the metadata about a collection of {{#crossLink "EntityType"}}{{/crossLink}}'s.
-MetadataStores may be shared across {{#crossLink "EntityManager"}}{{/crossLink}}'s.  If an EntityManager is created without an
+An instance of the MetadataStore contains all of the metadata about a collection of [[EntityType]]'s.
+MetadataStores may be shared across [[EntityManager]]'s.  If an EntityManager is created without an
 explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance property will be used.
-@class MetadataStore
+
 **/
 export class MetadataStore {
+  /** @hidden */
   _$typeName: string; // on proto
 
+  /** @hidden */
   static __id = 0;
+  /** @hidden */
   static ANONTYPE_PREFIX = "_IB_";
+  /** The version of any MetadataStores created by this class */
   static metadataVersion = '1.0.5';
 
   name: string;
   dataServices: DataService[];
+
+  /** The  [[NamingConvention]] associated with this MetadataStore. __Read Only__ */
   namingConvention: NamingConvention;
   localQueryComparisonOptions: LocalQueryComparisonOptions;
   serializerFn?: (prop: EntityProperty, val: any) => any;
-  metadataFetched: BreezeEvent<{ metadataStore: MetadataStore; dataService: DataService | string; rawMetadata: any; }>;
-
+  /**
+  An [[BreezeEvent]] that fires after a MetadataStore has completed fetching metadata from a remote service.
+  
+  @eventArgs -
+    - metadataStore - The MetadataStore into which the metadata was fetched.
+    - dataService - The [[DataService]] that metadata was fetched from.
+    - rawMetadata - {Object} The raw metadata returned from the service. (It will have already been processed by this point).
+  >      let ms = myEntityManager.metadataStore;
+  >      ms.metadataFetched.subscribe(function(args) {
+  >          let metadataStore = args.metadataStore;
+  >          let dataService = args.dataService;
+  >      });
+  @event
+  **/
+  metadataFetched: BreezeEvent<IMetadataFetchedEventArgs>;
+  /** @hidden */
   _resourceEntityTypeMap: {};
+  /** @hidden */
   _entityTypeResourceMap: {};
+  /** @hidden */
   _structuralTypeMap: IStructuralTypeMap; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
+  /** @hidden **/
   _shortNameMap: {}; // key is shortName, value is qualified name - does not need to be serialized.
+  /** @hidden **/
   _ctorRegistry: {}; // key is either short or qual type name - value is ctor;
+  /** @hidden **/
   _incompleteTypeMap: {}; // key is entityTypeName; value is array of nav props
+  /** @hidden **/
   _incompleteComplexTypeMap: {}; //
+  /** @hidden **/
   _deferredTypes: {};
+  /** @hidden **/
   _id: number;
 
   /**
   Constructs a new MetadataStore.
-  @example
-      let ms = new MetadataStore();
+  
+  >     let ms = new MetadataStore();
+
   The store can then be associated with an EntityManager
-  @example
-      let entityManager = new EntityManager( {
-          serviceName: "breeze/NorthwindIBModel", 
-          metadataStore: ms 
-      });
+  >     let entityManager = new EntityManager( {
+  >         serviceName: "breeze/NorthwindIBModel", 
+  >         metadataStore: ms 
+  >     });
+
   or for an existing EntityManager
-  @example
-      // Assume em1 is an existing EntityManager
-      em1.setProperties( { metadataStore: ms });
-  @method <ctor> MetadataStore
-  @param [config] {Object} Configuration settings .
-  @param [config.namingConvention=NamingConvention.defaultInstance] {NamingConvention} NamingConvention to be used in mapping property names
+  >    // Assume em1 is an existing EntityManager
+  >    em1.setProperties( { metadataStore: ms });
+  
+  @param config - Configuration settings .
+    - namingConvention - (default=NamingConvention.defaultInstance) NamingConvention to be used in mapping property names
   between client and server. Uses the NamingConvention.defaultInstance if not specified.
-  @param [config.localQueryComparisonOptions=LocalQueryComparisonOptions.defaultInstance] {LocalQueryComparisonOptions} The LocalQueryComparisonOptions to be
+    - localQueryComparisonOptions - (default=LocalQueryComparisonOptions.defaultInstance) The LocalQueryComparisonOptions to be
   used when performing "local queries" in order to match the semantics of queries against a remote service.
-  @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
+    - serializerFn - A function that is used to mediate the serialization of instances of this type.
   **/
   constructor(config?: MetadataStoreConfig) {
     config = config || {};
@@ -111,8 +144,6 @@ export class MetadataStore {
 
   };
 
-
-
   // needs to be made avail to dataService.xxx files
   static normalizeTypeName = core.memoize(function (rawTypeName: string) {
     return rawTypeName && MetadataStore.parseTypeName(rawTypeName).typeName;
@@ -121,38 +152,16 @@ export class MetadataStore {
   //ctor.normalizeTypeName = function (rawTypeName) { return parseTypeName(rawTypeName).typeName; };
 
   /**
-  An {{#crossLink "Event"}}{{/crossLink}} that fires after a MetadataStore has completed fetching metadata from a remote service.
-
-  @example
-      let ms = myEntityManager.metadataStore;
-      ms.metadataFetched.subscribe(function(args) {
-              let metadataStore = args.metadataStore;
-              let dataService = args.dataService;
-          });
-      });
-
-  @event metadataFetched
-  @param metadataStore {MetadataStore} The MetadataStore into which the metadata was fetched.
-  @param dataService {DataService} The DataService that metadata was fetched from.
-  @param rawMetadata {Object} The raw metadata returned from the service. (It will have already been processed by this point).
-  @readOnly
-  **/
-
-  /**
   General purpose property set method
-  @example
-      // assume em1 is an EntityManager containing a number of existing entities.
-
-      em1.metadataStore.setProperties( {
-          version: "6.1.3",
-          serializerFn: function(prop, value) {
-          return (prop.isUnmapped) ? undefined : value;
-          }
-      )};
-  @method setProperties
-  @param config [object]
-  @param [config.name] {String} A name for the collection of metadata in this store.
-  @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
+  
+  >     // assume em1 is an EntityManager containing a number of existing entities.
+  >     em1.metadataStore.setProperties( {
+  >         version: "6.1.3",
+  >         serializerFn: function(prop, value) {
+  >         return (prop.isUnmapped) ? undefined : value;
+  >         }
+  >     )};
+  @param config -  An object containing the selected properties and values to set.
   **/
   setProperties(config: MetadataStoreConfig) {
     assertConfig(config)
@@ -164,9 +173,8 @@ export class MetadataStore {
   /**
   Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
   in the MetadataStore an exception will be thrown.
-  @method addDataService
-  @param dataService {DataService} The DataService to add
-  @param [shouldOverwrite=false] {Boolean} Permit overwrite of existing DataService rather than throw exception
+  @param dataService - The [[DataService]] to add
+  @param shouldOverwrite - (default=false) Permit overwrite of existing DataService rather than throw exception
   **/
   addDataService(dataService: DataService, shouldOverwrite?: boolean) {
     assertParam(dataService, "dataService").isInstanceOf(DataService).check();
@@ -183,6 +191,7 @@ export class MetadataStore {
     }
   };
 
+  /** @hidden */
   _getDataServiceIndex(serviceName: string) {
     return core.arrayIndexOf(this.dataServices, function (ds) {
       return ds.serviceName === serviceName;
@@ -192,8 +201,7 @@ export class MetadataStore {
   /**
   Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
   been added to the MetadataStore.
-  @method addEntityType
-  @param structuralType {EntityType|ComplexType} The EntityType or ComplexType to add
+  @param structuralType - The EntityType or ComplexType to add
   **/
   addEntityType(stype: StructuralType | EntityTypeConfig | ComplexTypeConfig) {
     let structuralType: StructuralType;
@@ -251,26 +259,18 @@ export class MetadataStore {
 
   };
 
-  /**
-  The  {{#crossLink "NamingConvention"}}{{/crossLink}} associated with this MetadataStore.
-
-  __readOnly__
-  @property namingConvention {NamingConvention}
-  **/
 
   /**
   Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called
   internally when exporting an EntityManager.
-  @example
-      // assume ms is a previously created MetadataStore
-      let metadataAsString = ms.exportMetadata();
-      window.localStorage.setItem("metadata", metadataAsString);
-      // and later, usually in a different session imported
-      let metadataFromStorage = window.localStorage.getItem("metadata");
-      let newMetadataStore = new MetadataStore();
-      newMetadataStore.importMetadata(metadataFromStorage);
-  @method exportMetadata
-  @return {String} A serialized version of this MetadataStore that may be stored locally and later restored.
+  >      // assume ms is a previously created MetadataStore
+  >      let metadataAsString = ms.exportMetadata();
+  >      window.localStorage.setItem("metadata", metadataAsString);
+  >      // and later, usually in a different session imported
+  >      let metadataFromStorage = window.localStorage.getItem("metadata");
+  >      let newMetadataStore = new MetadataStore();
+  >      newMetadataStore.importMetadata(metadataFromStorage);
+  @return A serialized version of this MetadataStore that may be stored locally and later restored.
   **/
   exportMetadata() {
     let result = JSON.stringify({
@@ -287,18 +287,17 @@ export class MetadataStore {
 
   /**
   Imports a previously exported serialized MetadataStore into this MetadataStore.
-  @example
-      // assume ms is a previously created MetadataStore
-      let metadataAsString = ms.exportMetadata();
-      window.localStorage.setItem("metadata", metadataAsString);
-      // and later, usually in a different session
-      let metadataFromStorage = window.localStorage.getItem("metadata");
-      let newMetadataStore = new MetadataStore();
-      newMetadataStore.importMetadata(metadataFromStorage);
-  @method importMetadata
-  @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
-  @param [allowMerge] {Boolean} Allows custom metadata to be merged into existing metadata types.
-  @return {MetadataStore} This MetadataStore.
+    
+  >      // assume ms is a previously created MetadataStore
+  >      let metadataAsString = ms.exportMetadata();
+  >      window.localStorage.setItem("metadata", metadataAsString);
+  >      // and later, usually in a different session
+  >      let metadataFromStorage = window.localStorage.getItem("metadata");
+  >      let newMetadataStore = new MetadataStore();
+  >      newMetadataStore.importMetadata(metadataFromStorage);
+  @param exportedMetadata - A previously exported MetadataStore.
+  @param allowMerge -  Allows custom metadata to be merged into existing metadata types.
+  @return This MetadataStore.
   @chainable
   **/
   importMetadata(exportedMetadata: string | Object, allowMerge: boolean = false) {
@@ -348,18 +347,14 @@ export class MetadataStore {
 
   /**
   Creates a new MetadataStore from a previously exported serialized MetadataStore
-  @example
-      // assume ms is a previously created MetadataStore
-      let metadataAsString = ms.exportMetadata();
-      window.localStorage.setItem("metadata", metadataAsString);
-      // and later, usually in a different session
-      let metadataFromStorage = window.localStorage.getItem("metadata");
-      let newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
-  @method importMetadata
-  @static
-  @param exportedString {String} A previously exported MetadataStore.
-  @return {MetadataStore} A new MetadataStore.
-
+  >      // assume ms is a previously created MetadataStore
+  >      let metadataAsString = ms.exportMetadata();
+  >      window.localStorage.setItem("metadata", metadataAsString);
+  >      // and later, usually in a different session
+  >      let metadataFromStorage = window.localStorage.getItem("metadata");
+  >      let newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);
+  @param exportedString - A previously exported MetadataStore.
+  @return A new MetadataStore.
   **/
   static importMetadata(exportedString: string) {
     let ms = new MetadataStore();
@@ -369,14 +364,12 @@ export class MetadataStore {
 
   /**
   Returns whether Metadata has been retrieved for a specified service name.
-  @example
-      // Assume em1 is an existing EntityManager.
-      if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel"))) {
-          // do something interesting
-      }
-  @method hasMetadataFor
-  @param serviceName {String} The service name.
-  @return {Boolean}
+  >      // Assume em1 is an existing EntityManager.
+  >      if (!em1.metadataStore.hasMetadataFor("breeze/NorthwindIBModel"))) {
+  >          // do something interesting
+  >      }
+  @param serviceName - The service name.
+  @return Whether metadata has already been retrieved for the specified service name.
   **/
   hasMetadataFor(serviceName: string) {
     return !!this.getDataService(serviceName);
@@ -384,14 +377,11 @@ export class MetadataStore {
 
   /**
   Returns the DataService for a specified service name
-  @example
-      // Assume em1 is an existing EntityManager.
-      let ds = em1.metadataStore.getDataService("breeze/NorthwindIBModel");
-      let adapterName = ds.adapterName; // may be null
-
-  @method getDataService
-  @param serviceName {String} The service name.
-  @return {DataService}
+  >      // Assume em1 is an existing EntityManager.
+  >      let ds = em1.metadataStore.getDataService("breeze/NorthwindIBModel");
+  >      let adapterName = ds.adapterName; // may be null
+  @param serviceName - The service name.
+  @return The DataService with the specified name.
   **/
   getDataService(serviceName: string) {
     assertParam(serviceName, "serviceName").isString().check();
@@ -404,35 +394,22 @@ export class MetadataStore {
 
   /**
   Fetches the metadata for a specified 'service'. This method is automatically called
-  internally by an EntityManager before its first query against a new service.
+  internally by an EntityManager before its first query against a new service. __Async__
 
-  @example
   Usually you will not actually process the results of a fetchMetadata call directly, but will instead
   ask for the metadata from the EntityManager after the fetchMetadata call returns.
-  @example
-      let ms = new MetadataStore();
-      // or more commonly
-      // let ms = anEntityManager.metadataStore;
-      ms.fetchMetadata("breeze/NorthwindIBModel").then(function(rawMetadata) {
-            // do something with the metadata
-      }).fail(function(exception) {
-          // handle exception here
-      });
-  @method fetchMetadata
-  @async
-  @param dataService {DataService|String}  Either a DataService or just the name of the DataService to fetch metadata for.
-
-  @param [callback] {Function} Function called on success.
-
-  successFunction([data])
-  @param [callback.data] {rawMetadata}
-
-  @param [errorCallback] {Function} Function called on failure.
-
-  failureFunction([error])
-  @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-
-  @return {Promise} Promise
+  >      let ms = new MetadataStore();
+  >      // or more commonly
+  >      // let ms = anEntityManager.metadataStore;
+  >      ms.fetchMetadata("breeze/NorthwindIBModel").then(function(rawMetadata) {
+  >            // do something with the metadata
+  >      }).fail(function(exception) {
+  >          // handle exception here
+  >      });
+  @param dataService -  Either a DataService or just the name of the DataService to fetch metadata for.
+  @param callback - Function called on success.
+  @param errorCallback - Function called on failure.
+  @return Promise
   **/
   fetchMetadata(dataService: string | DataService, callback?: (schema: any) => void, errorCallback?: ErrorCallback) {
     try {
@@ -465,13 +442,12 @@ export class MetadataStore {
   };
 
 
+  // TODO: strongly type interceptor below.
   /**
   Used to register a constructor for an EntityType that is not known via standard Metadata discovery;
   i.e. an unmapped type.
-
-  @method trackUnmappedType
-  @param entityCtor {Function} The constructor for the 'unmapped' type.
-  @param [interceptor] {Function} A function
+  @param entityCtor - The constructor function for the 'unmapped' type.
+  @param interceptor - An interceptor function
   **/
   trackUnmappedType(entityCtor: any, interceptor: any) {
     assertParam(entityCtor, "entityCtor").isFunction().check();
@@ -487,30 +463,24 @@ export class MetadataStore {
   the entity as needed.
   This call may be made before or after the corresponding EntityType has been discovered via
   Metadata discovery.
-  @example
-      let Customer = function () {
-              this.miscData = "asdf";
-          };
-      Customer.prototype.doFoo() {
-              ...
-          }
-      // assume em1 is a preexisting EntityManager;
-      em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
-      // any queries or EntityType.create calls from this point on will call the Customer constructor
-      // registered above.
-  @method registerEntityTypeCtor
-  @param structuralTypeName {String} The name of the EntityType or ComplexType.
-  @param aCtor {Function}  The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter.
-  @param [initFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
-  and populated with any initial values.
-  initFn(entity)
-  @param initFn.entity {Entity} The entity being created or materialized.
-  @param [noTrackingFn] {Function} A function that is executed immediately after a noTracking entity has been created and whose return
+  >      let Customer = function () {
+  >              this.miscData = "asdf";
+  >          };
+  >      Customer.prototype.doFoo() {
+  >              ...
+  >          }
+  >      // assume em1 is a preexisting EntityManager;
+  >      em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+  >      // any queries or EntityType.create calls from this point on will call the Customer constructor
+  >      // registered above.
+  @param structuralTypeName - The name of the EntityType or ComplexType.
+  @param aCtor - The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter.
+  @param initFn - A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+  and populated with any initial values. Called with 'initFn(entity)'
+  @param noTrackingFn - A function that is executed immediately after a noTracking entity has been created and whose return
   value will be used in place of the noTracking entity.
-  @param noTrackingFn.entity {Object}
-  @param noTrackingFn.entityType {EntityType} The entityType that the 'entity' parameter would be if we were tracking
   **/
-  registerEntityTypeCtor(structuralTypeName: string, aCtor: any, initFn: Function, noTrackingFn: Function) {
+  registerEntityTypeCtor(structuralTypeName: string, aCtor?: any, initFn?: Function, noTrackingFn?: Function) {
     assertParam(structuralTypeName, "structuralTypeName").isString().check();
     assertParam(aCtor, "aCtor").isFunction().isOptional().check();
     assertParam(initFn, "initFn").isOptional().isFunction().or().isString().check();
@@ -537,32 +507,27 @@ export class MetadataStore {
 
   /**
   Returns whether this MetadataStore contains any metadata yet.
-  @example
-      // assume em1 is a preexisting EntityManager;
-      if (em1.metadataStore.isEmpty()) {
-          // do something interesting
-      }
-  @method isEmpty
-  @return {Boolean}
+  >      // assume em1 is a preexisting EntityManager;
+  >      if (em1.metadataStore.isEmpty()) {
+  >          // do something interesting
+  >      }
   **/
   isEmpty() {
     return core.isEmpty(this._structuralTypeMap);
   };
 
   /**
-  Returns an  {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}} given its name.
-  @example
-      // assume em1 is a preexisting EntityManager
-      let odType = em1.metadataStore.getEntityType("OrderDetail");
+  Returns an [[EntityType]] or a [[ComplexType]] given its name.
+  >      // assume em1 is a preexisting EntityManager
+  >      let odType = em1.metadataStore.getEntityType("OrderDetail");
+
   or to throw an error if the type is not found
-  @example
-      let badType = em1.metadataStore.getEntityType("Foo", false);
-      // badType will not get set and an exception will be thrown.
-  @method getEntityType
-  @param structuralTypeName {String}  Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
+  >      let badType = em1.metadataStore.getEntityType("Foo", false);
+  >      // badType will not get set and an exception will be thrown.
+  @param structuralTypeName - Either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
   that same short name an exception will be thrown.
-  @param [okIfNotFound=false] {Boolean} Whether to throw an error if the specified EntityType is not found.
-  @return {EntityType|ComplexType} The EntityType. ComplexType or 'undefined' if not not found.
+  @param okIfNotFound - (default=false) Whether to throw an error if the specified EntityType is not found.
+  @return The EntityType. ComplexType or 'null' if not not found.
   **/
   getEntityType(structuralTypeName: string, okIfNotFound: boolean = false) {
     assertParam(structuralTypeName, "structuralTypeName").isString().check();
@@ -570,6 +535,7 @@ export class MetadataStore {
     return this._getStructuralType(structuralTypeName, okIfNotFound);
   };
 
+  /** @hidden */
   _getStructuralType(typeName: string, okIfNotFound: boolean = false) {
     let qualTypeName = getQualifiedTypeName(this, typeName, false);
     let type = this._structuralTypeMap[qualTypeName];
@@ -587,12 +553,9 @@ export class MetadataStore {
   };
 
   /**
-  Returns an array containing all of the  {{#crossLink "EntityType"}}{{/crossLink}}s or {{#crossLink "ComplexType"}}{{/crossLink}}s in this MetadataStore.
-  @example
-      // assume em1 is a preexisting EntityManager
-      let allTypes = em1.metadataStore.getEntityTypes();
-  @method getEntityTypes
-  @return {Array of EntityType|ComplexType}
+  Returns an array containing all of the [[EntityType]]s or [[ComplexType]]s in this MetadataStore.
+  >      // assume em1 is a preexisting EntityManager
+  >      let allTypes = em1.metadataStore.getEntityTypes();
   **/
   getEntityTypes() {
     return getTypesFromMap(this._structuralTypeMap);
@@ -606,9 +569,7 @@ export class MetadataStore {
 
   /**
   Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
-  can be obtained via the  {{#crossLink "EntityType"}}{{/crossLink}} 'defaultResourceName' property
-  @method getEntityTypeNameForResourceName
-  @param resourceName {String}
+  can be obtained via the  [[EntityType.defaultResourceName]] property
   **/
   getEntityTypeNameForResourceName(resourceName: string) {
     assertParam(resourceName, "resourceName").isString().check();
@@ -621,9 +582,8 @@ export class MetadataStore {
   This method is only needed in those cases where multiple resources return the same
   entityType.  In this case Metadata discovery will only determine a single resource name for
   each entityType.
-  @method setEntityTypeForResourceName
-  @param resourceName {String}
-  @param entityTypeOrName {EntityType|String} If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
+  @param resourceName - The resource name
+  @param entityTypeOrName - If passing a string either the fully qualified name or a short name may be used. If a short name is specified and multiple types share
   that same short name an exception will be thrown. If the entityType has not yet been discovered then a fully qualified name must be used.
   **/
   setEntityTypeForResourceName(resourceName: string, entityTypeOrName: EntityType | string) {
@@ -644,6 +604,7 @@ export class MetadataStore {
     }
   };
 
+  /** __Dev Only__ - for use when creating a new MetadataParserAdapter  */
   static parseTypeName(entityTypeName: string) {
     // TODO: removed 
     // if (!entityTypeName) {
@@ -672,6 +633,7 @@ export class MetadataStore {
     }
   }
 
+  /** __Dev Only__ - for use when creating a new MetadataParserAdapter  */
   static makeTypeHash(shortName: string, ns?: string) {
     return {
       shortTypeName: shortName,
@@ -681,7 +643,7 @@ export class MetadataStore {
   }
 
   // protected methods
-
+  /** @hidden */
   _checkEntityType(entity: IEntity) {
     if (entity.entityType) return;
     let typeName = entity.prototype._$typeName;

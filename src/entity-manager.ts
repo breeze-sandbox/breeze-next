@@ -384,7 +384,7 @@ export class EntityManager {
   @param entityType - The EntityType of the type for which an instance should be created.
   @param initialValues - (default=null) Configuration object of the properties to set immediately after creation.
   @param entityState - (default = [[EntityState.Added]]) The EntityState of the entity after being created and added to this EntityManager.
-  @param mergeStrategy - (default = MergeStrategy.Disallowed) - How to handle conflicts if an entity with the same key already exists within this EntityManager.
+  @param mergeStrategy - (default = [[MergeStrategy.Disallowed]]) - How to handle conflicts if an entity with the same key already exists within this EntityManager.
   @return {IEntity} A new Entity of the specified type. 
   */
   createEntity(entityType: EntityType | string, initialValues: Object, entityState: EntityStateSymbol, mergeStrategy: MergeStrategySymbol) {
@@ -420,7 +420,7 @@ export class EntityManager {
   @param exportedString - The result of a previous 'exportEntities' call as a string
   @param exportedData - The result of a previous 'exportEntities' call as an Object.
   @param config - A configuration object.
-  @param config.mergeStrategy - A  [[MergeStrategyEnum]] to use when
+  @param config.mergeStrategy - A  [[MergeStrategy]] to use when 
   merging into an existing EntityManager.
   @param config.metadataVersionFn - A function that takes two arguments (the current metadataVersion and the imported store's 'name')
   and may be used to perform version checking.
@@ -700,8 +700,8 @@ export class EntityManager {
   >     let cust1 = custType.createEntity();
   >     em1.attachEntity(cust1, EntityState.Added);
   @param entity - The entity to add.
-  @param entityState - (default=EntityStateEnum.Unchanged) The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
-  @param mergeStrategy - (default = MergeStrategyEnum.Disallowed) How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.
+  @param entityState - (default=EntityState.Unchanged) The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
+  @param mergeStrategy - (default = MergeStrategy.Disallowed) How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.
   @return The attached entity.
   **/
   attachEntity(entity: IEntity, entityState?: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol) {
@@ -1253,7 +1253,7 @@ export class EntityManager {
   hasChanges(entityTypes: EntityType | EntityType[]): boolean;
   /**
   Returns whether there are any changed entities of the specified [[EntityType]]s. A 'changed' Entity has
-  has an [[EntityStateEnum]] of either Added, Modified or Deleted.
+  has an [[EntityState]] of either Added, Modified or Deleted.
 
   This method can be used to determine if an EntityManager has any changes
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
