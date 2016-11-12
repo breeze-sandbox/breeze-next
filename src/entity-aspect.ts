@@ -1,10 +1,9 @@
-﻿import { IComplexArray } from './complex-array';
-import { IValidationErrorsChangedEventArgs } from './entity-aspect';
+﻿import { IValidationErrorsChangedEventArgs } from './entity-aspect';
 import { core } from './core';
 import { config } from './config';
 import { BreezeEvent } from './event';
 import { assertParam } from './assert-param';
-import { EntityState, EntityStateSymbol } from './entity-state';
+import { EntityState  } from './entity-state';
 import { EntityAction } from './entity-action';
 import { EntityType, ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
@@ -71,7 +70,7 @@ export class EntityAspect {
   /**  @hidden */
   entityGroup?: EntityGroup;
   /** The [[EntityState]] of this entity. __Read Only__ **/
-  entityState: EntityStateSymbol;
+  entityState: EntityState;
   /**   Whether this entity is in the process of being saved. __Read Only__ */
   isBeingSaved: boolean;
   /** The 'original values' of this entity where they are different from the 'current values'.
@@ -370,7 +369,7 @@ export class EntityAspect {
   >      order.entityAspect.setEntityState(EntityState.Unchanged);
   >      // The 'order' entity will now be in a 'Unchanged' state.
   **/
-  setEntityState(entityState: EntityStateSymbol) {
+  setEntityState(entityState: EntityState) {
     if (this.entityState === entityState) return false;
     this._checkOperation("setEntityState");
     if (this.entityState.isDetached()) {
@@ -693,6 +692,7 @@ export class EntityAspect {
     this.hasValidationErrors = false;
     this.validationErrorsChanged.clear();
     this.propertyChanged.clear();
+
   };
 
 
@@ -771,7 +771,7 @@ function rejectChangesCore(target: any) {
   });
 }
 
-function removeFromRelations(entity: IEntity, entityState: EntityStateSymbol) {
+function removeFromRelations(entity: IEntity, entityState: EntityState) {
   // remove this entity from any collections.
   // mark the entity deleted or detached
 

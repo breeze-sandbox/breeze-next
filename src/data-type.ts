@@ -1,10 +1,16 @@
 ﻿import { core } from './core';
-import { EnumSymbol, TypedEnum } from './enum';
+import { BreezeEnum } from './enum';
 import { Validator } from './validate';
 
 let _localTimeRegex = /.\d{3}$/;
 
-export class DataTypeSymbol extends EnumSymbol {
+/**
+  DataType is an 'Enum' containing all of the supported data types.
+
+  @class DataType
+  @static
+  **/
+export class DataType extends BreezeEnum {
   validatorCtor?: (context?: any) => Validator;
   normalize?: Function;
   parseRawValue?: Function;
@@ -16,22 +22,8 @@ export class DataTypeSymbol extends EnumSymbol {
   fmtOData?: Function;
   getNext?: Function;
   getConcurrencyValue?: Function;
-}
-
-/**
-  DataType is an 'Enum' containing all of the supported data types.
-
-  @class DataType
-  @static
-  **/
-export class DataType extends TypedEnum<DataTypeSymbol> {
-
-  static instance = new DataType();
   static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
 
-  constructor() {
-    super("DataType", DataTypeSymbol);
-  }
 
   /**
   The default value of this DataType.
@@ -96,7 +88,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static String = DataType.instance.addSymbol({
+  static String = new DataType({
     defaultValue: "",
     parse: coerceToString,
     fmtOData: fmtString,
@@ -107,7 +99,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Int64 = DataType.instance.addSymbol({
+  static Int64 = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -121,7 +113,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Int32 = DataType.instance.addSymbol({
+  static Int32 = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -134,7 +126,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Int16 = DataType.instance.addSymbol({
+  static Int16 = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -147,7 +139,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Byte = DataType.instance.addSymbol({
+  static Byte = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isInteger: true,
@@ -159,7 +151,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Decimal = DataType.instance.addSymbol({
+  static Decimal = new DataType({
     defaultValue: 0,
     isNumeric: true,
     quoteJsonOData: true,
@@ -173,7 +165,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Double = DataType.instance.addSymbol({
+  static Double = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isFloat: true,
@@ -186,7 +178,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Single = DataType.instance.addSymbol({
+  static Single = new DataType({
     defaultValue: 0,
     isNumeric: true,
     isFloat: true,
@@ -199,7 +191,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static DateTime = DataType.instance.addSymbol({
+  static DateTime = new DataType({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
     parse: coerceToDate,
@@ -215,7 +207,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static DateTimeOffset = DataType.instance.addSymbol({
+  static DateTimeOffset = new DataType({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
     parse: coerceToDate,
@@ -230,17 +222,17 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Time = DataType.instance.addSymbol({
+  static Time = new DataType({
     defaultValue: "PT0S",
     fmtOData: fmtTime,
-    parseRawValue: DataType.instance.parseTimeFromServer
+    parseRawValue: DataType.parseTimeFromServer
   });
   /**
   @property Boolean {DataType}
   @final
   @static
   **/
-  static Boolean = DataType.instance.addSymbol({
+  static Boolean = new DataType({
     defaultValue: false,
     parse: coerceToBool,
     fmtOData: fmtBoolean
@@ -250,7 +242,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Guid = DataType.instance.addSymbol({
+  static Guid = new DataType({
     defaultValue: "00000000-0000-0000-0000-000000000000",
     parse: coerceToGuid,
     fmtOData: fmtGuid,
@@ -264,7 +256,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Binary = DataType.instance.addSymbol({
+  static Binary = new DataType({
     defaultValue: null,
     fmtOData: fmtBinary,
     parseRawValue: parseRawBinary
@@ -274,12 +266,12 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @final
   @static
   **/
-  static Undefined = DataType.instance.addSymbol({
+  static Undefined = new DataType({
     defaultValue: undefined,
     fmtOData: fmtUndefined
   });
 
-  static getComparableFn(dataType?: DataTypeSymbol) {
+  static getComparableFn(dataType?: DataType) {
     if (dataType && dataType.normalize) {
       return dataType.normalize;
     } else if (dataType === DataType.Time) {
@@ -303,7 +295,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
   @return {DataType} A DataType.
   **/
   static fromEdmDataType(typeName: string) {
-    let dt: DataTypeSymbol | undefined;
+    let dt: DataType | undefined;
     let parts = typeName.split(".");
     if (parts.length > 1) {
       let simpleName = parts[1];
@@ -321,10 +313,6 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
 
     return dt;
   };
-
-  static fromName(name: string) {
-    return DataType.instance.fromName(name);
-  }
 
   static fromValue(val: any) {
     if (core.isDate(val)) return DataType.DateTime;
@@ -344,7 +332,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
     return DataType.Undefined;
   };
 
-  parseTimeFromServer(source: any) {
+  static parseTimeFromServer(source: any) {
     if (typeof source === 'string') {
       return source;
     }
@@ -356,7 +344,7 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
     return source;
   }
 
-  parseDateAsUTC(source: any) {
+  static parseDateAsUTC(source: any) {
     if (typeof source === 'string') {
       // convert to UTC string if no time zone specifier.
       let isLocalTime = _localTimeRegex.test(source);
@@ -367,9 +355,9 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
     return source;
   };
 
-  static parseDateFromServer = DataType.instance.parseDateAsUTC;
+  static parseDateFromServer = DataType.parseDateAsUTC;
 
-  static parseRawValue(val: any, dataType?: DataTypeSymbol) {
+  static parseRawValue(val: any, dataType?: DataType) {
     // undefined values will be the default for most unmapped properties EXCEPT when they are set
     // in a jsonResultsAdapter ( an unusual use case).
     if (val === undefined) return undefined;
@@ -402,14 +390,14 @@ export class DataType extends TypedEnum<DataTypeSymbol> {
 }
 
 DataType._resetConstants();
-DataType.instance.resolveSymbols();
-DataType.instance.getSymbols().forEach(sym => sym.validatorCtor = getValidatorCtor(sym));
+DataType.resolveSymbols();
+DataType.getSymbols().forEach((sym: DataType) => sym.validatorCtor = getValidatorCtor(sym));
 
 // private functions;
 
 
-function getValidatorCtor(symbol: DataTypeSymbol) {
-  switch (symbol) {
+function getValidatorCtor(dataType: DataType) {
+  switch (dataType) {
     case DataType.String:
       return Validator.string;
     case DataType.Int64:

@@ -1,4 +1,5 @@
-﻿declare var global: any;
+﻿import { BreezeEnum } from './enum';
+declare var global: any;
 declare var window: any;
 
 export interface ErrorCallback {
@@ -179,7 +180,7 @@ function toJson(source: Object, template: Object, target: Object = {}): Object {
             if (typeof (defaultValue) === "function") {
                 value = defaultValue(value);
             } else if (typeof (value) === "object") {
-                if (value && value.parentEnum) {
+                if (value && value instanceof BreezeEnum) {
                     value = value.name;
                 }
             }

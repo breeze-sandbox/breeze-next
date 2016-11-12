@@ -1,5 +1,6 @@
-﻿import { core  } from './core';
-import { Enum } from './enum';
+﻿import { BreezeEnum } from './enum';
+import { core  } from './core';
+
 
 interface IParamContext {
     typeName?: string;
@@ -7,7 +8,7 @@ interface IParamContext {
     prevContext?: IParamContext;
     msg?: string | ((context: IParamContext, v: any) => string);
     mustNotBeEmpty?: boolean;
-    enumType?: Enum;
+    enumType?: BreezeEnum;
     propertyName?: string;
     allowNull?: boolean;
     fn?(context: IParamContext, v: any): boolean;
@@ -93,18 +94,11 @@ export class Param {
     };
 
 
-    // isEnumOf(enumType: Enum): Param {
-    //     return addContext(this, {
-    //         fn: isEnumOf,
-    //         enumType: enumType,
-    //         msg: "must be an instance of the '" + enumType.name + "' enumeration"
-    //     });
-    // };
     isEnumOf(enumType: any): Param {
         return addContext(this, {
             fn: isEnumOf,
             enumType: enumType,
-            msg: "must be an instance of the '" + (enumType.instance ? enumType.instance.name : 'unknown') + "' enumeration"
+            msg: "must be an instance of the '" + (enumType.name || 'unknown') + "' enumeration"
         });
     };
 
@@ -243,8 +237,8 @@ function isInstanceOf(context: IParamContext, v: any) {
 }
 
 function isEnumOf(context: IParamContext, v: any) {
-    if (v == null || context.enumType == null || (context.enumType as any).instance == null) return false;
-    return (context.enumType as any).instance.contains(v);
+    if (v == null || context.enumType == null ) return false;
+    return (context.enumType as any).contains(v);
 }
 
 function hasProperty(context: IParamContext, v: any) {

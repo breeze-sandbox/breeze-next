@@ -327,7 +327,7 @@ function transformValue(prop: breeze.DataProperty, val: any) {
     // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
     // from other dateTimes. This fix compensates before the save.
     val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
-  } else if ((prop.dataType as breeze.DataTypeSymbol).quoteJsonOData) {
+  } else if ((prop.dataType as breeze.DataType).quoteJsonOData) {
     val = val != null ? val.toString() : val;
   }
   return val;
@@ -418,7 +418,7 @@ function getUriKey(aspect: breeze.EntityAspect) {
 }
 
 function fmtProperty(prop: breeze.DataProperty, aspect: breeze.EntityAspect) {
-  return (prop.dataType as breeze.DataTypeSymbol).fmtOData!(aspect.getPropertyValue(prop.name));
+  return (prop.dataType as breeze.DataType).fmtOData!(aspect.getPropertyValue(prop.name));
 }
 
 function createError(error: any, url: string) {

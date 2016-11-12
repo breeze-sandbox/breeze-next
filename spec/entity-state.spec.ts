@@ -9,17 +9,16 @@ describe("EntityState", function () {
   });
 
   it("should have static members", function () {
-    expect(EntityState.instance.contains(EntityState.Modified));
-    expect(EntityState.instance.name).toBe("EntityState");
-    expect(EntityState.instance.fromName('Added')).toBe(EntityState.Added);
+    expect(EntityState.contains(EntityState.Modified));
+    expect(EntityState.fromName('Added')).toBe(EntityState.Added);
     let est = EntityState;
     let nm = est.Added.name;
     if (nm == null) {
       fail("should not get here");
     }
     expect(EntityState.Added.name).toBe("Added");
-    expect(EntityState.Added.parentEnum).toBe(EntityState.instance);
-    expect(EntityState.Added.parentEnum.constructor).toBe(EntityState);
+    expect(EntityState.Added instanceof EntityState).toBe(true);
+    expect(EntityState.Added.constructor).toBe(EntityState);
     let es = EntityState.Detached;
     assertParam(es, "entityState").isEnumOf(EntityState).check();
     try {

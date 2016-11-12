@@ -9,10 +9,10 @@ describe("EntityAction", function () {
   });
 
   it("should have static members", function () {
-    expect(EntityAction.instance.contains(EntityAction.Attach));
-    expect(EntityAction.instance.name).toBe("EntityAction");
+    expect(EntityAction.contains(EntityAction.Attach));
+    // expect(EntityAction.name).toBe("EntityAction");
     expect(EntityAction.Attach.name).toBe("Attach");
-    expect(EntityAction.Attach.parentEnum).toBe(EntityAction.instance);
+    expect(EntityAction.Attach instanceof EntityAction);
     expect(EntityAction.Attach.isAttach()).toBe(true);
     expect(EntityAction.Attach.isDetach()).toBe(false);
     expect(EntityAction.Detach.isAttach()).toBe(false);

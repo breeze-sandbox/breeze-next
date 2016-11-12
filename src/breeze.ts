@@ -1,13 +1,13 @@
 import { BreezeEvent } from './event';
 import { AbstractDataServiceAdapter} from './abstract-data-service-adapter';
 import { DataService, JsonResultsAdapter, INodeContext } from './data-service';
-import { DataType, DataTypeSymbol } from './data-type';
-import { EntityAction, EntityActionSymbol } from './entity-action';
+import { DataType  } from './data-type';
+import { EntityAction } from './entity-action';
 import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { EntityManager, ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
 import { EntityQuery, FilterQueryOp, BooleanQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
-import { EntityState, EntityStateSymbol } from './entity-state';
+import { EntityState } from './entity-state';
 import { InterfaceRegistry, IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, IInterfaceRegistryConfig } from './interface-registry';
 import { KeyGenerator } from './key-generator';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
@@ -36,16 +36,13 @@ export {
   DataProperty,
   DataService,
   DataType,
-  DataTypeSymbol,
   EntityAction,
-  EntityActionSymbol,
   EntityAspect,
   EntityKey,
   EntityManager,
   EntityProperty,
   EntityQuery,
   EntityState,
-  EntityStateSymbol,
   EntityType,
   ExpandClause,
   FetchStrategy,
@@ -110,15 +107,12 @@ export const breeze = {
   DataProperty: DataProperty,
   DataService: DataService,
   DataType: DataType,
-  DataTypeSymbol: DataTypeSymbol,
   EntityAction: EntityAction,
-  EntityActionSymbol: EntityActionSymbol,
   EntityAspect: EntityAspect,
   EntityKey: EntityKey,
   EntityManager: EntityManager,
   EntityQuery: EntityQuery,
   EntityState: EntityState,
-  EntityStateSymbol: EntityStateSymbol,
   EntityType: EntityType,
   Event: BreezeEvent,
   FetchStrategy: FetchStrategy,

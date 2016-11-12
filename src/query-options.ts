@@ -1,10 +1,7 @@
 ﻿import { core } from './core';
-import { EnumSymbol, TypedEnum } from './enum';
+import { BreezeEnum } from './enum';
 import { assertConfig } from './assert-param';
 
-export class MergeStrategySymbol extends EnumSymbol {
-
-}
 
 
 /**
@@ -13,12 +10,7 @@ MergeStrategy is an 'Enum' that determines how entities are merged into an Entit
 @class MergeStrategy
 @static
 **/
-export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
-  static instance = new MergeStrategy();
-  constructor() {
-    super("MergeStrategy", MergeStrategySymbol);
-  }
-
+export class MergeStrategy extends BreezeEnum {
 
   /**
   MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed
@@ -30,7 +22,7 @@ export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  static PreserveChanges = MergeStrategy.instance.addSymbol();
+  static PreserveChanges = new MergeStrategy();
   /**
   MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
   a changed state (added, modified, deleted). After the merge, the pending changes are lost.
@@ -41,7 +33,7 @@ export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  static OverwriteChanges = MergeStrategy.instance.addSymbol();
+  static OverwriteChanges = new MergeStrategy();
 
   /**
   SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key.
@@ -51,7 +43,7 @@ export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  static SkipMerge = MergeStrategy.instance.addSymbol();
+  static SkipMerge = new MergeStrategy();
 
   /**
   Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.
@@ -62,16 +54,12 @@ export class MergeStrategy extends TypedEnum<MergeStrategySymbol> {
   @final
   @static
   **/
-  static Disallowed = MergeStrategy.instance.addSymbol();
+  static Disallowed = new MergeStrategy();
 
 
 }
-MergeStrategy.instance.resolveSymbols();
+MergeStrategy.resolveSymbols();
 
-
-export class FetchStrategySymbol extends EnumSymbol {
-
-}
 
 /**
 FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
@@ -79,11 +67,8 @@ FetchStrategy is an 'Enum' that determines how and where entities are retrieved 
 @class FetchStrategy
 @static
 **/
-export class FetchStrategy extends TypedEnum<FetchStrategySymbol> {
-  static instance = new FetchStrategy();
-  constructor() {
-    super("FetchStrategy", FetchStrategySymbol);
-  }
+export class FetchStrategy extends BreezeEnum {
+
 
   /**
   FromServer is used to tell the query to execute the query against a remote data source on the server.
@@ -91,22 +76,22 @@ export class FetchStrategy extends TypedEnum<FetchStrategySymbol> {
   @final
   @static
   **/
-  static FromServer = FetchStrategy.instance.addSymbol();
+  static FromServer = new FetchStrategy();
   /**
   FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
   @property FromLocalCache {MergeStrategy}
   @final
   @static
   **/
-  static FromLocalCache = FetchStrategy.instance.addSymbol();
+  static FromLocalCache = new FetchStrategy();
 
 }
 
-FetchStrategy.instance.resolveSymbols();
+FetchStrategy.resolveSymbols();
 
 export class QueryOptionsConfig {
-    fetchStrategy?: FetchStrategySymbol;
-    mergeStrategy?: MergeStrategySymbol;
+    fetchStrategy?: FetchStrategy;
+    mergeStrategy?: MergeStrategy;
     includeDeleted?: boolean;
 }
 
@@ -118,8 +103,8 @@ export class QueryOptionsConfig {
 export class QueryOptions {
   _$typeName: string;
 
-  fetchStrategy: FetchStrategySymbol;
-  mergeStrategy: MergeStrategySymbol;
+  fetchStrategy: FetchStrategy;
+  mergeStrategy: MergeStrategy;
   includeDeleted: boolean;
   /**
   The default value whenever QueryOptions are not specified.
@@ -201,12 +186,12 @@ export class QueryOptions {
   @return {QueryOptions}
   @chainable
   **/
-  using(qoConfig: QueryOptionsConfig | MergeStrategySymbol | FetchStrategySymbol) {
+  using(qoConfig: QueryOptionsConfig | MergeStrategy | FetchStrategy) {
     if (!qoConfig) return this;
     let result = new QueryOptions(this);
-    if ( qoConfig instanceof MergeStrategySymbol) {
+    if ( qoConfig instanceof MergeStrategy) {
       qoConfig = { mergeStrategy: qoConfig };
-    } else if ( qoConfig instanceof FetchStrategySymbol) {
+    } else if ( qoConfig instanceof FetchStrategy) {
       qoConfig = { fetchStrategy: qoConfig };
     }
     return QueryOptions._updateWithConfig(result, qoConfig);
@@ -235,8 +220,8 @@ export class QueryOptions {
 
   static fromJSON(json: any) {
     return new QueryOptions({
-      fetchStrategy: FetchStrategy.instance.fromName(json.fetchStrategy),
-      mergeStrategy: MergeStrategy.instance.fromName(json.mergeStrategy),
+      fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
+      mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
       includeDeleted: json.includeDeleted === true
     });
   };

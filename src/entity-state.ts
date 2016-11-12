@@ -1,7 +1,33 @@
-﻿import { EnumSymbol, TypedEnum } from './enum';
+﻿import { BreezeEnum } from './enum';
 
-export class EntityStateSymbol extends EnumSymbol {
+/**
+EntityState is an 'Enum' containing all of the valid states for an 'Entity'.
+
+**/
+export class EntityState extends BreezeEnum {
+
   /**
+  The 'Unchanged' state.
+  **/
+  static Unchanged = new EntityState();
+  /**
+  The 'Added' state.
+  **/
+  static Added = new EntityState();
+  /**
+  The 'Modified' state.
+  **/
+  static Modified = new EntityState();
+  /**
+  The 'Deleted' state.
+  **/
+  static Deleted = new EntityState();
+  /**
+  The 'Detached' state.
+  **/
+  static Detached = new EntityState();
+
+ /**
   @example
       var es = anEntity.entityAspect.entityState;
       return es.isUnchanged();
@@ -90,7 +116,6 @@ export class EntityStateSymbol extends EnumSymbol {
   @return {Boolean} Whether an entityState instance is EntityState.Added or EntityState.Modified or EntityState.Deleted.
   **/
   isAddedModifiedOrDeleted() {
-      EntityState.prototype.name;
     return this === EntityState.Added ||
       this === EntityState.Modified ||
       this === EntityState.Deleted;
@@ -98,43 +123,6 @@ export class EntityStateSymbol extends EnumSymbol {
 
 }
 
-/**
-EntityState is an 'Enum' containing all of the valid states for an 'Entity'.
-
-**/
-export class EntityState extends TypedEnum<EntityStateSymbol> {
-
-  /** @hidden  **/
-  static instance = new EntityState();
-
-  /** @hidden **/
-  constructor() {
-    super("EntityState", EntityStateSymbol);
-  }
-
-  /**
-  The 'Unchanged' state.
-  **/
-  static Unchanged = EntityState.instance.addSymbol();
-  /**
-  The 'Added' state.
-  **/
-  static Added = EntityState.instance.addSymbol();
-  /**
-  The 'Modified' state.
-  **/
-  static Modified = EntityState.instance.addSymbol();
-  /**
-  The 'Deleted' state.
-  **/
-  static Deleted = EntityState.instance.addSymbol();
-  /**
-  The 'Detached' state.
-  **/
-  static Detached = EntityState.instance.addSymbol();
-
-}
-
-EntityState.instance.resolveSymbols();
+EntityState.resolveSymbols();
 
 

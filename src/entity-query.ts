@@ -1,13 +1,14 @@
-﻿import { core, Callback, ErrorCallback } from './core';
+﻿import { IQueryOp } from './entity-query';
+import { core, Callback, ErrorCallback } from './core';
 import { assertParam } from './assert-param';
-import { DataType, DataTypeSymbol } from './data-type';
+import { DataType } from './data-type';
 import { EntityAspect, IEntity } from './entity-aspect';
 import { EntityKey } from './entity-key';
-import { EnumSymbol, TypedEnum } from './enum';
+import { BreezeEnum } from './enum';
 import { DataService, JsonResultsAdapter } from './data-service';
 import { EntityManager } from './entity-manager';
 import { MetadataStore, EntityType, NavigationProperty, EntityProperty } from './entity-metadata';
-import { QueryOptions, MergeStrategySymbol, FetchStrategySymbol } from './query-options';
+import { QueryOptions, MergeStrategy, FetchStrategy } from './query-options';
 import { Predicate } from './predicate';
 
 export interface IRecursiveArray<T> {
@@ -269,11 +270,11 @@ export class EntityQuery {
   where(predicate: Predicate): EntityQuery;
   where(predicate: Object): EntityQuery;
   where(property: string, operator: string, value: any): EntityQuery;
-  where(property: string, operator: FilterQueryOpSymbol, value: any): EntityQuery;
-  where(property: string, filterop: FilterQueryOpSymbol, property2: string, filterop2: FilterQueryOpSymbol, value: any): EntityQuery;  // for any/all clauses
+  where(property: string, operator: FilterQueryOp, value: any): EntityQuery;
+  where(property: string, filterop: FilterQueryOp, property2: string, filterop2: FilterQueryOp, value: any): EntityQuery;  // for any/all clauses
   where(property: string, filterop: string, property2: string, filterop2: string, value: any): EntityQuery;  // for any/all clauses
 
-  where(anArray: IRecursiveArray<string | number | FilterQueryOpSymbol | Predicate>): EntityQuery;
+  where(anArray: IRecursiveArray<string | number | FilterQueryOp | Predicate>): EntityQuery;
   where(...args: any[]) {
     let wherePredicate: Predicate | undefined;
     if (args.length > 0 && args[0] != null) {
@@ -584,8 +585,8 @@ export class EntityQuery {
   using(obj: DataService): EntityQuery;
   using(obj: JsonResultsAdapter): EntityQuery;
   using(obj: QueryOptions): EntityQuery;
-  using(obj: MergeStrategySymbol): EntityQuery;
-  using(obj: FetchStrategySymbol): EntityQuery;
+  using(obj: MergeStrategy): EntityQuery;
+  using(obj: FetchStrategy): EntityQuery;
   using(obj: any) {
     if (!obj) return this;
     let eq = clone(this);
@@ -969,7 +970,7 @@ function clone(eq: EntityQuery, propName?: string, value?: any) {
 }
 
 function processUsing(eq: EntityQuery, map: Object, value: any, propertyName?: string) {
-  let typeName = value._$typeName || (value.parentEnum && value.parentEnum.name);
+  let typeName = value._$typeName || ((value instanceof BreezeEnum) && (value.constructor as any).name);
   let key = typeName && typeName.substr(0, 1).toLowerCase() + typeName.substr(1);
   if (propertyName && key !== propertyName) {
     throw new Error("Invalid value for property: " + propertyName);
@@ -1044,9 +1045,7 @@ export interface IQueryOp {
   operator: string;
 }
 
-export class FilterQueryOpSymbol extends EnumSymbol implements IQueryOp {
-  operator: string;
-};
+
 
 /**
    FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink "Predicate"}}{{/crossLink}}
@@ -1055,11 +1054,8 @@ export class FilterQueryOpSymbol extends EnumSymbol implements IQueryOp {
    @class FilterQueryOp
    @static
    **/
-export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
-  static instance = new FilterQueryOp();
-  constructor() {
-    super("FilterQueryOp", FilterQueryOpSymbol);
-  }
+export class FilterQueryOp extends BreezeEnum implements IQueryOp {
+  operator: string;
 
   /**
    Aliases: "eq", "=="
@@ -1067,42 +1063,42 @@ export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  static Equals = FilterQueryOp.instance.addSymbol({ operator: "eq" });
+  static Equals = new FilterQueryOp({ operator: "eq" });
   /**
    Aliases: "ne", "!="
    @property NotEquals {FilterQueryOp}
    @final
    @static
    **/
-  static NotEquals = FilterQueryOp.instance.addSymbol({ operator: "ne" });
+  static NotEquals = new FilterQueryOp({ operator: "ne" });
   /**
    Aliases: "gt", ">"
    @property GreaterThan {FilterQueryOp}
    @final
    @static
    **/
-  static GreaterThan = FilterQueryOp.instance.addSymbol({ operator: "gt" });
+  static GreaterThan = new FilterQueryOp({ operator: "gt" });
   /**
    Aliases: "lt", "<"
    @property LessThan {FilterQueryOp}
    @final
    @static
    **/
-  static LessThan = FilterQueryOp.instance.addSymbol({ operator: "lt" });
+  static LessThan = new FilterQueryOp({ operator: "lt" });
   /**
    Aliases: "ge", ">="
    @property GreaterThanOrEqual {FilterQueryOp}
    @final
    @static
    **/
-  static GreaterThanOrEqual = FilterQueryOp.instance.addSymbol({ operator: "ge" });
+  static GreaterThanOrEqual = new FilterQueryOp({ operator: "ge" });
   /**
    Aliases: "le", "<="
    @property LessThanOrEqual {FilterQueryOp}
    @final
    @static
    **/
-  static LessThanOrEqual = FilterQueryOp.instance.addSymbol({ operator: "le" });
+  static LessThanOrEqual = new FilterQueryOp({ operator: "le" });
   /**
    String operation: Is a string a substring of another string.
    Aliases: "substringof"
@@ -1110,19 +1106,19 @@ export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  static Contains = FilterQueryOp.instance.addSymbol({ operator: "contains" });
+  static Contains = new FilterQueryOp({ operator: "contains" });
   /**
    @property StartsWith {FilterQueryOp}
    @final
    @static
    **/
-  static StartsWith = FilterQueryOp.instance.addSymbol({ operator: "startswith" });
+  static StartsWith = new FilterQueryOp({ operator: "startswith" });
   /**
    @property EndsWith {FilterQueryOp}
    @final
    @static
    **/
-  static EndsWith = FilterQueryOp.instance.addSymbol({ operator: "endswith" });
+  static EndsWith = new FilterQueryOp({ operator: "endswith" });
 
   /**
    Aliases: "some"
@@ -1130,7 +1126,7 @@ export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  static Any = FilterQueryOp.instance.addSymbol({ operator: "any" });
+  static Any = new FilterQueryOp({ operator: "any" });
 
   /**
    Aliases: "every"
@@ -1138,29 +1134,25 @@ export class FilterQueryOp extends TypedEnum<FilterQueryOpSymbol> {
    @final
    @static
    **/
-  static All = FilterQueryOp.instance.addSymbol({ operator: "all" });
+  static All = new FilterQueryOp({ operator: "all" });
 
   /**
    @property In {FilterQueryOp}
    @final
    @static
    **/
-  static In = FilterQueryOp.instance.addSymbol({ operator: "in" });
+  static In = new FilterQueryOp({ operator: "in" });
 
   /**
    @property IsTypeOf {FilterQueryOp}
    @final
    @static
    **/
-  static IsTypeOf = FilterQueryOp.instance.addSymbol({ operator: "isof" });
+  static IsTypeOf = new FilterQueryOp({ operator: "isof" });
 }
-FilterQueryOp.instance.resolveSymbols();
+FilterQueryOp.resolveSymbols();
 
 
-
-export class BooleanQueryOpSymbol extends EnumSymbol implements IQueryOp {
-  operator: string;
-};
 
 /**
    BoolleanQueryOp is an 'Enum' containing all of the valid  boolean
@@ -1169,20 +1161,15 @@ export class BooleanQueryOpSymbol extends EnumSymbol implements IQueryOp {
    @class BooleanQueryOp
    @static
    **/
-export class BooleanQueryOp extends TypedEnum<BooleanQueryOpSymbol> {
-  static instance = new BooleanQueryOp();
-  constructor() {
-    super("BooleanQueryOp", BooleanQueryOpSymbol);
-  }
+export class BooleanQueryOp extends BreezeEnum implements IQueryOp {
+  operator: string;
 
-  static And = BooleanQueryOp.instance.addSymbol({ operator: "and" });
-  static Or = BooleanQueryOp.instance.addSymbol({ operator: "or" });
-  static Not = BooleanQueryOp.instance.addSymbol({ operator: "not" });
+  static And = new BooleanQueryOp({ operator: "and" });
+  static Or = new BooleanQueryOp({ operator: "or" });
+  static Not = new BooleanQueryOp({ operator: "not" });
 
 }
-BooleanQueryOp.instance.resolveSymbols();
-
-
+BooleanQueryOp.resolveSymbols();
 
 /*
  An OrderByClause is a description of the properties and direction that the result
@@ -1288,7 +1275,7 @@ class OrderByItem {
   };
 
   getComparer(entityType: EntityType) {
-    let propDataType: DataTypeSymbol;
+    let propDataType: DataType;
     let isCaseSensitive: boolean;
     if (!this.lastProperty) this.validate(entityType);
     if (this.lastProperty) {

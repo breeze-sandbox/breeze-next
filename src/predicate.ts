@@ -1,7 +1,7 @@
 ﻿import { core } from './core';
 import { EntityType, StructuralType, DataProperty  } from './entity-metadata';
 import { IQueryOp } from './entity-query';
-import { DataType, DataTypeSymbol } from './data-type';
+import { DataType  } from './data-type';
 import { EntityAspect, IEntity } from './entity-aspect';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 
@@ -30,7 +30,7 @@ export interface IVisitContext {
 export interface IExpressionContext {
   entityType?: EntityType;
   usesNameOnServer?: boolean;
-  dataType?: DataTypeSymbol | string;
+  dataType?: DataType | string;
   isRHS?: boolean;
   isFnArg?: boolean;
 }
@@ -639,7 +639,7 @@ AnyAllPredicate.prototype._initialize("anyAllPredicate", {
 class PredicateExpression {
   visitorMethodName: string;
   visit: Function; // TODO
-  dataType?: DataTypeSymbol | StructuralType;
+  dataType?: DataType | StructuralType;
   constructor(visitorMethodName: string) {
     this.visitorMethodName = visitorMethodName;
     // give expressions the Predicate prototype method
@@ -654,18 +654,18 @@ class PredicateExpression {
 
 export class LitExpr extends PredicateExpression {
   value: any;
-  dataType: DataTypeSymbol;
+  dataType: DataType;
   hasExplicitDataType: boolean;
   // 2 public props: value, dataType
-  constructor(value: any, dataType: string | DataTypeSymbol | undefined, hasExplicitDataType?: boolean) {
+  constructor(value: any, dataType: string | DataType | undefined, hasExplicitDataType?: boolean) {
     super("litExpr");
     // dataType may come is an a string
     let dt1 = resolveDataType(dataType);
     // if the DataType comes in as Undefined this means
     // that we should NOT attempt to parse it but just leave it alone
     // for now - this is usually because it is part of a Func expr.
-    // TODO: cast as DataTypeSymbol seems to be needed by early version of TypeDoc - may be able to remove later
-    let dt2 = (dt1 || DataType.fromValue(value)) as DataTypeSymbol;
+    // TODO: cast as DataType seems to be needed by early version of TypeDoc - may be able to remove later
+    let dt2 = (dt1 || DataType.fromValue(value)) as DataType;
 
     if (dt2.parse) {
       if (Array.isArray(value)) {
@@ -686,14 +686,14 @@ export class LitExpr extends PredicateExpression {
 
 }
 
-function resolveDataType(dataType?: DataTypeSymbol | string) {
+function resolveDataType(dataType?: DataType | string) {
   if (dataType == null) return dataType;
   // if (DataType.contains(dataType)) {
-  if (dataType instanceof DataTypeSymbol) {
+  if (dataType instanceof DataType) {
     return dataType;
   }
   if (typeof dataType === 'string') {
-    let dt = DataType.fromName(dataType) as DataTypeSymbol;
+    let dt = DataType.fromName(dataType) as DataType;
     if (dt) return dt;
     throw new Error("Unable to resolve a dataType named: " + dataType);
   }
@@ -704,7 +704,7 @@ function resolveDataType(dataType?: DataTypeSymbol | string) {
 
 export class PropExpr extends PredicateExpression {
   propertyPath: string;
-  dataType: DataTypeSymbol | StructuralType;
+  dataType: DataType | StructuralType;
   // two public props: propertyPath, dateType
   constructor(propertyPath: string) {
     super('propExpr');
@@ -741,7 +741,7 @@ export class FnExpr extends PredicateExpression {
   fnName: string;
   exprs: PredicateExpression[];
   localFn: any; // TODO:
-  dataType: DataTypeSymbol;
+  dataType: DataType;
   constructor(fnName: string, exprs: PredicateExpression[]) {
     super('fnExpr');
     // 4 public props: fnName, exprs, localFn, dataType
@@ -1028,7 +1028,7 @@ let toFunctionVisitor = {
     let expr2Fn = this.expr2!.visit(context);
     let dataType = this.expr1!.dataType || this.expr2!.dataType;
     let lqco = context.entityType!.metadataStore.localQueryComparisonOptions;
-    let predFn = getBinaryPredicateFn(this, dataType as DataTypeSymbol, lqco);
+    let predFn = getBinaryPredicateFn(this, dataType as DataType, lqco);
     if (predFn == null) {
       throw new Error("Invalid binaryPredicate operator:" + this.op.key);
     }
@@ -1129,7 +1129,7 @@ function getAnyAllPredicateFn(op: IOp): (v1: any[], v2: any) => boolean {
   }
 }
 
-function getBinaryPredicateFn(binaryPredicate: BinaryPredicate, dataType: DataTypeSymbol, lqco: LocalQueryComparisonOptions) {
+function getBinaryPredicateFn(binaryPredicate: BinaryPredicate, dataType: DataType, lqco: LocalQueryComparisonOptions) {
   let op = binaryPredicate.op;
   let mc = DataType.getComparableFn(dataType);
   let predFn: (v1: any, v2: any) => boolean;

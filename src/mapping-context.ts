@@ -1,19 +1,19 @@
 ﻿import { IDataServiceAdapter } from './interface-registry';
 import { core } from './core';
-import { DataType, DataTypeSymbol } from './data-type';
+import { DataType  } from './data-type';
 import { DataService, JsonResultsAdapter, INodeContext, INodeMeta } from './data-service';
 import { EntityState  } from './entity-state';
 import { EntityAction } from './entity-action';
 import { MetadataStore, EntityType, StructuralType, DataProperty, NavigationProperty } from './entity-metadata';
 import { EntityManager } from './entity-manager';
-import { MergeStrategy, MergeStrategySymbol } from './query-options';
+import { MergeStrategy } from './query-options';
 import { IEntity } from './entity-aspect';
 import { EntityQuery } from './entity-query';
 
 
 // Internal helper class
 export interface IMergeOptions {
-  mergeStrategy: MergeStrategySymbol;
+  mergeStrategy: MergeStrategy;
   includeDeleted?: boolean;
   noTracking?: boolean;
 }
@@ -162,7 +162,7 @@ function processNoMerge(mc: MappingContext, stype: StructuralType, node: any) {
         return processNoMerge(mc, dp.dataType as any, v);
       });
     } else {
-      result[dp.name] = DataType.parseRawValue(node[dp.nameOnServer], dp.dataType as DataTypeSymbol);
+      result[dp.name] = DataType.parseRawValue(node[dp.nameOnServer], dp.dataType as DataType);
     }
   });
 

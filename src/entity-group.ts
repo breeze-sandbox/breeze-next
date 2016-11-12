@@ -1,9 +1,9 @@
 ﻿import { IEntity } from './entity-aspect';
 import { EntityType, DataProperty  } from './entity-metadata';
 import { EntityKey } from './entity-key';
-import { EntityState, EntityStateSymbol } from './entity-state';
+import { EntityState } from './entity-state';
 import { EntityManager } from './entity-manager';
-import { MergeStrategy, MergeStrategySymbol } from './query-options';
+import { MergeStrategy } from './query-options';
 
 export class EntityGroup {
   entityManager: EntityManager;
@@ -23,7 +23,7 @@ export class EntityGroup {
   };
 
 
-  attachEntity(entity: IEntity, entityState: EntityStateSymbol, mergeStrategy?: MergeStrategySymbol) {
+  attachEntity(entity: IEntity, entityState: EntityState, mergeStrategy?: MergeStrategy) {
     // entity should already have an aspect.
     let aspect = entity.entityAspect;
 
@@ -123,7 +123,7 @@ export class EntityGroup {
     return changes;
   };
 
-  getEntities(entityStates: EntityStateSymbol[]) {
+  getEntities(entityStates: EntityState[]) {
     let filter = getFilter(entityStates);
     return this._entities.filter(filter) as IEntity[];
   };
@@ -185,7 +185,7 @@ export class EntityGroup {
 
 }
 
-function getFilter(entityStates: EntityStateSymbol[]) {
+function getFilter(entityStates: EntityState[]) {
   if (entityStates.length === 0) {
     return function (e: IEntity) {
       return !!e;
