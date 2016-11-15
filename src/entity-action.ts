@@ -1,47 +1,57 @@
 ﻿import { BreezeEnum} from './enum';
 
+/** EntityAction is an 'Enum' containing all of the valid actions that can occur to an 'Entity'. 
+ 
+*/
+
 export class EntityAction extends BreezeEnum {
 
-  // Attach - Entity was attached via an AttachEntity call.
+  /** Entity was attached via an AttachEntity call. */
   static Attach = new EntityAction( { _isAttach: true });
-  // AttachOnQuery - Entity was attached as a result of a query.
+  /**  Entity was attached as a result of a query. */
   static AttachOnQuery = new EntityAction({ _isAttach: true});
-  // AttachOnImport - Entity was attached as a result of an import.
+  /**  Entity was attached as a result of an import. */
   static AttachOnImport = new EntityAction({ _isAttach: true});
 
+  /** Entity was detached */
   static Detach = new EntityAction( { _isDetach: true });
 
-  // MergeOnQuery - Properties on the entity were merged as a result of a query.
+  /** Properties on the entity were merged as a result of a query. */
   static MergeOnQuery = new EntityAction({ _isModification: true });
-  // MergeOnImport - Properties on the entity were merged as a result of an import.
+  /** Properties on the entity were merged as a result of an import. */
   static MergeOnImport = new EntityAction({ _isModification: true });
-  // MergeOnSave - Properties on the entity were merged as a result of a save
+  /** Properties on the entity were merged as a result of a save */
   static MergeOnSave = new EntityAction({ _isModification: true });
 
-
-  // PropertyChange - A property on the entity was changed.
+  /** A property on the entity was changed. */
   static PropertyChange = new EntityAction({ _isModification: true});
 
-  // EntityStateChange - The EntityState of the entity was changed.
+  /** The EntityState of the entity was changed. */
   static EntityStateChange = new EntityAction();
 
-  // AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
+  /** AcceptChanges was called on the entity, or its entityState was set to Unmodified. */
   static AcceptChanges = new EntityAction();
-  // RejectChanges - RejectChanges was called on the entity.
+  /** RejectChanges was called on the entity. */
   static RejectChanges = new EntityAction({ _isModification: true});
 
-  // Clear - The EntityManager was cleared.  All entities detached.
+  /** The EntityManager was cleared.  All entities detached. */
   static Clear = new EntityAction({ _isDetach: true});
 
+  /** @hidden */
   _isAttach?: boolean;
+  /** @hidden */
   _isDetach?: boolean;
+  /** @hidden */
   _isModification: boolean;
+  /** Is this an 'attach' operation? ( Attach, AttachOnQuery or AttachOnImport) */
   isAttach() {
     return !!this._isAttach;
   }
+  /** Is this a 'detach' operation? ( Detach, Clear) */
   isDetach() {
     return !!this._isDetach;
   }
+  /** Is this a 'modification' operation? ( PropertyChange, MergeOnQuery, MergeOnSave, MergeOnImport, RejectChanges) */
   isModification() {
     return !!this._isModification;
   }

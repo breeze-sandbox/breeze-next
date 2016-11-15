@@ -41,7 +41,7 @@ describe("DayOfWeek2", () => {
       expect(DayOfWeek.Saturday.isWeekend).toBe(true);
     // // Standard enum capabilities
       expect(DayOfWeek.Thursday instanceof DayOfWeek).toBe(true);
-      expect(BreezeEnum.isSymbol(DayOfWeek.Wednesday)).toBe(true);
+      // expect(BreezeEnum.isSymbol(DayOfWeek.Wednesday)).toBe(true);
       expect(DayOfWeek.contains(DayOfWeek.Thursday)).toBe(true);
       let json = DayOfWeek.Wednesday.toJSON();
       expect(json._$typeName).toBe('DayOfWeek');

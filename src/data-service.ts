@@ -1,10 +1,10 @@
-﻿import { IKeyMapping } from './entity-manager';
+﻿import { EntityType, NavigationProperty } from './entity-metadata';
 import { IDataServiceAdapter, IUriBuilderAdapter } from './interface-registry';
-import { core } from './core';
-import { config } from './config';
-import { assertConfig } from './assert-param';
-import { EntityType, NavigationProperty } from './entity-metadata';
+import { IKeyMapping } from './entity-manager';
 import { MappingContext } from './mapping-context';
+import { assertConfig } from './assert-param';
+import { config } from './config';
+import { core } from './core';
 
 export interface DataServiceConfig {
   serviceName?: string;
@@ -15,110 +15,63 @@ export interface DataServiceConfig {
   useJsonp?: boolean;
 }
 /**
-  A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance,
-  and whether the service has server side metadata.
+A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance,
+and whether the service has server side metadata.
 
-  You can construct an EntityManager with either a serviceName or a DataService instance, if you use a serviceName then a DataService
-  is constructed for you.  (It can also be set via the EntityManager.setProperties method).
+You can construct an EntityManager with either a serviceName or a DataService instance, if you use a serviceName then a DataService
+is constructed for you.  (It can also be set via the EntityManager.setProperties method).
 
-  The same applies to the MetadataStore.fetchMetadata method, i.e. it takes either a serviceName or a DataService instance.
+The same applies to the MetadataStore.fetchMetadata method, i.e. it takes either a serviceName or a DataService instance.
 
-  Each metadataStore contains a list of DataServices, each accessible via its ‘serviceName’.
-  ( see MetadataStore.getDataService and MetadataStore.addDataService).  The ‘addDataService’ method is called internally
-  anytime a MetadataStore.fetchMetadata call occurs with a new dataService ( or service name).
-  @class DataService
-  **/
+Each metadataStore contains a list of DataServices, each accessible via its ‘serviceName’.
+( see MetadataStore.getDataService and MetadataStore.addDataService).  The ‘addDataService’ method is called internally
+anytime a MetadataStore.fetchMetadata call occurs with a new dataService ( or service name).
+
+**/
 export class DataService {
+  /** @hidden */
   _$typeName: string; // actually put on prototype.
+  /** The serviceName for this DataService. __Read Only__ **/
   serviceName: string;
+  /** The adapter name for the [[IDataServiceAdapter]] to be used with this service. __Read Only__  **/
   adapterName: string;
-  uriBuilder?: IUriBuilderAdapter;
+  /**  The [[IDataServiceAdapter]] implementation instance associated with this EntityManager. __Read Only__  **/
   adapterInstance?: IDataServiceAdapter;
+  /** The adapter name for the [[IUriBuilderAdapter]] to be used with this service. __Read Only__  **/
   uriBuilderName: string;
+  /**  The [[IUriBuilderAdapter]] implementation instance associated with this EntityManager. __Read Only__  **/
+  uriBuilder?: IUriBuilderAdapter;
+  /** Whether the server can provide metadata for this service. __Read Only__   **/
   hasServerMetadata: boolean;
+  /** The [[JsonResultsAdapter]] used to process the results of any query against this DataService. __Read Only__ **/
   jsonResultsAdapter: JsonResultsAdapter;
+  /** Whether to use JSONP when performing a 'GET' request against this service. __Read Only__  **/
   useJsonp: boolean;
 
-  /**
-  DataService constructor
+  /**   DataService constructor
+  >     var dataService = new DataService({
+  >         serviceName: altServiceName,
+  >         hasServerMetadata: false
+  >     });
 
-  @example
-      var dataService = new DataService({
-          serviceName: altServiceName,
-          hasServerMetadata: false
-      });
+  >     var metadataStore = new MetadataStore({
+  >         namingConvention: NamingConvention.camelCase
+  >     });
 
-      var metadataStore = new MetadataStore({
-          namingConvention: NamingConvention.camelCase
-      });
-
-      return new EntityManager({
-          dataService: dataService,
-          metadataStore: metadataStore
-      });
-
-  @method <ctor> DataService
-  @param config {Object}
-  @param config.serviceName {String} The name of the service.
-  @param [config.adapterName] {String} The name of the dataServiceAdapter to be used with this service.
-  @param [config.uriBuilderName] {String} The name of the uriBuilder to be used with this service.
-  @param [config.hasServerMetadata] {bool} Whether the server can provide metadata for this service.
-  @param [config.jsonResultsAdapter] {JsonResultsAdapter}  The JsonResultsAdapter used to process the results of any query against this service.
-  @param [config.useJsonp] {Boolean}  Whether to use JSONP when making a 'get' request against this service.
+  >     return new EntityManager({
+  >         dataService: dataService,
+  >         metadataStore: metadataStore
+  >     });
+  @param config - A configuration object.
   **/
   constructor(config?: DataServiceConfig) {
-    // this.uriBuilder = uriBuilderForOData;
     updateWithConfig(this, config);
   };
 
-  /**
-  The serviceName for this DataService.
-
-  __readOnly__
-  @property serviceName {String}
-  **/
-
-  /**
-  The adapter name for the dataServiceAdapter to be used with this service.
-
-  __readOnly__
-  @property adapterName {String}
-  **/
-
-  /**
-  The "dataService" adapter implementation instance associated with this EntityManager.
-
-  __readOnly__
-  @property adapterInstance {an instance of the "dataService" adapter interface}
-  **/
-
-  /**
-  Whether the server can provide metadata for this service.
-
-  __readOnly__
-  @property hasServerMetadata {Boolean}
-  **/
-
-  /**
-  The JsonResultsAdapter used to process the results of any query against this DataService.
-
-  __readOnly__
-  @property jsonResultsAdapter {JsonResultsAdapter}
-  **/
-
-  /**
-  Whether to use JSONP when performing a 'GET' request against this service.
-
-  __readOnly__
-  @property useJsonP {Boolean}
-  **/
 
   /**
   Returns a copy of this DataService with the specified properties applied.
-  @method using
-  @param config {Configuration Object} The object to apply to create a new DataService.
-  @return {DataService}
-  @chainable
+  @param config - The configuration object to apply to create a new DataService.
   **/
   using(config: DataServiceConfig) {
     if (!config) return this;
@@ -145,6 +98,7 @@ export class DataService {
     return ds;
   };
 
+  /** @hidden */
   static _normalizeServiceName(serviceName: string) {
     serviceName = serviceName.trim();
     if (serviceName.substr(-1) !== "/") {
@@ -154,6 +108,7 @@ export class DataService {
     }
   };
 
+  /**  */
   toJSON() {
     // don't use default value here - because we want to be able to distinguish undefined props for inheritence purposes.
     return core.toJson(this, {

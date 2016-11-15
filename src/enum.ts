@@ -40,6 +40,7 @@ Unlike enums in some other environments, each 'symbol' can have both methods and
 */
 export class BreezeEnum {
   // // TODO: think about CompositeEnum (flags impl).
+  /** The name of this symbol */
   name: string;
   /** @hidden */
   static _resolvedNamesAndSymbols: { name: string, symbol: BreezeEnum }[];
@@ -82,7 +83,7 @@ export class BreezeEnum {
 
   /**
   Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
-  have already been added to the Enum.
+  have already been added to the Enum. This method also sets the 'name' property on each of the symbols.
   >       DayOfWeek.resolveSymbols();
   **/
   static resolveSymbols() {
@@ -121,16 +122,16 @@ export class BreezeEnum {
   };
 
 
-  /**
-  Checks if an object is an Enum 'symbol'. Use the 'contains' method instead of this one 
-  if you want to test for a specific Enum. 
-  >     if (Enum.isSymbol(DayOfWeek.Wednesday)) {
-  >       // do something ...
-  >     };
-  **/
-  static isSymbol(obj: any) {
-    return obj instanceof BreezeEnum;
-  };
+  // /**
+  // Checks if an object is an Enum 'symbol'. Use the 'contains' method instead of this one 
+  // if you want to test for a specific Enum. 
+  // >     if (Enum.isSymbol(DayOfWeek.Wednesday)) {
+  // >       // do something ...
+  // >     };
+  // **/
+  // static isSymbol(obj: any) {
+  //   return obj instanceof BreezeEnum;
+  // };
 
   /** Returns the string name of this Enum */
   toString() {
