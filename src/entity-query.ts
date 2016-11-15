@@ -53,12 +53,12 @@ export class EntityQuery {
   parameters: Object;
   /** Whether an inline count is returned for this query. __Read Only__ */
   inlineCountEnabled: boolean;
-  /** Whether entity tracking has been disabled for this query. __Read Only */
+  /** Whether entity tracking has been disabled for this query. __Read Only__ */
   noTrackingEnabled: boolean;
-  /** The [[QueryOptions]] for this query. __Read Only  **/
+  /** The [[QueryOptions]] for this query. __Read Only__  **/
   // default is to get queryOptions and dataService from the entityManager.
   queryOptions?: QueryOptions;
-  /** The [[DataService]] for this query. __Read Only  **/
+  /** The [[DataService]] for this query. __Read Only__  **/
   dataService?: DataService;
   /** The [[EntityManager]] for this query. This may be null and can be set via the 'using' method.  **/
   entityManager?: EntityManager;
@@ -140,6 +140,14 @@ export class EntityQuery {
     return clone(this, "resultEntityType", entityType);
   };
 
+
+  where(predicate: Predicate): EntityQuery;
+  where(predicate: Object): EntityQuery;
+  where(property: string, operator: string, value: any): EntityQuery;
+  where(property: string, operator: FilterQueryOp, value: any): EntityQuery;
+  where(property: string, filterop: FilterQueryOp, property2: string, filterop2: FilterQueryOp, value: any): EntityQuery;  // for any/all clauses
+  where(property: string, filterop: string, property2: string, filterop2: string, value: any): EntityQuery;  // for any/all clauses
+  where(anArray: IRecursiveArray<string | number | FilterQueryOp | Predicate>): EntityQuery;
   /**
   Returns a new query with an added filter criteria; Can be called multiple times which means to 'and' with any existing
   Predicate or can be called with null to clear all predicates.
@@ -163,7 +171,7 @@ export class EntityQuery {
   >      let query = new EntityQuery("Products")
   >          .where("Category.CategoryName", "startswith", "S");
 
-  or OData functions - A list of valid OData functions can be found within the {{#crossLink "Predicate"}}{{/crossLink}} documentation.
+  or OData functions - A list of valid OData functions can be found within the [[Predicate]] documentation.
   
   >      let query = new EntityQuery("Customers")
   >          .where("toLower(CompanyName)", "startsWith", "c");
@@ -184,17 +192,9 @@ export class EntityQuery {
     with a 'value' property and an 'isLiteral' property set to either true or false.
     Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument 
     an object with a 'value' property and a 'dataType'property set to one of the DataType enumeration instances.
-    
+
     - a null or undefined ( this causes any existing where clause to be removed)
   **/
-  where(predicate: Predicate): EntityQuery;
-  where(predicate: Object): EntityQuery;
-  where(property: string, operator: string, value: any): EntityQuery;
-  where(property: string, operator: FilterQueryOp, value: any): EntityQuery;
-  where(property: string, filterop: FilterQueryOp, property2: string, filterop2: FilterQueryOp, value: any): EntityQuery;  // for any/all clauses
-  where(property: string, filterop: string, property2: string, filterop2: string, value: any): EntityQuery;  // for any/all clauses
-
-  where(anArray: IRecursiveArray<string | number | FilterQueryOp | Predicate>): EntityQuery;
   where(...args: any[]) {
     let wherePredicate: Predicate | undefined;
     if (args.length > 0 && args[0] != null) {
@@ -207,41 +207,34 @@ export class EntityQuery {
     return clone(this, "wherePredicate", wherePredicate);
   };
 
+
+  orderBy(propertyPaths: string, isDescending?: boolean): EntityQuery;
+  orderBy(propertyPaths: string[], isDescending?: boolean): EntityQuery;
   /**
   Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.
   OrderBy clauses may be chained.
-  @example
-      let query = new EntityQuery("Customers")
-        .orderBy("CompanyName");
+  >     let query = new EntityQuery("Customers")
+  >        .orderBy("CompanyName");
 
   or to sort across multiple properties
-  @example
-      let query = new EntityQuery("Customers")
-        .orderBy("Region, CompanyName");
+  >     let query = new EntityQuery("Customers")
+  >        .orderBy("Region, CompanyName");
 
   Nested property paths are also supported
-  @example
-      let query = new EntityQuery("Products")
-        .orderBy("Category.CategoryName");
+  >     let query = new EntityQuery("Products")
+  >        .orderBy("Category.CategoryName");
 
   Sorting in descending order is supported via the addition of ' desc' to the end of any property path.
-  @example
-      let query = new EntityQuery("Customers")
-        .orderBy("CompanyName desc");
+  >     let query = new EntityQuery("Customers")
+  >        .orderBy("CompanyName desc");
 
   or
-  @example
-      let query = new EntityQuery("Customers")
-        .orderBy("Region desc, CompanyName desc");
-  @method orderBy
-  @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
+  >     let query = new EntityQuery("Customers")
+  >        .orderBy("Region desc, CompanyName desc");
+  @param propertyPaths - A comma-separated (',') string of property paths or an array of property paths.
   Each property path can optionally end with " desc" to force a descending sort order. If 'propertyPaths' is either null or omitted then all ordering is removed.
-  @param isDescending {Boolean} - If specified, overrides all of the embedded 'desc' tags in the previously specified property paths.
-  @return {EntityQuery}
-  @chainable
+  @param isDescending - If specified, overrides all of the embedded 'desc' tags in the previously specified property paths.
   **/
-  orderBy(propertyPaths: string, isDescending?: boolean): EntityQuery;
-  orderBy(propertyPaths: string[], isDescending?: boolean): EntityQuery;
   orderBy(propertyPaths: string | string[], isDescending?: boolean) {
     // propertyPaths: can pass in create("A.X,B") or create("A.X desc, B") or create("A.X desc,B", true])
     // isDesc parameter trumps isDesc in propertyName.
@@ -252,30 +245,24 @@ export class EntityQuery {
     return clone(this, "orderByClause", orderByClause);
   }
 
-  /**
-  Returns a new query that orders the results of the query by property name in descending order.
-  @example
-      let query = new EntityQuery("Customers")
-        .orderByDesc("CompanyName");
 
-  or to sort across multiple properties
-  @example
-      let query = new EntityQuery("Customers")
-        .orderByDesc("Region, CompanyName");
-
-  Nested property paths are also supported
-  @example
-      let query = new EntityQuery("Products")
-        .orderByDesc("Category.CategoryName");
-
-  @method orderByDesc
-  @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
-  If 'propertyPaths' is either null or omitted then all ordering is removed.
-  @return {EntityQuery}
-  @chainable
-  **/
   orderByDesc(propertyPaths: string): EntityQuery;
   orderByDesc(propertyPaths: string[]): EntityQuery;
+  /**
+  Returns a new query that orders the results of the query by property name in descending order.
+  >     let query = new EntityQuery("Customers")
+  >        .orderByDesc("CompanyName");
+
+  or to sort across multiple properties
+  >     let query = new EntityQuery("Customers")
+  >        .orderByDesc("Region, CompanyName");
+
+  Nested property paths are also supported
+  >     let query = new EntityQuery("Products")
+  >        .orderByDesc("Category.CategoryName");
+  @param propertyPaths - A comma-separated (',') string of property paths or an array of property paths.
+  If 'propertyPaths' is either null or omitted then all ordering is removed.
+  **/
   orderByDesc(propertyPaths: string | string[]) {
     return this.orderBy(propertyPaths as any, true);
   };
@@ -286,35 +273,30 @@ export class EntityQuery {
   If the result of this selection "projection" contains entities, these entities will automatically be added to EntityManager's cache and will
   be made 'observable'.
   Any simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.
-
-  @example
+  
   Simple data properties can be projected
-  @example
-      let query = new EntityQuery("Customers")
-        .where("CompanyName", "startsWith", "C")
-        .select("CompanyName");
+  >     let query = new EntityQuery("Customers")
+  >         .where("CompanyName", "startsWith", "C")
+  >         .select("CompanyName");
+
   This will return an array of objects each with a single "CompanyName" property of type string.
   A similar query could return a navigation property instead
-  @example
-      let query = new EntityQuery("Customers")
-        .where("CompanyName", "startsWith", "C")
-        .select("Orders");
+  >     let query = new EntityQuery("Customers")
+  >        .where("CompanyName", "startsWith", "C")
+  >        .select("Orders");
+
   where the result would be an array of objects each with a single "Orders" property that would itself be an array of "Order" entities.
   Composite projections are also possible:
-  @example
-      let query = new EntityQuery("Customers")
-        .where("CompanyName", "startsWith", "C")
-        .select("CompanyName, Orders");
+  >     let query = new EntityQuery("Customers")
+  >        .where("CompanyName", "startsWith", "C")
+  >        .select("CompanyName, Orders");
+
   As well as projections involving nested property paths
-  @example
-      let query = EntityQuery("Orders")
-        .where("Customer.CompanyName", "startsWith", "C")
-        .select("Customer.CompanyName, Customer, OrderDate");
-  @method select
-  @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
+  >     let query = EntityQuery("Orders")
+  >        .where("Customer.CompanyName", "startsWith", "C")
+  >        .select("Customer.CompanyName, Customer, OrderDate");
+  @param propertyPaths - A comma-separated (',') string of property paths or an array of property paths.
   If 'propertyPaths' is either null or omitted then any existing projection on the query is removed.
-  @return {EntityQuery}
-  @chainable
   **/
   select(propertyPaths: string | string[]) {
     let selectClause = propertyPaths == null ? null : new SelectClause(normalizePropertyPaths(propertyPaths));
@@ -324,14 +306,10 @@ export class EntityQuery {
   /**
   Returns a new query that skips the specified number of entities when returning results.
   Any existing 'skip' can be cleared by calling 'skip' with no arguments.
-  @example
-      let query = new EntityQuery("Customers")
-        .where("CompanyName", "startsWith", "C")
-        .skip(5);
-  @method skip
-  @param count {Number} The number of entities to return. If omitted or null any existing skip count on the query is removed.
-  @return {EntityQuery}
-  @chainable
+  >     let query = new EntityQuery("Customers")
+  >       .where("CompanyName", "startsWith", "C")
+  >       .skip(5);
+  @param count - The number of entities to skip over. If omitted or null any existing skip count on the query is removed.
   **/
   skip(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
@@ -341,14 +319,10 @@ export class EntityQuery {
   /**
   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
   Any existing 'top' can be cleared by calling 'top' with no arguments.
-  @example
-      let query = new EntityQuery("Customers")
-        .top(5);
-  @method top
-  @param count {Number} The number of entities to return.
+  >     let query = new EntityQuery("Customers")
+  >        .top(5);
+  @param count - The number of entities to return.
   If 'count' is either null or omitted then any existing 'top' count on the query is removed.
-  @return {EntityQuery}
-  @chainable
   **/
   top(count?: number) {
     return this.take(count);
@@ -357,14 +331,10 @@ export class EntityQuery {
   /**
   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.
   Any existing take can be cleared by calling take with no arguments.
-  @example
-      let query = new EntityQuery("Customers")
-        .take(5);
-  @method take
-  @param count {Number} The number of entities to return.
+  >     let query = new EntityQuery("Customers")
+  >        .take(5);
+  @param count - The number of entities to return.
   If 'count' is either null or omitted then any existing 'take' count on the query is removed.
-  @return {EntityQuery}
-  @chainable
   **/
   take(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
@@ -374,25 +344,21 @@ export class EntityQuery {
   /**
   Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
   names such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.
-  @example
-      let query = new EntityQuery("Customers")
-        .where("CompanyName", "startsWith", "C")
-        .expand("Orders");
+  >     let query = new EntityQuery("Customers")
+  >        .where("CompanyName", "startsWith", "C")
+  >        .expand("Orders");
+
   will return the filtered customers each with its "Orders" properties fully resolved.
   Multiple paths may be specified by separating the paths by a ','
-  @example
-      let query = new EntityQuery("Orders")
-        .expand("Customer, Employee")
+  >     let query = new EntityQuery("Orders")
+  >        .expand("Customer, Employee")
+
   and nested property paths my be specified as well
-  @example
-      let query = new EntityQuery("Orders")
-        .expand("Customer, OrderDetails, OrderDetails.Product")
-  @method expand
-  @param propertyPaths {String|Array of String} A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
+  >     let query = new EntityQuery("Orders")
+  >        .expand("Customer, OrderDetails, OrderDetails.Product")
+  @param propertyPaths - A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
   by a '.' and another navigation property name to enable identifying a multi-level relationship.
   If 'propertyPaths' is either null or omitted then any existing 'expand' clause on the query is removed.
-  @return {EntityQuery}
-  @chainable
   **/
   expand(propertyPaths: string | string[]) {
     let expandClause = propertyPaths == null ? null : new ExpandClause(normalizePropertyPaths(propertyPaths));
@@ -401,28 +367,21 @@ export class EntityQuery {
 
   /**
   Returns a new query that includes a collection of parameters to pass to the server.
-  @example
-      let query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
-        .withParameters({ BirthDate: "1/1/1960", Country: "USA" });
+  >     let query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+  >        .withParameters({ BirthDate: "1/1/1960", Country: "USA" });
    
   will call the 'EmployeesFilteredByCountryAndBirthdate' method on the server and pass in 2 parameters. This
   query will be uri encoded as
-  @example
-      {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA
+  >      {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA
 
   Parameters may also be mixed in with other query criteria.
-  @example
-      let query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
-        .withParameters({ BirthDate: "1/1/1960", Country: "USA" })
-        .where("LastName", "startsWith", "S")
-        .orderBy("BirthDate");
-
-  @method withParameters
-  @param parameters {Object} A parameters object where the keys are the parameter names and the values are the parameter values.
-  @return {EntityQuery}
-  @chainable
+  >     let query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
+  >        .withParameters({ BirthDate: "1/1/1960", Country: "USA" })
+  >        .where("LastName", "startsWith", "S")
+  >        .orderBy("BirthDate");
+  @param parameters - A parameters object where the keys are the parameter names and the values are the parameter values.
   **/
-  withParameters(parameters: {}) {
+  withParameters(parameters: Object) {
     assertParam(parameters, "parameters").isObject().check();
     return clone(this, "parameters", parameters);
   };
@@ -431,18 +390,13 @@ export class EntityQuery {
   Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
   will be returned with the query results that will contain the number of entities that would have been returned by this
   query with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.
+  >     let query = new EntityQuery("Customers")
+  >        .take(20)
+  >        .orderBy("CompanyName")
+  >        .inlineCount(true);
 
-  @example
-      let query = new EntityQuery("Customers")
-        .take(20)
-        .orderBy("CompanyName")
-        .inlineCount(true);
   will return the first 20 customers as well as a count of all of the customers in the remote store.
-
-  @method inlineCount
-  @param enabled {Boolean=true} Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.
-  @return {EntityQuery}
-  @chainable
+  @param enabled - (default = true) Whether or not inlineCount capability should be enabled. If this parameter is omitted, true is assumed.
   **/
   inlineCount(enabled?: boolean) {
     assertParam(enabled, "enabled").isBoolean().isOptional().check();
@@ -459,17 +413,11 @@ export class EntityQuery {
   /**
   Returns a query with the 'noTracking' capability either enabled or disabled.  With 'noTracking' enabled, the results of this query
   will not be coerced into entities but will instead look like raw javascript projections. i.e. simple javascript objects.
-
-  @example
-      let query = new EntityQuery("Customers")
-        .take(20)
-        .orderBy("CompanyName")
-        .noTracking(true);
-
-  @method noTracking
-  @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed.
-  @return {EntityQuery}
-  @chainable
+  >     let query = new EntityQuery("Customers")
+  >         .take(20)
+  >         .orderBy("CompanyName")
+  >         .noTracking(true);
+  @param enabled - (default = true) Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed.
   **/
   noTracking(enabled?: boolean) {
     assertParam(enabled, "enabled").isBoolean().isOptional().check();
@@ -477,36 +425,31 @@ export class EntityQuery {
     return clone(this, "noTrackingEnabled", enabled);
   };
 
-  /**
-  Returns a copy of this EntityQuery with the specified {{#crossLink "EntityManager"}}{{/crossLink}}, {{#crossLink "DataService"}}{{/crossLink}},
-  {{#crossLink "JsonResultsAdapter"}}{{/crossLink}}, {{#crossLink "MergeStrategy"}}{{/crossLink}} or {{#crossLink "FetchStrategy"}}{{/crossLink}} applied.
-  @example
-      // 'using' can be used to return a new query with a specified EntityManager.
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders")
-        .using(em);
-  or with a specified {{#crossLink "MergeStrategy"}}{{/crossLink}}
-  @example
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders")
-        .using(MergeStrategy.PreserveChanges);
-  or with a specified {{#crossLink "FetchStrategy"}}{{/crossLink}}
-  @example
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders")
-        .using(FetchStrategy.FromLocalCache);
-  
-  @method using
-  @param obj {EntityManager|QueryOptions|DataService|MergeStrategy|FetchStrategy|JsonResultsAdapter|config object} The object to update in creating a new EntityQuery from an existing one.
-  @return {EntityQuery}
-  @chainable
-  **/
   using(obj: EntityManager): EntityQuery;
   using(obj: DataService): EntityQuery;
   using(obj: JsonResultsAdapter): EntityQuery;
   using(obj: QueryOptions): EntityQuery;
   using(obj: MergeStrategy): EntityQuery;
   using(obj: FetchStrategy): EntityQuery;
+  /**
+  Returns a copy of this EntityQuery with the specified [[EntityManager]], [[DataService]],
+  [[JsonResultsAdapter]], [[MergeStrategy]] or [[FetchStrategy]] applied.
+  >      // 'using' can be used to return a new query with a specified EntityManager.
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders")
+  >        .using(em);
+
+  or with a specified [[MergeStrategy]]
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders")
+  >        .using(MergeStrategy.PreserveChanges);
+
+  or with a specified [[FetchStrategy]]
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders")
+  >        .using(FetchStrategy.FromLocalCache);
+  @param obj - The object to update in creating a new EntityQuery from an existing one.
+  **/
   using(obj: any) {
     if (!obj) return this;
     let eq = clone(this);
@@ -529,62 +472,41 @@ export class EntityQuery {
 
   /**
   Executes this query.  This method requires that an EntityManager has been previously specified via the "using" method.
-  @example
+  
   This method can be called using a 'promises' syntax ( recommended)
-  @example
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders").using(em);
-      query.execute().then( function(data) {
-          ... query results processed here
-      }).fail( function(err) {
-          ... query failure processed here
-      });
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders").using(em);
+  >      query.execute().then( function(data) {
+  >          ... query results processed here
+  >      }).fail( function(err) {
+  >          ... query failure processed here
+  >      });
+
   or with callbacks
-  @example
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders").using(em);
-      query.execute(
-        function(data) {
-                    let orders = data.results;
-                    ... query results processed here
-                },
-        function(err) {
-                    ... query failure processed here
-                });
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders").using(em);
+  >      query.execute(
+  >        function(data) {
+  >                    let orders = data.results;
+  >                    ... query results processed here
+  >                },
+  >        function(err) {
+  >                    ... query failure processed here
+  >                });
+
   Either way this method is the same as calling the EntityManager 'execute' method.
-  @example
-      let em = new EntityManager(serviceName);
-      let query = new EntityQuery("Orders");
-      em.executeQuery(query).then( function(data) {
-         let orders = data.results;
-          ... query results processed here
-      }).fail( function(err) {
-         ... query failure processed here
-      });
+  >      let em = new EntityManager(serviceName);
+  >      let query = new EntityQuery("Orders");
+  >      em.executeQuery(query).then( function(data) {
+  >         let orders = data.results;
+  >          ... query results processed here
+  >      }).fail( function(err) {
+  >         ... query failure processed here
+  >      });
 
-  @method execute
-  @async
-
-  @param callback {Function} Function called on success.
-
-  successFunction([data])
-  @param [callback.data] {Object}
-  @param callback.data.results {Array of Entity}
-  @param callback.data.query {EntityQuery} The original query
-  @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
-  @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of
-  items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
-  would have been applied.
-  @param callback.data.retrievedEntities {Array of Entity} All entities returned by the query.  Differs from results when .expand() is used.
-
-  @param errorCallback {Function} Function called on failure.
-
-  failureFunction([error])
-  @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-  @param [errorCallback.error.query] The query that caused the error.
-  @param [errorCallback.error.httpResponse] {HttpResponse} The raw XMLHttpRequest returned from the server.
-
-  @return {Promise}
+  @param callback -  Function called on success.
+  @param errorCallback - Function called on failure.
+  @return Promise
   **/
   execute(callback?: Callback, errorCallback?: ErrorCallback) {
     if (!this.entityManager) {
@@ -595,14 +517,11 @@ export class EntityQuery {
 
   /**
   Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the "using" method.
-  @example
-      // assume em is an entityManager already filled with order entities;
-      let query = new EntityQuery("Orders").using(em);
-      let orders = query.executeLocally();
+  >      // assume em is an entityManager already filled with order entities;
+  >      let query = new EntityQuery("Orders").using(em);
+  >      let orders = query.executeLocally();
 
-  Note that calling this method is the same as calling {{#crossLink "EntityManager/executeQueryLocally"}}{{/crossLink}}.
-
-  @method executeLocally
+  Note that calling this method is the same as calling [[EntityManager.executeQueryLocally]].
   **/
   executeLocally() {
     if (!this.entityManager) {
@@ -645,34 +564,29 @@ export class EntityQuery {
 
   }
 
+  static fromEntities(entity: IEntity): EntityQuery;
+  static fromEntities(entities: IEntity[]): EntityQuery;
   /**
   Static method that creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful
   to force a requery of selected entities, or to restrict an existing collection of entities according to some filter.
 
   Works for a single entity or an array of entities of the SAME type.
   Does not work for an array of entities of different types.
+  >      // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+  >      let customersQuery = EntityQuery.fromEntities(customers);
 
-  @example
-      // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
-      let customersQuery = EntityQuery.fromEntities(customers);
   The resulting query can, of course, be extended
-  @example
-      // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
-      let customersQuery = EntityQuery.fromEntities(customers)
-        .where("Region", FilterQueryOp.NotEquals, null);
+  >      // assuming 'customers' is an array of 'Customer' entities retrieved earlier.
+  >      let customersQuery = EntityQuery.fromEntities(customers)
+  >        .where("Region", FilterQueryOp.NotEquals, null);
+
   Single entities can requeried as well.
-  @example
-      // assuming 'customer' is a 'Customer' entity retrieved earlier.
-      let customerQuery = EntityQuery.fromEntities(customer);
+  >      // assuming 'customer' is a 'Customer' entity retrieved earlier.
+  >      let customerQuery = EntityQuery.fromEntities(customer);
+
   will create a query that will return an array containing a single customer entity.
-  @method fromEntities
-  @static
-  @param entities {Entity|Array of Entity} The entities for which we want to create an EntityQuery.
-  @return {EntityQuery}
-  @chainable
+  @param entities - The entities for which we want to create an EntityQuery.
   **/
-  static fromEntities(entity: IEntity): EntityQuery;
-  static fromEntities(entities: IEntity[]): EntityQuery;
   static fromEntities(entities: IEntity | IEntity[]) {
     assertParam(entities, "entities").isEntity().or().isNonEmptyArray().isEntity().check();
     let ents = (Array.isArray(entities)) ? entities : [entities];
@@ -699,21 +613,16 @@ export class EntityQuery {
   };
 
   /**
-  Creates an EntityQuery for the specified {{#crossLink "EntityKey"}}{{/crossLink}}.
-  @example
-      let empType = metadataStore.getEntityType("Employee");
-      let entityKey = new EntityKey(empType, 1);
-      let query = EntityQuery.fromEntityKey(entityKey);
+  Creates an EntityQuery for the specified [[EntityKey]].
+  >      let empType = metadataStore.getEntityType("Employee");
+  >      let entityKey = new EntityKey(empType, 1);
+  >      let query = EntityQuery.fromEntityKey(entityKey);
+
   or
-  @example
-      // 'employee' is a previously queried employee
-      let entityKey = employee.entityAspect.getKey();
-      let query = EntityQuery.fromEntityKey(entityKey);
-  @method fromEntityKey
-  @static
-  @param entityKey {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} for which a query will be created.
-  @return {EntityQuery}
-  @chainable
+  >      // 'employee' is a previously queried employee
+  >      let entityKey = employee.entityAspect.getKey();
+  >      let query = EntityQuery.fromEntityKey(entityKey);
+  @param entityKey - The [[EntityKey]] for which a query will be created.
   **/
   static fromEntityKey(entityKey: EntityKey) {
     assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
@@ -724,26 +633,22 @@ export class EntityQuery {
   };
 
   /**
-  Creates an EntityQuery for the specified entity and {{#crossLink "NavigationProperty"}}{{/crossLink}}.
-  @example
-      // 'employee' is a previously queried employee
-      let ordersNavProp = employee.entityType.getProperty("Orders");
-      let query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
+  Creates an EntityQuery for the specified entity and [[NavigationProperty]].
+  >      // 'employee' is a previously queried employee
+  >      let ordersNavProp = employee.entityType.getProperty("Orders");
+  >      let query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
+
   will return a query for the "Orders" of the specified 'employee'.
-  @method fromEntityNavigation
-  @static
-  @param entity {Entity} The Entity whose navigation property will be queried.
-  @param navigationProperty {NavigationProperty|String} The {{#crossLink "NavigationProperty"}}{{/crossLink}} or name of the NavigationProperty to be queried.
-  @return {EntityQuery}
-  @chainable
+  @param entity - The Entity whose navigation property will be queried.
+  @param navigationProperty - The [[NavigationProperty]] or name of the NavigationProperty to be queried.
   **/
-  static fromEntityNavigation = function (entity: IEntity, navigationProperty: NavigationProperty) {
+  static fromEntityNavigation = function (entity: IEntity, navigationProperty: NavigationProperty | string) {
     assertParam(entity, "entity").isEntity().check();
     let navProperty = entity.entityType._checkNavProperty(navigationProperty);
     let q = new EntityQuery(navProperty.entityType.defaultResourceName);
     let pred = buildNavigationPredicate(entity, navProperty);
     if (pred == null) {
-      throw new Error("Unable to create a NavigationQuery for navigationProperty: " + navigationProperty.name);
+      throw new Error("Unable to create a NavigationQuery for navigationProperty: " + navProperty.name );
     }
     q = q.where(pred);
     let em = entity.entityAspect.entityManager;
@@ -751,7 +656,7 @@ export class EntityQuery {
   };
 
   // protected methods
-
+  /** @hidden */
   _getFromEntityType(metadataStore: MetadataStore, throwErrorIfNotFound?: boolean) {
     // Uncomment next two lines if we make this method public.
     // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
@@ -795,6 +700,7 @@ export class EntityQuery {
 
   };
 
+  /** @hidden */
   _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | undefined {
     // skipFromCheck is to avoid recursion if called from _getFromEntityType;
     if (this.resultEntityType instanceof EntityType) {
@@ -817,6 +723,7 @@ export class EntityQuery {
     }
   };
 
+  /** @hidden */
   // for testing
   _toUri(em: EntityManager) {
     let ds = DataService.resolve([em.dataService]);
@@ -968,8 +875,8 @@ export interface IQueryOp {
 
 
 /**
-   FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink "Predicate"}}{{/crossLink}}
-   filter operators for an {{#crossLink "EntityQuery"}}{{/crossLink}}.
+   FilterQueryOp is an 'Enum' containing all of the valid  [[Predicate]]
+   filter operators for an [[EntityQuery]].
 
    @class FilterQueryOp
    @static
@@ -1076,7 +983,7 @@ FilterQueryOp.resolveSymbols();
 
 /**
    BoolleanQueryOp is an 'Enum' containing all of the valid  boolean
-   operators for an {{#crossLink "EntityQuery"}}{{/crossLink}}.
+   operators for an [[EntityQuery]].
 
    @class BooleanQueryOp
    @static
