@@ -21,49 +21,59 @@ interface IEntityQueryJsonContext {
   toNameOnServer?: boolean;
 }
 /**
-  An EntityQuery instance is used to query entities either from a remote datasource or from a local {{#crossLink "EntityManager"}}{{/crossLink}}.
+An EntityQuery instance is used to query entities either from a remote datasource or from a local [[EntityManager]].
 
-  EntityQueries are immutable - this means that all EntityQuery methods that return an EntityQuery actually create a new EntityQuery.  This means that
-  EntityQueries can be 'modified' without affecting any current instances.
+EntityQueries are immutable - this means that all EntityQuery methods that return an EntityQuery actually create a new EntityQuery.  This means that
+EntityQueries can be 'modified' without affecting any current instances.
 
-  @class EntityQuery
-  **/
+**/
 export class EntityQuery {
+  /** @hidden */
   _$typeName: string; // actually placed on prototype
   // top = this.take; // TODO: consider
-
+  /** The resource name used by this query. __Read Only__ */
   resourceName?: string;
+  /** The [[EntityType]] that is associated with the 'from' clause ( resourceName) of the query.  This is only guaranteed to be be set AFTER the query
+  has been executed because it depends on the [[MetadataStore]] associated with the [[EntityManager]] that the query was executed against.
+  This value may be null if the entityType cannot be associated with a resourceName. __Read Only__ */
   fromEntityType?: EntityType;
+  /** The 'where' [[Predicate]] used by this query. __Read Only__ */
   wherePredicate: any; // TODO
+  /** The [[OrderByClause]] used by this query. __Read Only__ */
   orderByClause?: OrderByClause;
+  /** The [[ExpandClause]] used by this query. __Read Only__ */
   expandClause?: ExpandClause;
+  /** The [[SelectClause]] used by this query. __Read Only__ */
   selectClause?: SelectClause;
+  /** The number of entities to 'skip' for this query. __Read Only__ */
   skipCount?: number;
+  /** The number of entities to 'take' for this query. __Read Only__ */
   takeCount?: number;
-
+  /** Any additional parameters that were added to the query via the 'withParameters' method. __Read Only__ */
   parameters: Object;
+  /** Whether an inline count is returned for this query. __Read Only__ */
   inlineCountEnabled: boolean;
+  /** Whether entity tracking has been disabled for this query. __Read Only */
   noTrackingEnabled: boolean;
-
+  /** The [[QueryOptions]] for this query. __Read Only  **/
   // default is to get queryOptions and dataService from the entityManager.
   queryOptions?: QueryOptions;
+  /** The [[DataService]] for this query. __Read Only  **/
   dataService?: DataService;
-
+  /** The [[EntityManager]] for this query. This may be null and can be set via the 'using' method.  **/
   entityManager?: EntityManager;
+  /**  The entityType that will be returned by this query. 
+  This property will only be set if the 'toType' method was called. __Read Only__ */
   resultEntityType: EntityType | string;
 
-  /**
-  @example
-      let query = new EntityQuery("Customers")
+  /** Constructor
+  >    let query = new EntityQuery("Customers")
 
   Usually this constructor will be followed by calls to filtering, ordering or selection methods
-  @example
-      let query = new EntityQuery("Customers")
-          .where("CompanyName", "startsWith", "C")
-          .orderBy("Region");
-
-  @method <ctor> EntityQuery
-  @param [resourceName] {String}
+  >      let query = new EntityQuery("Customers")
+  >        .where("CompanyName", "startsWith", "C")
+  >        .orderBy("Region");
+  @param resourceName - either a resource name or a serialized EntityQuery ( created by [[EntityQuery.toJSON]])
   **/
   constructor(resourceName?: string | Object) {
     if (resourceName != null && (typeof resourceName !== 'string')) {
@@ -88,90 +98,15 @@ export class EntityQuery {
 
   };
 
-  /**
-  The resource name used by this query.
-
-  __readOnly__
-  @property resourceName {String}
-  **/
-
-  /**
-  The entityType that is associated with the 'from' clause ( resourceName) of the query.  This is only guaranteed to be be set AFTER the query
-  has been executed because it depends on the MetadataStore associated with the EntityManager that the query was executed against.
-  This value may be null if the entityType cannot be associated with a resourceName.
-
-  __readOnly__
-  @property fromEntityType {EntityType}
-  **/
-
-  /**
-  The entityType that will be returned by this query. This property will only be set if the 'toType' method was called.
-
-  __readOnly__
-  @property resultEntityType {EntityType}
-  **/
-
-  /**
-  The 'where' predicate used by this query.
-
-  __readOnly__
-  @property wherePredicate {Predicate}
-  **/
-
-  /**
-  The {{#crossLink "OrderByClause"}}{{/crossLink}} used by this query.
-
-  __readOnly__
-  @property orderByClause {OrderByClause}
-  **/
-
-  /**
-  The number of entities to 'skip' for this query.
-
-  __readOnly__
-  @property skipCount {Integer}
-  **/
-
-  /**
-  The number of entities to 'take' for this query.
-
-  __readOnly__
-  @property takeCount {Integer}
-  **/
-
-  /**
-  Any additional parameters that were added to the query via the 'withParameters' method.
-
-  __readOnly__
-  @property parameters {Object}
-  **/
-
-  /**
-  The {{#crossLink "QueryOptions"}}{{/crossLink}} for this query.
-
-  __readOnly__
-  @property queryOptions {QueryOptions}
-  **/
-
-  /**
-  The {{#crossLink "EntityManager"}}{{/crossLink}} for this query. This may be null and can be set via the 'using' method.
-
-  __readOnly__
-  @property entityManager {EntityManager}
-  **/
 
   /**
   Specifies the resource to query for this EntityQuery.
-  @example
-      let query = new EntityQuery()
-          .from("Customers");
+  >      let query = new EntityQuery()
+  >        .from("Customers");
+
   is the same as
-  @example
-      let query = new EntityQuery("Customers");
-  @method from
-  @param resourceName {String} The resource to query.
-  @return {EntityQuery}
-  @chainable
+  >      let query = new EntityQuery("Customers");
+  @param resourceName - The resource to query.
   **/
   from(resourceName: string) {
     // TODO: think about allowing entityType as well
@@ -181,16 +116,11 @@ export class EntityQuery {
 
   /**
   This is a static version of the "from" method and it creates a 'base' entityQuery for the specified resource name.
-  @example
-      let query = EntityQuery.from("Customers");
+  >      let query = EntityQuery.from("Customers");
+
   is the same as
-  @example
-      let query = new EntityQuery("Customers");
-  @method from
-  @static
-  @param resourceName {String} The resource to query.
-  @return {EntityQuery}
-  @chainable
+  >      let query = new EntityQuery("Customers");
+  @param resourceName - The resource to query.
   **/
   static from(resourceName: string) {
     assertParam(resourceName, "resourceName").isString().check();
@@ -199,16 +129,11 @@ export class EntityQuery {
 
   /**
   Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.
-  @example
-      let query = new EntityQuery()
-        .from("MyCustomMethod")
-        .toType("Customer")
-
-  @method toType
-  @param entityType {String|EntityType} The top level entityType that this query will return.  This method is only needed when a query returns a json result that
-  does not include type information.  If the json result consists of more than a simple entity or array of entities, consider using a JsonResultsAdapter instead.
-  @return {EntityQuery}
-  @chainable
+  >      let query = new EntityQuery()
+  >        .from("MyCustomMethod")
+  >        .toType("Customer")
+  @param entityType - The top level EntityType that this query will return.  This method is only needed when a query returns a json result that
+  does not include type information.  If the json result consists of more than a simple entity or array of entities, consider using a [[JsonResultsAdapter]] instead.
   **/
   toType(entityType: string | EntityType) {
     assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
@@ -218,54 +143,49 @@ export class EntityQuery {
   /**
   Returns a new query with an added filter criteria; Can be called multiple times which means to 'and' with any existing
   Predicate or can be called with null to clear all predicates.
-  @example
-      let query = new EntityQuery("Customers")
-                .where("CompanyName", "startsWith", "C");
-  This can also be expressed using an explicit {{#crossLink "FilterQueryOp"}}{{/crossLink}} as
-  @example
-      let query = new EntityQuery("Customers")
-          .where("CompanyName", FilterQueryOp.StartsWith, "C");
-  or a preconstructed {{#crossLink "Predicate"}}{{/crossLink}} may be used
-  @example
-      let pred = new Predicate("CompanyName", FilterQueryOp.StartsWith, "C");
-      let query = new EntityQuery("Customers").where(pred);
+  >      let query = new EntityQuery("Customers")
+  >          .where("CompanyName", "startsWith", "C");
+
+  This can also be expressed using an explicit [[FilterQueryOp]] as
+  >      let query = new EntityQuery("Customers")
+  >          .where("CompanyName", FilterQueryOp.StartsWith, "C");
+
+  or a preconstructed [[Predicate]] may be used
+  >      let pred = new Predicate("CompanyName", FilterQueryOp.StartsWith, "C");
+  >      let query = new EntityQuery("Customers").where(pred);
+
   Predicates are often useful when you want to combine multiple conditions in a single filter, such as
-  @example
-      let pred = Predicate.create("CompanyName", "startswith", "C").and("Region", FilterQueryOp.Equals, null);
-      let query = new EntityQuery("Customers")
-        .where(pred);
-  @example
+  >      let pred = Predicate.create("CompanyName", "startswith", "C").and("Region", FilterQueryOp.Equals, null);
+  >      let query = new EntityQuery("Customers")
+  >          .where(pred);
+
   More complicated queries can make use of nested property paths
-  @example
-      let query = new EntityQuery("Products")
-        .where("Category.CategoryName", "startswith", "S");
+  >      let query = new EntityQuery("Products")
+  >          .where("Category.CategoryName", "startswith", "S");
+
   or OData functions - A list of valid OData functions can be found within the {{#crossLink "Predicate"}}{{/crossLink}} documentation.
-  @example
-      let query = new EntityQuery("Customers")
-        .where("toLower(CompanyName)", "startsWith", "c");
+  
+  >      let query = new EntityQuery("Customers")
+  >          .where("toLower(CompanyName)", "startsWith", "c");
+
   or to be even more baroque
-  @example
-      let query = new EntityQuery("Customers")
-        .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
-  @method where
-  @param predicate {Predicate|property|property path, operator, value} Can be either
+  >      let query = new EntityQuery("Customers")
+  >          .where("toUpper(substring(CompanyName, 1, 2))", FilterQueryOp.Equals, "OM");
+  @param predicate -  Can be either
+    - a single [[Predicate]]
 
-    - a single {{#crossLink "Predicate"}}{{/crossLink}}
-
-    - or the parameters to create a 'simple' Predicate
-
-    - a property name, a property path with '.' as path seperators or a property expression {String}
-    - an operator {FilterQueryOp|String} Either a  {{#crossLink "FilterQueryOp"}}{{/crossLink}} or it's string representation. Case is ignored
+    - the parameters to create a 'simple' Predicate
+    - -  a property name, a property path with '.' as path seperators or a property expression {String}
+    - -  an operator - [[FilterQueryOp]] or it's string representation. Case is ignored
     when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
-    - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general,
-    if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
-    In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
-    Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
-    to one of the DataType enumeration instances.
-    - or a null or undefined ( this causes any existing where clause to be removed)
-
-  @return {EntityQuery}
-  @chainable
+    - -  a value {Object} - This will be treated as either a property expression or a literal depending on context.  
+    In general, if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
+    In most cases this works well, but you can also force the interpretation by making the value argument itself an object 
+    with a 'value' property and an 'isLiteral' property set to either true or false.
+    Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument 
+    an object with a 'value' property and a 'dataType'property set to one of the DataType enumeration instances.
+    
+    - a null or undefined ( this causes any existing where clause to be removed)
   **/
   where(predicate: Predicate): EntityQuery;
   where(predicate: Object): EntityQuery;
