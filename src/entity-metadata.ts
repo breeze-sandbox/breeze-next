@@ -1,5 +1,4 @@
-﻿import { UriBuilderJsonAdapter } from './adapter-uri-builder-json';
-import { core, ErrorCallback } from './core';
+﻿import { core, ErrorCallback } from './core';
 import { config } from './config';
 import { BreezeEvent } from './event';
 import { assertParam, assertConfig, Param } from './assert-param';
@@ -1729,62 +1728,78 @@ interface ComplexTypeConfig {
   custom?: Object;
 }
 
-/**
-  Container for all of the metadata about a specific type of Complex object.
-  @class ComplexType
-  **/
-
-/**
-@example
-    let complexType = new ComplexType( {
-        shortName: "address",
-        namespace: "myAppNamespace"
-    });
-@method <ctor> ComplexType
-@param config {Object} Configuration settings
-@param config.shortName {String}
-@param [config.namespace=""] {String}
-@param [config.dataProperties] {Array of DataProperties}
-@param [config.custom] {Object}
+/**  Container for all of the metadata about a specific type of Complex object.
+>    let complexType = new ComplexType( {
+>        shortName: "address",
+>        namespace: "myAppNamespace"
+>    });
+@param config - Configuration settings
 **/
 export class ComplexType {
   _$typeName: string; // on proto
   isComplexType = true;
 
   metadataStore: MetadataStore;
+
+  /**  The fully qualifed name of this ComplexType. __Read Only__  **/
   name: string;
+  /**  The short, unqualified, name for this ComplexType. __Read Only__ **/
   shortName: string;
+
+  /** The namespace for this ComplexType. __Read Only__ **/
   namespace: string;
+  /** The DataProperties (see [[DataProperty]] associated with this ComplexType. __Read Only__ */
   dataProperties: DataProperty[];
+  /** The DataProperties for this ComplexType that contain instances of a [[ComplexType]]. __Read Only__ */
   complexProperties: DataProperty[];
+
+  /**
+  The entity level validators associated with this ComplexType. Validators can be added and
+  removed from this collection. __Read Only__  **/
   validators: Validator[];
   concurrencyProperties: DataProperty[];
+  /** The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing
+  properties. __Read Only__   **/
   unmappedProperties: DataProperty[];
-  _mappedPropertiesCount: number;
+
   // keyProperties and navigationProperties are not used on complexTypes - but here to allow sharing of code between EntityType and ComplexType.
   navigationProperties: DataProperty[];
   // and may be used later to enforce uniqueness on arrays of complextypes.
   keyProperties: DataProperty[];
+  warnings: any[];
+  serializerFn?: (prop: EntityProperty, val: any) => any;
+
+  /** A free form object that can be used to define any custom metadata for this ComplexType. ***/
   custom?: any;
+  /** @hidden */
+  _mappedPropertiesCount: number;
+  /** @hidden */
+  _extra?: any;
 
   // copy entityType methods onto complexType
+  /** See [[EntityType.getCtor]] */
   getCtor = EntityType.prototype.getCtor;
+  // note the name change.
+  createInstance = EntityType.prototype.createEntity;
+  /** See [EntityType.addValidator] */
   addValidator = EntityType.prototype.addValidator;
   getProperty = EntityType.prototype.getProperty;
   getPropertiesOnPath = EntityType.prototype.getPropertiesOnPath;
   getPropertyNames = EntityType.prototype.getPropertyNames;
+  /** @hidden */
   _addPropertyCore = EntityType.prototype._addPropertyCore;
+  /** @hidden */
   _addDataProperty = EntityType.prototype._addDataProperty;
+  /** @hidden */
   _updateNames = EntityType.prototype._updateNames;
+  /** @hidden */
   _updateCps = EntityType.prototype._updateCps;
+  /** @hidden */
   _initializeInstance = EntityType.prototype._initializeInstance;
+  /** @hidden */
   _updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
+  /** @hidden */
   _setCtor = EntityType.prototype._setCtor;
-  // note the name change.
-  createInstance = EntityType.prototype.createEntity;
-  warnings: any[];
-  serializerFn?: (prop: EntityProperty, val: any) => any;
-  _extra?: any;
 
   constructor(config: ComplexTypeConfig) {
     if (arguments.length > 1) {
@@ -1816,74 +1831,14 @@ export class ComplexType {
   };
 
   /**
-  The DataProperties (see {{#crossLink "DataProperty"}}{{/crossLink}}) associated with this ComplexType.
-
-  __readOnly__
-  @property dataProperties {Array of DataProperty}
-  **/
-
-  /**
-  The DataProperties for this ComplexType that contain instances of a ComplexType (see {{#crossLink "ComplexType"}}{{/crossLink}}).
-
-  __readOnly__
-  @property complexProperties {Array of DataProperty}
-  **/
-
-  /**
-  The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing
-  properties.
-
-  __readOnly__
-  @property unmappedProperties {Array of DataProperty}
-  **/
-
-  /**
-  The fully qualifed name of this ComplexType.
-
-  __readOnly__
-  @property name {String}
-  **/
-
-  /**
-  The short, unqualified, name for this ComplexType.
-
-  __readOnly__
-  @property shortName {String}
-  **/
-
-  /**
-  The namespace for this ComplexType.
-
-  __readOnly__
-  @property namespace {String}
-  **/
-
-  /**
-  The entity level validators associated with this ComplexType. Validators can be added and
-  removed from this collection.
-
-  __readOnly__
-  @property validators {Array of Validator}
-  **/
-
-  /**
-  A free form object that can be used to define any custom metadata for this ComplexType.
-
-  __readOnly__
-  @property custom {Object}
-  **/
-
-  /**
   General purpose property set method
-  @example
-      // assume em1 is an EntityManager
-      let addresstType = em1.metadataStore.getEntityType("Address");
-      addressType.setProperties( {
-          custom: { foo: 7, bar: "test" }
-      });
-  @method setProperties
-  @param config [object]
-  @param [config.custom] {Object}
+  >      // assume em1 is an EntityManager
+  >      let addresstType = em1.metadataStore.getEntityType("Address");
+  >      addressType.setProperties( {
+  >          custom: { foo: 7, bar: "test" }
+  >      });
+  @param config - Custom config object
+  @param config.custom - {Object}
   **/
   setProperties(config: { custom: Object }) {
     assertConfig(config)
@@ -1891,17 +1846,13 @@ export class ComplexType {
       .applyAll(this);
   };
 
+
   getAllValidators() {
     // ComplexType inheritance is not YET supported.
     return this.validators;
   }
 
-  /**
-  Creates a new non-attached instance of this ComplexType.
-  @method createInstance
-  @param initialValues {Object} Configuration object containing initial values for the instance.
-  **/
-  // This method is actually the EntityType.createEntity method renamed 
+  /** @hidden */
   _createInstanceCore(parent: IStructuralObject, parentProperty: DataProperty) {
     let aCtor = this.getCtor();
     let instance = new aCtor() as IComplexObject;
@@ -1920,29 +1871,6 @@ export class ComplexType {
     return this.dataProperties;
   };
 
-  /**
-  See  {{#crossLink "EntityType.addValidator"}}{{/crossLink}}
-  @method addValidator
-  @param validator {Validator} Validator to add.
-  @param [property] Property to add this validator to.  If omitted, the validator is assumed to be an
-  entity level validator and is added to the EntityType's 'validators'.
-  **/
-
-  /**
-  See  {{#crossLink "EntityType.getProperty"}}{{/crossLink}}
-  @method getProperty
-  **/
-
-  /**
-  See  {{#crossLink "EntityType.getPropertyNames"}}{{/crossLink}}
-  @method getPropertyNames
-  **/
-
-  /**
-  See  {{#crossLink "EntityType.getEntityCtor"}}{{/crossLink}}
-  @method getCtor
-  **/
-
   toJSON() {
     return core.toJson(this, {
       shortName: null,
@@ -1956,6 +1884,7 @@ export class ComplexType {
 
 }
 ComplexType.prototype._$typeName = "ComplexType";
+/** Creates an instance of this complexType */
 ComplexType.prototype.createInstance = EntityType.prototype.createEntity;
 
 interface DataPropertyConfig {
@@ -1986,64 +1915,72 @@ directly via the constructor.
 @class DataProperty
 **/
 export class DataProperty {
+  /** @hidden */
   _$typeName: string; // on proto
+  /** Is this a DataProperty? - always true here. Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
   isDataProperty = true;
+  /** Is this a NavigationProperty? - always false here.  Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
   isNavigationProperty = false;
-
+  /** The name of this property. __Read Only__  **/
   name: string;
+  /** The name of this property on the server. __Read Only__ **/
   nameOnServer: string;
+  /** The [[DataType]] of this property. __Read Only__ */
   dataType: DataType | ComplexType; // this will be a complexType when dp is a complexProperty
+  /** The name of the [[ComplexType]] associated with this property; may be null. __Read Only__ */
   complexTypeName: string;
+  /** The [[ComplexType]] associated with this property; may be undefined. __Read Only__ */
   complexType?: ComplexType;
+  /**  Whether the contents of this property is an instance of a [[ComplexType]]. __Read Only__ */
   isComplexProperty: boolean;
+  /** Whether this property is nullable. __Read Only__ */
   isNullable: boolean;
+  /**  Whether this property is scalar (i.e., returns a single value as opposed to an array). __Read Only__ */
   isScalar: boolean; // will be false for some NoSQL databases.
+  /** The default value for this property. __Read Only__ */
   defaultValue: any;
+  /**  Whether this property is a 'key' property. __Read Only__ */
   isPartOfKey: boolean;
+  /** Whether this property is an 'unmapped' property. __Read Only__ */
   isUnmapped: boolean;
+  /** Whether this property is 'settable'. __Read Only__ */
   isSettable: boolean;
+  // TODO: doc this
   concurrencyMode: string;
+  /**  The maximum length for the value of this property. Only meaningful for strings. __Read Only__ */
   maxLength?: number;
+  /** The [[Validator]] instances that are associated with this property. Validators can be added and
+  removed from this collection. __Read Only__ */
   validators: Validator[];
+  /** The display name of this property. __Read Only__ */
   displayName: string;
+  // TODO: doc this
   enumType?: any;
+  /** The raw type name of this property. will only be defined for properties with a DataType of 'Undefined' */
   rawTypeName?: string;  // occurs with undefined datatypes
+  /**  A free form object that can be used to define any custom metadata for this DataProperty. __Read Only__ */
   custom?: Object;
-
+  // TODO: doc this
   inverseNavigationProperty?: NavigationProperty;
+  /**
+  The navigation property related to this property.  Will only be set if this is a foreign key property. __Read Only__ */
   relatedNavigationProperty?: NavigationProperty;
-
+  /** The parent type that this property belongs to - will be either a [[EntityType]] or a [[ComplexType]]. __Read Only__ */
   parentType: StructuralType;
+  /** Property on the base type that this property is inherited from. Will be null if the property is not on the base type. __Read Only__ */
   baseProperty?: DataProperty;
 
-  /**
-    @example
-        let lastNameProp = new DataProperty( {
-            name: "lastName",
-            dataType: DataType.String,
-            isNullable: true,
-            maxLength: 20
-        });
-        // assuming personEntityType is a newly constructed EntityType
-        personEntityType.addProperty(lastNameProperty);
-    @method <ctor> DataProperty
-    @param config {configuration Object}
-    @param [config.name] {String}  The name of this property.
-    @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
-    Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
-    the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
-    @param [config.dataType=DataType.String] {DataType}
-    @param [config.complexTypeName] {String}
-    @param [config.isNullable=true] {Boolean}
-    @param [config.isScalar=true] {Boolean}
-    @param [config.defaultValue] {Any}
-    @param [config.isPartOfKey=false] {Boolean}
-    @param [config.isUnmapped=false] {Boolean}
-    @param [config.concurrencyMode] {String}
-    @param [config.maxLength] {Integer} Only meaningfull for DataType.String
-    @param [config.validators] {Array of Validator}
-    @param [config.custom] {Object}
-    **/
+  /** DataProperty constructor
+  >      let lastNameProp = new DataProperty( {
+  >          name: "lastName",
+  >          dataType: DataType.String,
+  >          isNullable: true,
+  >          maxLength: 20
+  >      });
+  >      // assuming personEntityType is a newly constructed EntityType
+  >      personEntityType.addProperty(lastNameProperty);
+  @param config - A configuration Object or a DataProperty
+  */
   constructor(config: DataPropertyConfig | DataProperty) {
     assertConfig(config)
       .whereParam("name").isString().isOptional()
@@ -2126,149 +2063,6 @@ export class DataProperty {
     return val !== undefined ? val : dp.defaultValue;
   }
 
-  /**
-  The name of this property
-  
-  __readOnly__
-  @property name {String}
-  **/
-
-  /**
-  The display name of this property
-  
-  __readOnly__
-  @property displayName {String} 
-  **/
-
-  /**
-  The name of this property on the server
-  
-  __readOnly__
-  @property nameOnServer {String} 
-  **/
-
-  /**
-  The parent type that this property belongs to - will be either a {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}}.
-  
-  __readOnly__
-  @property parentType {EntityType|ComplexType}
-  **/
-
-  /**
-  The {{#crossLink "DataType"}}{{/crossLink}} of this property.
-  
-  __readOnly__
-  @property dataType {DataType}
-  **/
-
-  /**
-  The name of the {{#crossLink "ComplexType"}}{{/crossLink}} associated with this property; may be null.
-  
-  __readOnly__
-  @property complexTypeName {String}
-  **/
-
-  /**
-  Whether the contents of this property is an instance of a {{#crossLink "ComplexType"}}{{/crossLink}}.
-  
-  __readOnly__
-  @property isComplexProperty {bool}
-  **/
-
-  /**
-  Whether this property is nullable.
-  
-  __readOnly__
-  @property isNullable {Boolean}
-  **/
-
-  /**
-  Whether this property is scalar (i.e., returns a single value).
-  
-  __readOnly__
-  @property isScalar {Boolean}
-  **/
-
-  /**
-  Property on the base type that this property is inherited from. Will be null if the property is not on the base type.
-  
-  __readOnly__
-  @property baseProperty {DataProperty}
-  **/
-
-  /**
-  Whether this property is a 'key' property.
-  
-  __readOnly__
-  @property isPartOfKey {Boolean}
-  **/
-
-  /**
-  Whether this property is an 'unmapped' property.
-  
-  __readOnly__
-  @property isUnmapped {Boolean}
-  **/
-
-  /**
-  __Describe this__
-  
-  __readOnly__
-  @property concurrencyMode {String}
-  **/
-
-  /**
-  The maximum length for the value of this property.
-  
-  __readOnly__
-  @property maxLength {Number}
-  **/
-
-  /**
-  The {{#crossLink "Validator"}}{{/crossLink}}s that are associated with this property. Validators can be added and
-  removed from this collection.
-  
-  __readOnly__
-  @property validators {Array of Validator}
-  **/
-
-  /**
-  The default value for this property.
-  
-  __readOnly__
-  @property defaultValue {any}
-  **/
-
-  /**
-  The navigation property related to this property.  Will only be set if this is a foreign key property.
-  
-  __readOnly__
-  @property relatedNavigationProperty {NavigationProperty}
-  **/
-
-  /**
-  A free form object that can be used to define any custom metadata for this DataProperty.
-  
-  __readOnly__
-  @property custom {Object}
-  **/
-
-  /**
-  Is this a DataProperty? - always true here
-  Allows polymorphic treatment of DataProperties and NavigationProperties.
-  
-  __readOnly__
-  @property isDataProperty {Boolean}
-  **/
-
-  /**
-  Is this a NavigationProperty? - always false here
-  Allows polymorphic treatment of DataProperties and NavigationProperties.
-  
-  __readOnly__
-  @property isNavigationProperty {Boolean}
-  **/
-
   resolveProperty(propName: string) {
     let result = this[propName];
     let baseProp = this.baseProperty;
@@ -2286,15 +2080,12 @@ export class DataProperty {
 
   /**
   General purpose property set method
-  @example
-      // assume em1 is an EntityManager
-      let prop = myEntityType.getProperty("myProperty");
-      prop.setProperties( {
-          custom: { foo: 7, bar: "test" }
-      });
-  @method setProperties
-  @param config [object]
-  @param [config.custom] {Object}
+  >      // assume em1 is an EntityManager
+  >      let prop = myEntityType.getProperty("myProperty");
+  >      prop.setProperties( {
+  >          custom: { foo: 7, bar: "test" }
+  >      });
+  @param config - A configuration object.
   **/
   setProperties(config: { displayName?: string, custom?: Object }) {
     assertConfig(config)
@@ -2369,75 +2160,84 @@ export interface NavigationPropertyConfig {
   custom?: Object;
 }
 
-/**
-  A NavigationProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that return instances of other EntityTypes.
+/**   A NavigationProperty describes the metadata for a single property of an [[EntityType]] that return instances of other EntityTypes.
 
-  Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them
-  directly via the constructor.
-  @class NavigationProperty
-  **/
+Instances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them
+directly via the constructor.
+**/
 export class NavigationProperty {
+  /** @hidden */
   _$typeName: string;
+  /** Is this a DataProperty? - always false here 
+  Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
   isDataProperty = false;
+  /** Is this a NavigationProperty? - always true here
+  Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
   isNavigationProperty = true;
 
   formatName = DataProperty.prototype.formatName;
   getAllValidators = DataProperty.prototype.getAllValidators;
   resolveProperty = DataProperty.prototype.resolveProperty;
 
+  /** The [[EntityType]] returned by this property. __Read Only__ */
   entityType: EntityType;
+  /** The [[EntityType]] that this property belongs to. ( same as entityType). __Read Only__ */
   parentType: EntityType; // ?? same as entityType
+  /** The [[EntityType]] that this property belongs to. ( same as entityType). __Read Only__ */
   parentEntityType: EntityType; // ?? same as above
+  /** Property on the base type that this property is inherited from. Will be null if the property is not on the base type. __Read Only__ */
   baseProperty?: NavigationProperty;
+  /** The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction
+  to this NavigationProperty. May be undefined for a undirectional NavigationProperty. __Read Only__ */
   inverse?: NavigationProperty;
+  /** The name of this property. __Read Only__ */
   name: string;
+  /** The name of this property on the server. __Read Only__ */
   nameOnServer: string;
   entityTypeName: string;
+  
+  /**
+  Whether this property returns a single entity as opposed to  an array of entities. __Read Only__ */
   isScalar: boolean;
+  /** The name of the association to which that this property belongs.  This associationName will be shared with this
+  properties 'inverse'. __Read Only__ */
   associationName: string;
+  /** The names of the foreign key DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated
+  with a Navigation property except in the case of entities with multipart keys. __Read Only__ */
   foreignKeyNames: string[];
+  /** The server side names of the foreign key DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated
+  with a Navigation property except in the case of entities with multipart keys. __Read Only__ */
   foreignKeyNamesOnServer: string[];
   invForeignKeyNames: string[];
   invForeignKeyNamesOnServer: string[];
+  /** The 'foreign key' DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated
+  with a Navigation property except in the case of entities with multipart keys. __Read Only__ */
   relatedDataProperties: DataProperty[];
+  /** The [[Validator]] instances that are associated with this property. Validators can be added and
+  removed from this collection. __Read Only__ */
   validators: Validator[];
+  /** The display name of this property. __Read Only__ */
   displayName: string;
   isUnmapped: boolean;
+  /** A free form object that can be used to define any custom metadata for this NavigationProperty.   **/
   custom: Object;
 
-  /**
-  @example
-      let homeAddressProp = new NavigationProperty( {
-          name: "homeAddress",
-          entityTypeName: "Address:#myNamespace",
-          isScalar: true,
-          associationName: "address_person",
-          foreignKeyNames: ["homeAddressId"]
-      });
-      let homeAddressIdProp = new DataProperty( {
-          name: "homeAddressId"
-          dataType: DataType.Integer
-      });
-      // assuming personEntityType is a newly constructed EntityType
-      personEntityType.addProperty(homeAddressProp);
-      personEntityType.addProperty(homeAddressIdProp);
-  @method <ctor> NavigationProperty
-  @param config {configuration Object}
-  @param [config.name] {String}  The name of this property.
-  @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
-  Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
-  the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
-  @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
-  need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
-  The entityType name is constructed as: {shortName} + ":#" + {namespace}
-  @param [config.isScalar=true] {Boolean}
-  @param [config.associationName] {String} A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.
-  @param [config.foreignKeyNames] {Array of String} An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
-  Most of the time this will be a single foreignKeyName in an array.
-  @param [config.foreignKeyNamesOnServer] {Array of String} Same as above but the names are those defined on the server. Either this or 'foreignKeyNames' must
-  be specified, if there are foreignKeys. Whichever one is specified the other will be computed using
-  the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
-  @param [config.validators] {Array of Validator}
+  /** NavigationProperty constructor
+  >      let homeAddressProp = new NavigationProperty( {
+  >          name: "homeAddress",
+  >          entityTypeName: "Address:#myNamespace",
+  >          isScalar: true,
+  >          associationName: "address_person",
+  >          foreignKeyNames: ["homeAddressId"]
+  >      });
+  >      let homeAddressIdProp = new DataProperty( {
+  >          name: "homeAddressId"
+  >          dataType: DataType.Integer
+  >      });
+  >      // assuming personEntityType is a newly constructed EntityType
+  >      personEntityType.addProperty(homeAddressProp);
+  >      personEntityType.addProperty(homeAddressIdProp);
+  @param config - A configuration object.
   **/
   constructor(config: NavigationPropertyConfig) {
     assertConfig(config)
@@ -2461,123 +2261,6 @@ export class NavigationProperty {
     }
   };
 
-
-  /**
-  The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to. ( same as parentEntityType).
-  __readOnly__
-  @property parentType {EntityType}
-  **/
-
-  /**
-  The {{#crossLink "EntityType"}}{{/crossLink}} that this property belongs to.
-  __readOnly__
-  @property parentEntityType {EntityType}
-  **/
-
-  /**
-  The name of this property
-
-  __readOnly__
-  @property name {String}
-  **/
-
-  /**
-  The display name of this property
-
-  __readOnly__
-  @property displayName {String} 
-  **/
-
-  /**
-  The name of this property on the server
-
-  __readOnly__
-  @property nameOnServer {String} 
-  **/
-
-  /**
-  The {{#crossLink "EntityType"}}{{/crossLink}} returned by this property.
-
-  __readOnly__
-  @property entityType {EntityType}
-  **/
-
-  /**
-  Whether this property returns a single entity or an array of entities.
-
-  __readOnly__
-  @property isScalar {Boolean}
-  **/
-
-  /**
-  Property on the base type that this property is inherited from. Will be null if the property is not on the base type.
-
-  __readOnly__
-  @property baseProperty {NavigationProperty}
-  **/
-
-  /**
-  The name of the association to which that this property belongs.  This associationName will be shared with this
-  properties 'inverse'.
-
-  __readOnly__
-  @property associationName {String}
-  **/
-
-  /**
-  The names of the foreign key DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated
-  with a Navigation property except in the case of entities with multipart keys.
-
-  __readOnly__
-  @property foreignKeyNames {Array of String}
-  **/
-
-  /**
-  The 'foreign key' DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated
-  with a Navigation property except in the case of entities with multipart keys.
-
-  __readOnly__
-  @property relatedDataProperties {Array of DataProperty}
-  **/
-
-  /**
-  The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction
-  to this NavigationProperty.
-
-  __readOnly__
-  @property inverse {NavigationProperty}
-  **/
-
-  /**
-  The {{#crossLink "Validator"}}{{/crossLink}}s that are associated with this property. Validators can be added and
-  removed from this collection.
-
-  __readOnly__
-  @property validators {Array of Validator}
-  **/
-
-  /**
-  A free form object that can be used to define any custom metadata for this NavigationProperty.
-
-  __readOnly__
-  @property custom {Object}
-  **/
-
-  /**
-  Is this a DataProperty? - always false here
-  Allows polymorphic treatment of DataProperties and NavigationProperties.
-
-  __readOnly__
-  @property isDataProperty {Boolean}
-  **/
-
-  /**
-  Is this a NavigationProperty? - always true here
-  Allows polymorphic treatment of DataProperties and NavigationProperties.
-
-  __readOnly__
-  @property isNavigationProperty {Boolean}
-  **/
 
 
   /**
