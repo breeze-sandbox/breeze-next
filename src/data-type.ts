@@ -14,58 +14,49 @@ export class DataType extends BreezeEnum {
   isNumeric?: boolean;
   /** Whether this is an 'integer' DataType. __Read Only__ **/
   isInteger?: boolean;
-
-  validatorCtor?: (context?: any) => Validator;
-  normalize?: Function;
-  parseRawValue?: Function;
+  /** Whether to quote the json value when formatting this DataType for OData. */
   quoteJsonOData?: boolean;
-  parse?: (source: any, sourceTypeName: string) => any;
-  fmtOData?: Function;
-  getNext?: Function;
-  getConcurrencyValue?: Function;
-  /** @hidden */
-  static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
-
-  /**
-  Function to convert a value from string to this DataType.  Note that this will be called each time a property is changed, so make it fast.
-  @method parse {Function}
-  @param value {any}
-  @param sourceTypeName {String}
+  /** The constructor function to create a [[Validator]] to be used in validating instances of this DataType. */
+  validatorCtor?(context?: any): Validator;
+  /** 
+  Optional function to normalize a data value for comparison, if its value cannot be used directly. 
+  Note that this will be called each time a property is changed, so make it fast.
   @return value appropriate for this DataType
   **/
-
+  normalize?(value: any): any;
   /**
-  Function to format this DataType for OData queries.
-  @method fmtOData {Function}
-  @return value appropriate for OData query
+  Optional function to convert a raw (server) value from string to this DataType.
+  @return value appropriate for this DataType
   **/
-
+  parseRawValue?(value: any): any;
   /**
+  Optional function to convert a value from string to this DataType.  Note that this will be called each time a property is changed, so make it fast.
+  @return value appropriate for this DataType 
+  **/
+  parse?(source: any, sourceTypeName: string): any;
+  /** 
+  Optional function to format this DataType for OData queries.
+  @return value appropriate for OData query   
+  **/
+  fmtOData?(value: any): any;
+  /** 
   Optional function to get the next value for key generation, if this datatype is used as a key.  Uses an internal table of previous values.
-  @method getNext {Function}
-  @return value appropriate for this DataType
+  @return value appropriate for this DataType 
   **/
-
-  /**
-  Optional function to normalize a data value for comparison, if its value cannot be used directly.  Note that this will be called each time a property is changed, so make it fast.
-  @method normalize {Function}
-  @param value
-  @return value appropriate for this DataType
-  **/
-
+  getNext?(): any;
   /**
   Optional function to get the next value when the datatype is used as a concurrency property.
-  @method getConcurrencyValue {Function}
   @param previousValue
   @return the next concurrency value, which may be a function of the previousValue.
   **/
+  getConcurrencyValue?(previousValue?: any): any;
 
-  /**
-  Optional function to convert a raw (server) value from string to this DataType.
-  @method parseRawValue {Function}
-  @param value {any}
-  @return value appropriate for this DataType
-  **/
+  static parseDateFromServer = (value: any) => DataType.parseDateAsUTC(value);
+  // same effect as above but doesn't give right TSDOC.
+  // static parseDateFromServer = DataType.parseDateAsUTC;
+
+  /** @hidden */
+  static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
 
   static String = new DataType({
     defaultValue: "",
@@ -230,6 +221,7 @@ export class DataType extends BreezeEnum {
     return dt;
   };
 
+  /** Returns the DataType for a specified input. */
   static fromValue(val: any) {
     if (core.isDate(val)) return DataType.DateTime;
     switch (typeof val) {
@@ -271,8 +263,8 @@ export class DataType extends BreezeEnum {
     return source;
   };
 
-  static parseDateFromServer = DataType.parseDateAsUTC;
 
+  /** Returns a raw value converted to the specified DataType */
   static parseRawValue(val: any, dataType?: DataType) {
     // undefined values will be the default for most unmapped properties EXCEPT when they are set
     // in a jsonResultsAdapter ( an unusual use case).
