@@ -4,41 +4,27 @@ import { Validator } from './validate';
 
 let _localTimeRegex = /.\d{3}$/;
 
-/**
-  DataType is an 'Enum' containing all of the supported data types.
-
-  @class DataType
-  @static
-  **/
+/**  
+DataType is an 'Enum' containing all of the supported data types.
+**/
 export class DataType extends BreezeEnum {
+  /** The default value of this DataType. __Read Only__ **/
+  defaultValue?: any;
+  /** Whether this is a 'numeric' DataType. __Read Only__ **/
+  isNumeric?: boolean;
+  /** Whether this is an 'integer' DataType. __Read Only__ **/
+  isInteger?: boolean;
+
   validatorCtor?: (context?: any) => Validator;
   normalize?: Function;
   parseRawValue?: Function;
-  defaultValue?: any;
-  isNumeric?: boolean;
-  isInteger?: boolean;
   quoteJsonOData?: boolean;
   parse?: (source: any, sourceTypeName: string) => any;
   fmtOData?: Function;
   getNext?: Function;
   getConcurrencyValue?: Function;
+  /** @hidden */
   static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
-
-
-  /**
-  The default value of this DataType.
-  @property defaultValue {any}
-  **/
-
-  /**
-  Whether this is a 'numeric' DataType.
-  @property isNumeric {Boolean}
-  **/
-
-  /**
-  Whether this is an 'integer' DataType.
-  @property isInteger {Boolean}
-  **/
 
   /**
   Function to convert a value from string to this DataType.  Note that this will be called each time a property is changed, so make it fast.
@@ -81,24 +67,13 @@ export class DataType extends BreezeEnum {
   @return value appropriate for this DataType
   **/
 
-
-
-  /**
-  @property String {DataType}
-  @final
-  @static
-  **/
   static String = new DataType({
     defaultValue: "",
     parse: coerceToString,
     fmtOData: fmtString,
     getNext: getNextString
   });
-  /**
-  @property Int64 {DataType}
-  @final
-  @static
-  **/
+
   static Int64 = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -108,11 +83,7 @@ export class DataType extends BreezeEnum {
     fmtOData: makeFloatFmt("L"),
     getNext: getNextNumber
   });
-  /**
-  @property Int32 {DataType}
-  @final
-  @static
-  **/
+
   static Int32 = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -121,11 +92,7 @@ export class DataType extends BreezeEnum {
     fmtOData: fmtInt,
     getNext: getNextNumber
   });
-  /**
-  @property Int16 {DataType}
-  @final
-  @static
-  **/
+
   static Int16 = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -134,11 +101,7 @@ export class DataType extends BreezeEnum {
     fmtOData: fmtInt,
     getNext: getNextNumber
   });
-  /**
-  @property Byte {DataType}
-  @final
-  @static
-  **/
+
   static Byte = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -146,11 +109,7 @@ export class DataType extends BreezeEnum {
     parse: coerceToInt,
     fmtOData: fmtInt
   });
-  /**
-  @property Decimal {DataType}
-  @final
-  @static
-  **/
+
   static Decimal = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -160,11 +119,7 @@ export class DataType extends BreezeEnum {
     fmtOData: makeFloatFmt("m"),
     getNext: getNextNumber
   });
-  /**
-  @property Double {DataType}
-  @final
-  @static
-  **/
+
   static Double = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -173,11 +128,7 @@ export class DataType extends BreezeEnum {
     fmtOData: makeFloatFmt("d"),
     getNext: getNextNumber
   });
-  /**
-  @property Single {DataType}
-  @final
-  @static
-  **/
+
   static Single = new DataType({
     defaultValue: 0,
     isNumeric: true,
@@ -186,11 +137,7 @@ export class DataType extends BreezeEnum {
     fmtOData: makeFloatFmt("f"),
     getNext: getNextNumber
   });
-  /**
-  @property DateTime {DataType}
-  @final
-  @static
-  **/
+
   static DateTime = new DataType({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
@@ -202,11 +149,6 @@ export class DataType extends BreezeEnum {
     getConcurrencyValue: getConcurrencyDateTime
   });
 
-  /**
-  @property DateTimeOffset {DataType}
-  @final
-  @static
-  **/
   static DateTimeOffset = new DataType({
     defaultValue: new Date(1900, 0, 1),
     isDate: true,
@@ -217,31 +159,19 @@ export class DataType extends BreezeEnum {
     getNext: getNextDateTime,
     getConcurrencyValue: getConcurrencyDateTime
   });
-  /**
-  @property Time {DataType}
-  @final
-  @static
-  **/
+
   static Time = new DataType({
     defaultValue: "PT0S",
     fmtOData: fmtTime,
     parseRawValue: DataType.parseTimeFromServer
   });
-  /**
-  @property Boolean {DataType}
-  @final
-  @static
-  **/
+
   static Boolean = new DataType({
     defaultValue: false,
     parse: coerceToBool,
     fmtOData: fmtBoolean
   });
-  /**
-  @property Guid {DataType}
-  @final
-  @static
-  **/
+
   static Guid = new DataType({
     defaultValue: "00000000-0000-0000-0000-000000000000",
     parse: coerceToGuid,
@@ -251,21 +181,12 @@ export class DataType extends BreezeEnum {
     getConcurrencyValue: core.getUuid
   });
 
-  /**
-  @property Binary {DataType}
-  @final
-  @static
-  **/
   static Binary = new DataType({
     defaultValue: null,
     fmtOData: fmtBinary,
     parseRawValue: parseRawBinary
   });
-  /**
-  @property Undefined {DataType}
-  @final
-  @static
-  **/
+
   static Undefined = new DataType({
     defaultValue: undefined,
     fmtOData: fmtUndefined
@@ -287,12 +208,7 @@ export class DataType extends BreezeEnum {
     }
   };
 
-  /**
-  Returns the DataType for a specified EDM type name.
-  @method fromEdmDataType
-  @static
-  @param typeName {String}
-  @return {DataType} A DataType.
+  /** Returns the DataType for a specified EDM type name.
   **/
   static fromEdmDataType(typeName: string) {
     let dt: DataType | undefined;
@@ -368,6 +284,7 @@ export class DataType extends BreezeEnum {
     return val;
   }
 
+  /** @hidden */
   // used during initialization; visible on instance for testing purposes.
   static _resetConstants() {
     DataType.constants = {

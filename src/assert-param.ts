@@ -26,10 +26,12 @@ export class Param {
 
     v: any;
     name: string;
-    _context: IParamContext;
-    _contexts: IParamContext[];
     defaultValue: any;
     parent: ConfigParam;
+    /** @hidden */
+    _context: IParamContext;
+    /** @hidden */
+    _contexts: IParamContext[];
 
     constructor(v: any, name: string) {
         this.v = v;
@@ -153,12 +155,11 @@ export class Param {
         }
     };
 
+    /** @hidden */
     // called from outside this file.
     _addContext(context: IParamContext) {
         return addContext(this, context);
     };
-
-
 
     getMessage() {
         let that = this;
@@ -202,6 +203,7 @@ export class Param {
         }
     };
 
+    /** @hidden */
     _applyOne = function (this: Param, instance: any) {
         if (this.v !== undefined) {
             instance[this.name] = this.v;

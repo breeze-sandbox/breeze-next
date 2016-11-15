@@ -60,8 +60,6 @@ a query, import or [[EntityManager.createEntity]] call.
 >      var currentState = aspect.entityState;
 
 **/
-
-
 export class EntityAspect {
   /** The Entity that this aspect is associated with. __Read Only__  **/
   entity?: IEntity;

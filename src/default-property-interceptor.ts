@@ -1,6 +1,5 @@
 ﻿import { core } from './core';
 import { ComplexType, DataProperty, NavigationProperty, EntityProperty } from './entity-metadata';
-// import { DataType } from './data-type';
 import { EntityKey } from './entity-key';
 import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entity-aspect';
 import { EntityState } from './entity-state';
