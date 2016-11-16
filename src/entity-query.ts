@@ -534,6 +534,9 @@ export class EntityQuery {
     return this.toJSONExt();
   }
 
+  /** Typically only for use when building UriBuilderAdapters.  
+  @internal  
+  */
   toJSONExt(context?: IEntityQueryJsonContext) {
     context = context || {};
     context.entityType = context.entityType || this.fromEntityType;
