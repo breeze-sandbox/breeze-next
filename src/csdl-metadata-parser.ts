@@ -407,6 +407,7 @@ function getNamespaceFor(shortName: string, schema: any) {
   return null;
 }
 
+/** @hidden */
 export const CsdlMetadataParser = {
   parse: parse
 };

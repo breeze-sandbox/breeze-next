@@ -32,7 +32,7 @@
     "tsc-2015": "tsc -p tsconfig.es2015.json",
     "minify": "uglifyjs build/breeze.debug.js --screw-ie8 --compress --mangle --output build/breeze.min.js",
     "rollup": "npm run tsc-2015 && npm run rollup-only && npm run tsc-es5-only && npm run minify",
-    "tsdoc": "typedoc --out ./docs/  --excludePrivate --excludeNotExported  --tsConfig ./tsconfig.typedoc.json --mode file --readme ./readme.doc.md ./src/breeze.ts "
+    "typedoc": "typedoc --out ./docs/  --excludePrivate --excludeNotExported  --tsConfig ./tsconfig.typedoc.json --mode file --readme ./readme.doc.md ./src/breeze.ts "
   },
   "repository": {
     "type": "git",

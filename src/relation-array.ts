@@ -182,6 +182,10 @@ function checkForDups(relationArray: IRelationArray, adds: IEntity[]) {
   return goodAdds;
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IModelLibraryAdapter]] implementation. 
+@adapter (see [[IModelLibraryAdapter]])    
+@internal 
+*/
 export function makeRelationArray(arr: any[], parentEntity: IEntity, navigationProperty: NavigationProperty): IRelationArray {
   let arrX = arr as any;
   arrX.parentEntity = parentEntity;

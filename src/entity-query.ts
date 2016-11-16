@@ -878,120 +878,49 @@ export interface IQueryOp {
 
 
 /**
-   FilterQueryOp is an 'Enum' containing all of the valid  [[Predicate]]
-   filter operators for an [[EntityQuery]].
-
-   @class FilterQueryOp
-   @static
-   **/
+FilterQueryOp is an 'Enum' containing all of the valid  [[Predicate]]
+filter operators for an [[EntityQuery]].
+**/
 export class FilterQueryOp extends BreezeEnum implements IQueryOp {
+  /** The operator for this enum. */
   operator: string;
 
-  /**
-   Aliases: "eq", "=="
-   @property Equals {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** Aliases: "eq", "==" **/
   static Equals = new FilterQueryOp({ operator: "eq" });
-  /**
-   Aliases: "ne", "!="
-   @property NotEquals {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  Aliases: "ne", "!="  **/
   static NotEquals = new FilterQueryOp({ operator: "ne" });
-  /**
-   Aliases: "gt", ">"
-   @property GreaterThan {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** Aliases: "gt", ">"   **/
   static GreaterThan = new FilterQueryOp({ operator: "gt" });
-  /**
-   Aliases: "lt", "<"
-   @property LessThan {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** Aliases: "lt", "<"  **/
   static LessThan = new FilterQueryOp({ operator: "lt" });
-  /**
-   Aliases: "ge", ">="
-   @property GreaterThanOrEqual {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  Aliases: "ge", ">="  **/
   static GreaterThanOrEqual = new FilterQueryOp({ operator: "ge" });
-  /**
-   Aliases: "le", "<="
-   @property LessThanOrEqual {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  Aliases: "le", "<="  **/
   static LessThanOrEqual = new FilterQueryOp({ operator: "le" });
-  /**
-   String operation: Is a string a substring of another string.
-   Aliases: "substringof"
-   @property Contains {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  String operation: Is a string a substring of another string.  Aliases: "substringof"   **/
   static Contains = new FilterQueryOp({ operator: "contains" });
-  /**
-   @property StartsWith {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** No aliases */
   static StartsWith = new FilterQueryOp({ operator: "startswith" });
-  /**
-   @property EndsWith {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** No aliases */
   static EndsWith = new FilterQueryOp({ operator: "endswith" });
-
-  /**
-   Aliases: "some"
-   @property Any {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  Aliases: "some"  **/
   static Any = new FilterQueryOp({ operator: "any" });
-
-  /**
-   Aliases: "every"
-   @property All {FilterQueryOp}
-   @final
-   @static
-   **/
+  /**  Aliases: "every"  **/
   static All = new FilterQueryOp({ operator: "all" });
-
-  /**
-   @property In {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** No aliases */
   static In = new FilterQueryOp({ operator: "in" });
-
-  /**
-   @property IsTypeOf {FilterQueryOp}
-   @final
-   @static
-   **/
+  /** No aliases */
   static IsTypeOf = new FilterQueryOp({ operator: "isof" });
 }
 FilterQueryOp.resolveSymbols();
 
 
-
 /**
-   BoolleanQueryOp is an 'Enum' containing all of the valid  boolean
-   operators for an [[EntityQuery]].
-
-   @class BooleanQueryOp
-   @static
-   **/
+ BooleanQueryOp is an 'Enum' containing all of the valid  boolean
+operators for an [[EntityQuery]].
+**/
 export class BooleanQueryOp extends BreezeEnum implements IQueryOp {
+  /** The operator for this enum. */
   operator: string;
 
   static And = new BooleanQueryOp({ operator: "and" });
@@ -1001,21 +930,24 @@ export class BooleanQueryOp extends BreezeEnum implements IQueryOp {
 }
 BooleanQueryOp.resolveSymbols();
 
-/*
- An OrderByClause is a description of the properties and direction that the result
- of a query should be sorted in.  OrderByClauses are immutable, which means that any
- method that would modify an OrderByClause actually returns a new OrderByClause.
 
- For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
+/** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
+@adapter (see [[IUriBuilderAdapter]])    
+@internal -
 
- let obc = new OrderByClause("Company.CompanyName, LastName")
- or
- let obc = new OrderByClause("Company.CompanyName desc, LastName")
- or
- let obc = new OrderByClause("Company.CompanyName, LastName", true);
- @class OrderByClause
- */
-// Exposed for use by UriBuilder adapters
+An OrderByClause is a description of the properties and direction that the result
+of a query should be sorted in.  OrderByClauses are immutable, which means that any
+method that would modify an OrderByClause actually returns a new OrderByClause.
+
+For example for an Employee object with properties of 'Company' and 'LastName' the following would be valid expressions:
+>     let obc = new OrderByClause("Company.CompanyName, LastName")
+
+or
+>     let obc = new OrderByClause("Company.CompanyName desc, LastName")
+
+or
+>     let obc = new OrderByClause("Company.CompanyName, LastName", true);
+*/
 export class OrderByClause {
   items: OrderByItem[];
 
@@ -1144,7 +1076,10 @@ class OrderByItem {
   }
 }
 
-// Exposed for use by UriBuilder adapters 
+/** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
+@adapter (see [[IUriBuilderAdapter]])    
+@internal 
+**/
 export class SelectClause {
   propertyPaths: string[];
   _pathNames: string[];
@@ -1182,7 +1117,10 @@ export class SelectClause {
   };
 }
 
-// Exposed for use by UriBuilder adapters
+/** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
+@adapter (see [[IUriBuilderAdapter]])    
+@internal 
+**/
 export class ExpandClause {
   propertyPaths: string[];
 

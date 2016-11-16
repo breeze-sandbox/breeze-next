@@ -1729,16 +1729,19 @@ interface ComplexTypeConfig {
 }
 
 /**  Container for all of the metadata about a specific type of Complex object.
->    let complexType = new ComplexType( {
->        shortName: "address",
->        namespace: "myAppNamespace"
->    });
+>     let complexType = new ComplexType( {
+>         shortName: "address",
+>         namespace: "myAppNamespace"
+>     });
 @param config - Configuration settings
 **/
 export class ComplexType {
+  /** @hidden */
   _$typeName: string; // on proto
+  /** For polymorphic purpose only - always true here */
   isComplexType = true;
 
+  /** The [[MetadataStore]] containing this ComplexType. */
   metadataStore: MetadataStore;
 
   /**  The fully qualifed name of this ComplexType. __Read Only__  **/
@@ -1757,6 +1760,7 @@ export class ComplexType {
   The entity level validators associated with this ComplexType. Validators can be added and
   removed from this collection. __Read Only__  **/
   validators: Validator[];
+  /** For polymorphic purpose only - always empty here */
   concurrencyProperties: DataProperty[];
   /** The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing
   properties. __Read Only__   **/
@@ -1908,11 +1912,10 @@ interface DataPropertyConfig {
 }
 
 /**
-A DataProperty describes the metadata for a single property of an  {{#crossLink "EntityType"}}{{/crossLink}} that contains simple data.
+A DataProperty describes the metadata for a single property of an  [[EntityType]] that contains simple data.
 
 Instances of the DataProperty class are constructed automatically during Metadata retrieval. However it is also possible to construct them
 directly via the constructor.
-@class DataProperty
 **/
 export class DataProperty {
   /** @hidden */

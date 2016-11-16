@@ -2,7 +2,6 @@
 Base class for all Breeze enumerations, such as EntityState, DataType, FetchStrategy, MergeStrategy etc.
 A Breeze Enum is a namespaced set of constant values.  Each Enum consists of a group of related constants, called 'symbols'.
 Unlike enums in some other environments, each 'symbol' can have both methods and properties.
-
 >     class DayOfWeek extends BreezeEnum {
 >       dayIndex: number;
 >       isWeekend?: boolean;
@@ -84,7 +83,7 @@ export class BreezeEnum {
   /**
   Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
   have already been added to the Enum. This method also sets the 'name' property on each of the symbols.
-  >       DayOfWeek.resolveSymbols();
+  >     DayOfWeek.resolveSymbols();
   **/
   static resolveSymbols() {
     if (this._resolvedNamesAndSymbols) return this._resolvedNamesAndSymbols;
@@ -106,10 +105,10 @@ export class BreezeEnum {
 
   /**
   Returns whether an Enum contains a specified symbol.
-  >    let symbol = DayOfWeek.Friday;
-  >    if (DayOfWeek.contains(symbol)) {
-  >        // do something
-  >    }
+  >     let symbol = DayOfWeek.Friday;
+  >     if (DayOfWeek.contains(symbol)) {
+  >         // do something
+  >     }
   @param sym - Object or symbol to test.
   @return Whether this Enum contains the specified symbol.
   **/

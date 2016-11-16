@@ -5,6 +5,7 @@ import { EntityState } from './entity-state';
 import { EntityManager } from './entity-manager';
 import { MergeStrategy } from './query-options';
 
+/** @hidden */
 export class EntityGroup {
   entityManager: EntityManager;
   entityType: EntityType;

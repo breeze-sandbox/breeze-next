@@ -86,6 +86,10 @@ let primitiveArrayMixin = {
 };
   // local functions
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IModelLibraryAdapter]] implementation. 
+@adapter (see [[IModelLibraryAdapter]])    
+@internal 
+*/
 export function makePrimitiveArray(arr: any[], parent: IStructuralObject, parentProperty: DataProperty) {
   let arrX = arr as any;
   observableArray.initializeParent(arrX, parent, parentProperty);

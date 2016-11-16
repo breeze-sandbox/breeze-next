@@ -5,6 +5,7 @@ import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entit
 import { EntityState } from './entity-state';
 import { EntityAction } from './entity-action';
 
+/** @hidden */
 export function defaultPropertyInterceptor(this: IStructuralObject, property: EntityProperty, newValue: any, rawAccessorFn: Function) {
   // 'this' is the entity itself in this context.
 

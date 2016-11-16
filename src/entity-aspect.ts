@@ -872,26 +872,32 @@ function validateTarget(target: any, coIndex?: number) {
 }
 
 /**
-  An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property.
+An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property.
 
-  The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
+The ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.
 
-  A ComplexAspect will almost never need to be constructed directly. You will usually get an ComplexAspect by accessing
-  an entities 'complexAspect' property.  This property will be automatically attached when an complex object is created as part of an
-  entity via either a query, import or EntityManager.createEntity call.
-  @example
-      // assume address is a complex property on the 'Customer' type
-      var aspect = aCustomer.address.complexAspect;
-      // aCustomer === aspect.parent;
-  @class ComplexAspect
-  **/
+A ComplexAspect will almost never need to be constructed directly. You will usually get an ComplexAspect by accessing
+an entities 'complexAspect' property.  This property will be automatically attached when an complex object is created as part of an
+entity via either a query, import or EntityManager.createEntity call.
+>      // assume address is a complex property on the 'Customer' type
+>      var aspect = aCustomer.address.complexAspect;
+>      // aCustomer === aspect.parent;
+**/
 export class ComplexAspect {
+
+  /** The complex object that this aspect is associated with. __Read Only__ */
   complexObject: IComplexObject;
+  /** The 'original values' of this complex object where they are different from the 'current values'.
+  This is a map where the key is a property name and the value is the 'original value' of the property.
+  __Read Only__ */
   originalValues: {};
+  /** The parent object that to which this aspect belongs; this will either be an entity or another complex object. __Read Only__ */
   parent?: IStructuralObject;
+  /** The [[DataProperty]] on the 'parent' that contains this complex object. __Read Only__ */
   parentProperty?: DataProperty;
   extraMetadata?: any;
 
+  /** You will rarely, if ever, create a ComplexAspect directly. */
   constructor(complexObject: IComplexObject, parent: IStructuralObject, parentProperty: DataProperty) {
     if (!complexObject) {
       throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
@@ -932,41 +938,8 @@ export class ComplexAspect {
   };
 
 
-
   /**
-  The complex object that this aspect is associated with.
-
-  __readOnly__
-  @property complexObject {Entity}
-  **/
-
-  /**
-  The parent object that to which this aspect belongs; this will either be an entity or another complex object.
-
-  __readOnly__
-  @property parent {Entity|IComplexObject}
-  **/
-
-  /**
-  The {{#crossLink "DataProperty"}}{{/crossLink}} on the 'parent' that contains this complex object.
-
-  __readOnly__
-  @property parentProperty {DataProperty}
-  **/
-
-  /**
-  The 'original values' of this complex object where they are different from the 'current values'.
-  This is a map where the key is a property name and the value is the 'original value' of the property.
-
-  __readOnly__
-  @property originalValues {Object}
-  **/
-
-  /**
-  Returns the EntityAspect for the top level entity tht contains this complex object.
-
-  @method getEntityAspect
-  @return  {String}
+  Returns the EntityAspect for the top level entity that contains this complex object.
   **/
   getEntityAspect() {
     let parent = <any>this.parent;

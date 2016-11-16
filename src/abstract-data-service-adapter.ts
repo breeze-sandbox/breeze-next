@@ -8,13 +8,16 @@ import { DataService, JsonResultsAdapter } from './data-service';
 import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 
-/** Will usually be the base class for all other DataServiceAdapters */
+/** For use by breeze plugin authors only.  The class is used as the base class for most [[IDataServiceAdapter]] implementations
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
-  /** hidden */
+  /** @hidden */
   _$impl?: any;
   /** The name of this adapter. */
   name: string;
-  /** The [[IAdaxAdapter]] used by this [[IDataServiceAdapter]]. */
+  /** The [[IAjaxAdapter]] used by this [[IDataServiceAdapter]]. */
   ajaxImpl: IAjaxAdapter;
 
   constructor() {
@@ -160,7 +163,9 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     return promise;
   };
 
-  // result should be a serializable object that will be sent to the server after calling JSON.stringify
+  /** Abstract method that needs to be overwritten in any concrete DataServiceAdapter sublclass. 
+  The return value from this method should be a serializable object that will be sent to the server after calling JSON.stringify on it.
+  */
   _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle): any {
     // The implementor should call _createChangeRequestInterceptor
     throw new Error("Need a concrete implementation of _prepareSaveBundle");
@@ -194,6 +199,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   **/
   changeRequestInterceptor = DefaultChangeRequestInterceptor;
 
+  /** @hidden */
   _createChangeRequestInterceptor(saveContext: ISaveContext, saveBundle: ISaveBundle) {
     let adapter = saveContext.adapter!;
     let cri = adapter.changeRequestInterceptor;
@@ -215,12 +221,17 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     }
   }
 
+  /** Abstract method that needs to be overwritten in any concrete DataServiceAdapter sublclass. 
+  This method needs to take the result returned the server and convert it into an ISaveResult. 
+  */
   _prepareSaveResult(saveContext: ISaveContext, data: any): ISaveResult {
     throw new Error("Need a concrete implementation of _prepareSaveResult");
   };
 
 
-
+  /** Utility method that may be used in any concrete DataServiceAdapter sublclass to handle any 
+  http connection issues. 
+  */
   // Put this at the bottom of your http error analysis
   static _catchNoConnectionError(err: IServerError) {
     if (err.status === 0 && err.message == null) {
