@@ -200,14 +200,15 @@ export interface JsonResultsAdapterConfig {
   @class JsonResultsAdapter
   **/
 export class JsonResultsAdapter {
+  /** @hidden */
   _$typeName: string; // actually put on prototype.
-
 
   name: string;
 
   extractResults: Function; // TODO - refine
   extractSaveResults: Function;
   extractKeyMappings:  (data: {}) => IKeyMapping[];
+  extractDeletedKeys?: (data: {}) => any[]; // TODO: refine
   visitNode: Function;
 
   /**
@@ -265,6 +266,7 @@ export class JsonResultsAdapter {
         .whereParam("extractResults").isFunction().isOptional().withDefault(extractResultsDefault)
         .whereParam("extractSaveResults").isFunction().isOptional().withDefault(extractSaveResultsDefault)
         .whereParam("extractKeyMappings").isFunction().isOptional().withDefault(extractKeyMappingsDefault)
+        .whereParam("extractDeletedKeys").isFunction().isOptional().withDefault(extractDeletedKeysDefault)
         .whereParam("visitNode").isFunction()
         .applyAll(this);
     config._storeObject(this, "JsonResultsAdapter", this.name);
@@ -283,5 +285,9 @@ function extractSaveResultsDefault(data: any) {
 
 function extractKeyMappingsDefault(data: any) {
   return data.keyMappings || data.KeyMappings || [];
+}
+
+function extractDeletedKeysDefault(data: any) {
+  return data.deletedKeys || data.DeletedKeys || [];
 }
 

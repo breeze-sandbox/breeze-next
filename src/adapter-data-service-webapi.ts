@@ -7,7 +7,7 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
     this.name = "webApi";
   };
 
-  _prepareSaveBundle(saveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle ) {
+  _prepareSaveBundle(saveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle) {
     let changeRequestInterceptor = this._createChangeRequestInterceptor(saveContext, saveBundle);
     let em = saveContext.entityManager;
     let metadataStore = em.metadataStore;
@@ -46,6 +46,7 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
     let jra = saveContext.dataService.jsonResultsAdapter || this.jsonResultsAdapter;
     let entities = jra.extractSaveResults(data) || [];
     let keyMappings = jra.extractKeyMappings(data) || [];
+    let deletedKeys = jra.extractDeletedKeys ? (jra.extractDeletedKeys(data)) || [] : [];
 
     if (keyMappings.length) {
       // HACK: need to change the 'case' of properties in the saveResult
@@ -57,7 +58,18 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
         return { entityTypeName: entityTypeName, tempValue: kmHack.TempValue, realValue: kmHack.RealValue };
       });
     }
-    return { entities: entities, keyMappings: keyMappings };
+
+    if (deletedKeys.length) {
+      deletedKeys = deletedKeys.map(function (dk) {
+        if (dk.entityTypeName) return dk; // it's already lower case
+        let entityTypeName = breeze.MetadataStore.normalizeTypeName(dk.EntityTypeName);
+        // NOTE the dk.KeyValue => keyValues transition - needed because we are deserializing an .NET EntityKey
+        return { entityTypeName: entityTypeName, keyValues: dk.KeyValue };
+      });
+    }
+
+    return { entities: entities, keyMappings: keyMappings, deletedKeys: deletedKeys };
+
   };
 
   jsonResultsAdapter = new breeze.JsonResultsAdapter({
@@ -83,4 +95,4 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
 
 }
 
- breeze.config.registerAdapter("dataService", DataServiceWebApiAdapter);
+breeze.config.registerAdapter("dataService", DataServiceWebApiAdapter);

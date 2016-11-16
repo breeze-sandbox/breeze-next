@@ -113,6 +113,7 @@ interface IImportConfigExt extends IImportConfig {
 export interface ISaveResult {
   entities: IEntity[];
   keyMappings: IKeyMapping[];
+  deletedKeys?: { entityTypeName: string, keyValues: any[]}[];
   httpResponse?: IHttpResponse;
 }
 
@@ -1043,8 +1044,8 @@ export class EntityManager {
 
     function processSavedEntities(saveResult: ISaveResult) {
       let savedEntities = saveResult.entities;
-
-      if (savedEntities.length === 0) {
+      let deletedKeys = saveResult.deletedKeys || [];
+      if (savedEntities.length === 0 && deletedKeys.length === 0) {
         return [];
       }
       let keyMappings = saveResult.keyMappings;
@@ -1065,6 +1066,16 @@ export class EntityManager {
         // The visitAndMerge operation has been optimized so that we do not actually perform a merge if the
         // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
         savedEntities = mappingContext.visitAndMerge(savedEntities, { nodeType: "root" });
+      });
+
+      // detach any entities found in the em that appear in the deletedKeys list. 
+      deletedKeys.forEach(key => {
+        let entityType = em.metadataStore._getStructuralType(key.entityTypeName) as EntityType;
+        let ekey = new EntityKey(entityType, key.keyValues);
+        let entity = em.findEntityByKey(ekey);
+        if (entity) {
+          entity.entityAspect.setDetached();
+        }
       });
 
       return savedEntities;
