@@ -8,11 +8,13 @@ import { DataService, JsonResultsAdapter } from './data-service';
 import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 
-// Will usually be the base class for all other DataServiceAdapters;
+/** Will usually be the base class for all other DataServiceAdapters */
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
+  /** hidden */
   _$impl?: any;
-
+  /** The name of this adapter. */
   name: string;
+  /** The [[IAdaxAdapter]] used by this [[IDataServiceAdapter]]. */
   ajaxImpl: IAjaxAdapter;
 
   constructor() {
@@ -165,33 +167,31 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   };
 
   /**
-   Returns a constructor function for a "ChangeRequestInterceptor"
-   that can tweak the saveBundle both as it is built and when it is completed
-   by a concrete DataServiceAdapater.
+  Returns a constructor function for a "ChangeRequestInterceptor"
+  that can tweak the saveBundle both as it is built and when it is completed
+  by a concrete DataServiceAdapater.
 
-   Initialized with a default, no-op implementation that developers can replace with a
-   substantive implementation that changes the individual entity change requests
-   or aspects of the entire 'saveBundle' without having to write their own DataService adapters.
+  Initialized with a default, no-op implementation that developers can replace with a
+  substantive implementation that changes the individual entity change requests
+  or aspects of the entire 'saveBundle' without having to write their own DataService adapters.
+  >     let adapter = breeze.config.getAdapterInstance('dataService');
+  >     adapter.changeRequestInterceptor = function (saveContext, saveBundle) {
+  >         this.getRequest = function (request, entity, index) {
+  >            // alter the request that the adapter prepared for this entity
+  >            // based on the entity, saveContext, and saveBundle
+  >            // e.g., add a custom header or prune the originalValuesMap
+  >            return request;
+  >        };
+  >        this.done = function (requests) {
+  >            // alter the array of requests representing the entire change-set
+  >            // based on the saveContext and saveBundle
+  >        };
+  >     }
 
-   @example
-   let adapter = breeze.config.getAdapterInstance('dataService');
-   adapter.changeRequestInterceptor = function (saveContext, saveBundle) {
-        this.getRequest = function (request, entity, index) {
-            // alter the request that the adapter prepared for this entity
-            // based on the entity, saveContext, and saveBundle
-            // e.g., add a custom header or prune the originalValuesMap
-            return request;
-        };
-        this.done = function (requests) {
-            // alter the array of requests representing the entire change-set
-            // based on the saveContext and saveBundle
-        };
-    }
-   @method changeRequestInterceptor
-   @param saveContext {Object} The BreezeJS "context" for the save operation.
-   @param saveBundle {Object} Contains the array of entities-to-be-saved (AKA, the entity change-set).
-   @return {Function} Constructor for a "ChangeRequestInterceptor".
-   **/
+  @param saveContext - The BreezeJS "context" for the save operation.
+  @param saveBundle - Contains the array of entities-to-be-saved (AKA, the entity change-set).
+  @return Constructor for a "ChangeRequestInterceptor".
+  **/
   changeRequestInterceptor = DefaultChangeRequestInterceptor;
 
   _createChangeRequestInterceptor(saveContext: ISaveContext, saveBundle: ISaveBundle) {
@@ -315,9 +315,7 @@ function createError(httpResponse: IHttpResponse) {
 }
 
 
-
-
-//This is a default, no-op implementation that developers can replace.
+/** This is a default, no-op implementation that developers can replace. */
 class DefaultChangeRequestInterceptor {
   constructor(saveContext: ISaveContext, saveBundle: ISaveBundle) {
 

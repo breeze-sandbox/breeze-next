@@ -36,11 +36,9 @@ export interface IExpressionContext {
 }
 
 /**
-  Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any
-  method that would modify a Predicate actually returns a new Predicate.
-  @class Predicate
-  **/
-
+Used to define a 'where' predicate for an [[EntityQuery]].  Predicates are immutable, which means that any
+method that would modify a Predicate actually returns a new Predicate.
+**/
 export class Predicate {
   op: IOp;
   _entityType?: EntityType;
@@ -50,24 +48,21 @@ export class Predicate {
 
   /**
   Predicate constructor
-  @example
-      let p1 = new Predicate("CompanyName", "StartsWith", "B");
-      let query = new EntityQuery("Customers").where(p1); 
+  >     let p1 = new Predicate("CompanyName", "StartsWith", "B");
+  >     let query = new EntityQuery("Customers").where(p1);
+
   or
-  @example
-      let p2 = new Predicate("Region", FilterQueryOp.Equals, null);
-      let query = new EntityQuery("Customers").where(p2);
-  @method <ctor> Predicate
-  @param property {String} A property name, a nested property name or an expression involving a property name.
-  @param operator {FilterQueryOp|String}
-  @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general,
+  >     let p2 = new Predicate("Region", FilterQueryOp.Equals, null);
+  >     let query = new EntityQuery("Customers").where(p2);
+  @param property - A property name, a nested property name or an expression involving a property name.
+  @param operator - 
+  @param value - This will be treated as either a property expression or a literal depending on context.  In general,
   if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
   In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value'
   property and an 'isLiteral' property set to either true or false.  Breeze also tries to infer the dataType of any
   literal based on context, if this fails you can force this inference by making the value argument an object with a
   'value' property and a 'dataType' property set to one of the breeze.DataType enumeration instances.
   **/
-
   constructor(...args: any[]) {
     if (args.length === 0) return;
     if (!(this instanceof Predicate)) {
@@ -76,6 +71,21 @@ export class Predicate {
     return Predicate.create(...<any>args);
   }
 
+  /**
+  Same as using the ctor.
+  >      // so 
+  >      let p = Predicate.create(a, b, c);
+  >      // is the same as 
+  >      let p = new Predicate(a, b, c); 
+  @param property -  A property name, a nested property name or an expression involving a property name.
+  @param operator - the filter query operator.
+  @param value - This will be treated as either a property expression or a literal depending on context.  In general,
+  if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
+  In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value'
+  property and an 'isLiteral' property set to either true or false.  Breeze also tries to infer the dataType of any
+  literal based on context, if this fails you can force this inference by making the value argument an object with a
+  'value' property and a 'dataType' property set to one of the breeze.DataType enumeration instances.
+  **/
   static create(...args: any[]) {
     // can be called from std javascript without new ( legacy )
 
@@ -110,47 +120,24 @@ export class Predicate {
     }
   };
 
+  /** @hidden */
   _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     // noop here;
   }
 
   /**
-  Same as using the ctor.
-  @example
-      // so 
-      let p = Predicate.create(a, b, c);
-      // is the same as 
-      let p = new Predicate(a, b, c); 
-  
-  @method create
-  @param property {String} A property name, a nested property name or an expression involving a property name.
-  @param operator {FilterQueryOp|String}
-  @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general,
-  if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal.
-  In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value'
-  property and an 'isLiteral' property set to either true or false.  Breeze also tries to infer the dataType of any
-  literal based on context, if this fails you can force this inference by making the value argument an object with a
-  'value' property and a 'dataType' property set to one of the breeze.DataType enumeration instances.
-
-  @static
-  **/
-  // static create = Predicate;
-
-  /**
   Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.
-  @example
-      let dt = new Date(88, 9, 12);
-      let p1 = Predicate.create("OrderDate", "ne", dt);
-      let p2 = Predicate.create("ShipCity", "startsWith", "C");
-      let p3 = Predicate.create("Freight", ">", 100);
-      let newPred = Predicate.and(p1, p2, p3);
+  >      let dt = new Date(88, 9, 12);
+  >      let p1 = Predicate.create("OrderDate", "ne", dt);
+  >      let p2 = Predicate.create("ShipCity", "startsWith", "C");
+  >      let p3 = Predicate.create("Freight", ">", 100);
+  >      let newPred = Predicate.and(p1, p2, p3);
+
   or
-  @example
-      let preds = [p1, p2, p3];
-      let newPred = Predicate.and(preds);
-  @method and
-  @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
-  @static
+  >      let preds = [p1, p2, p3];
+  >      let newPred = Predicate.and(preds);
+  @param predicates - multiple Predicates or an array of Predicate. 
+  Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
   **/
   static and(...args: any[]) {
     let pred = new AndOrPredicate("and", args);
@@ -162,19 +149,17 @@ export class Predicate {
 
   /**
   Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.
-  @example
-      let dt = new Date(88, 9, 12);
-      let p1 = Predicate.create("OrderDate", "ne", dt);
-      let p2 = Predicate.create("ShipCity", "startsWith", "C");
-      let p3 = Predicate.create("Freight", ">", 100);
-      let newPred = Predicate.or(p1, p2, p3);
+  >      let dt = new Date(88, 9, 12);
+  >      let p1 = Predicate.create("OrderDate", "ne", dt);
+  >      let p2 = Predicate.create("ShipCity", "startsWith", "C");
+  >      let p3 = Predicate.create("Freight", ">", 100);
+  >      let newPred = Predicate.or(p1, p2, p3);
+
   or
-  @example
-      let preds = [p1, p2, p3];
-      let newPred = Predicate.or(preds);
-  @method or
-  @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
-  @static
+  >      let preds = [p1, p2, p3];
+  >      let newPred = Predicate.or(preds);
+  @param predicates - multiple Predicates or an array of Predicate.
+  Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
   **/
   static or(...args: any[]) {
     let pred = new AndOrPredicate("or", args);
@@ -184,18 +169,14 @@ export class Predicate {
 
   /**
   Creates a 'composite' Predicate by 'negating' a specified predicate.
-  @example
-      let p1 = Predicate.create("Freight", "gt", 100);
-      let not_p1 = Predicate.not(p1);
+  >      let p1 = Predicate.create("Freight", "gt", 100);
+  >      let not_p1 = Predicate.not(p1);
+
   This can also be accomplished using the 'instance' version of the 'not' method
-  @example
-      let not_p1 = p1.not();
+  >      let not_p1 = p1.not();
+
   Both of which would be the same as
-  @example
-      let not_p1 = Predicate.create("Freight", "le", 100);
-  @method not
-  @param predicate {Predicate}
-  @static
+  >      let not_p1 = Predicate.create("Freight", "le", 100);
   **/
   static not(pred: Predicate) {
     return pred.not();
@@ -225,22 +206,21 @@ export class Predicate {
 
   /**
   'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate
-  @example
-      let dt = new Date(88, 9, 12);
-      let p1 = Predicate.create("OrderDate", "ne", dt);
-      let p2 = Predicate.create("ShipCity", "startsWith", "C");
-      let p3 = Predicate.create("Freight", ">", 100);
-      let newPred = p1.and(p2, p3);
+  >      let dt = new Date(88, 9, 12);
+  >      let p1 = Predicate.create("OrderDate", "ne", dt);
+  >      let p2 = Predicate.create("ShipCity", "startsWith", "C");
+  >      let p3 = Predicate.create("Freight", ">", 100);
+  >      let newPred = p1.and(p2, p3);
+
   or
-  @example
-      let preds = [p2, p3];
-      let newPred = p1.and(preds);
+  >      let preds = [p2, p3];
+  >      let newPred = p1.and(preds);
+
   The 'and' method is also used to write "fluent" expressions
-  @example
-      let p4 = Predicate.create("ShipCity", "startswith", "F")
-        .and("Size", "gt", 2000);
-  @method and
-  @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
+  >      let p4 = Predicate.create("ShipCity", "startswith", "F")
+  >        .and("Size", "gt", 2000);
+  @param predicates - multiple Predicates or an array of Predicates. 
+  Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
   **/
   and(...args: any[]) {
     return new AndOrPredicate("and", argsForAndOrPredicates(this, args));
@@ -248,22 +228,21 @@ export class Predicate {
 
   /**
   'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate
-  @example
-      let dt = new Date(88, 9, 12);
-      let p1 = Predicate.create("OrderDate", "ne", dt);
-      let p2 = Predicate.create("ShipCity", "startsWith", "C");
-      let p3 = Predicate.create("Freight", ">", 100);
-      let newPred = p1.or(p2, p3);
+  >      let dt = new Date(88, 9, 12);
+  >      let p1 = Predicate.create("OrderDate", "ne", dt);
+  >      let p2 = Predicate.create("ShipCity", "startsWith", "C");
+  >      let p3 = Predicate.create("Freight", ">", 100);
+  >      let newPred = p1.or(p2, p3);
+
   or
-  @example
-      let preds = [p2, p3];
-      let newPred = p1.or(preds);
+  >      let preds = [p2, p3];
+  >      let newPred = p1.or(preds);
+
   The 'or' method is also used to write "fluent" expressions
-  @example
-      let p4 = Predicate.create("ShipCity", "startswith", "F")
-        .or("Size", "gt", 2000);
-  @method or
-  @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
+  >      let p4 = Predicate.create("ShipCity", "startswith", "F")
+  >        .or("Size", "gt", 2000);
+  @param predicates - multiple Predicates or an array of Predicates. 
+  Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
   **/
   or(...args: any[]) {
     return new AndOrPredicate("or", argsForAndOrPredicates(this, args));
@@ -271,17 +250,15 @@ export class Predicate {
 
   /**
   Returns the 'negated' version of this Predicate
-  @example
-      let p1 = Predicate.create("Freight", "gt", 100);
-      let not_p1 = p1.not();
+  >      let p1 = Predicate.create("Freight", "gt", 100);
+  >      let not_p1 = p1.not();
+
   This can also be accomplished using the 'static' version of the 'not' method
-  @example
-      let p1 = Predicate.create("Freight", "gt", 100);
-      let not_p1 = Predicate.not(p1);
+  >      let p1 = Predicate.create("Freight", "gt", 100);
+  >      let not_p1 = Predicate.not(p1);
+
   which would be the same as
-  @example
-      let not_p1 = Predicate.create("Freight", "le", 100);
-  @method not
+  >      let not_p1 = Predicate.create("Freight", "le", 100);
   **/
   not() {
     return new UnaryPredicate("not", this);
@@ -294,10 +271,16 @@ export class Predicate {
     return this.toJSONExt({ entityType: this._entityType });
   }
 
+  /** 
+  @internal 
+  */
   toJSONExt(context: IVisitContext) {
     return this.visit(context, toJSONVisitor);
   }
 
+  /** 
+  @internal 
+  */
   toFunction(context: IVisitContext) {
     return this.visit(context, toFunctionVisitor);
   }
@@ -306,6 +289,9 @@ export class Predicate {
     return JSON.stringify(this);
   };
 
+  /** 
+  @internal 
+   */
   visit(context: IVisitContext, visitor?: IVisitor) {
     if (core.isEmpty(context)) {
       context = { entityType: undefined };
@@ -337,6 +323,7 @@ export class Predicate {
     return fn.call(this, context);
   }
 
+  /** @hidden */
   _initialize(visitorMethodName: string, opMap: { [key: string]: { aliases?: string[], isFunction?: boolean }} = {}) {
     this.visitorMethodName = visitorMethodName;
     let aliasMap = this.aliasMap = {};
@@ -345,6 +332,7 @@ export class Predicate {
     }
   }
 
+  /** @hidden */
   _resolveOp(op: string | IQueryOp, okIfNotFound?: boolean) {
     let opStr = (typeof op === "string") ? op : op.operator;
     let result = this.aliasMap[opStr.toLowerCase()];
