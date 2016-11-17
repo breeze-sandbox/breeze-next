@@ -62,7 +62,7 @@ export class FetchStrategy extends BreezeEnum {
 FetchStrategy.resolveSymbols();
 
 /** Configuration info to be passed to the [[QueryOptions]] constructor. */
-export class QueryOptionsConfig {
+export interface QueryOptionsConfig {
   /** The [[FetchStrategy]] to use with any queries.*/
   fetchStrategy?: FetchStrategy;
   /** The [[MergeStrategy]] to use with any queries.*/

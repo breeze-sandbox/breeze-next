@@ -3,7 +3,7 @@ import { assertConfig } from './assert-param';
 import { DataService } from './data-service';
 
 /** Configuration info to be passed to the [[SaveOptions]] constructor */
-export class SaveOptionsConfig {
+export interface SaveOptionsConfig {
   /** Resource name to be used during the save - this defaults to "SaveChanges" */
   resourceName?: string;
   /** The DataService to be used for this save. */

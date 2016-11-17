@@ -5,7 +5,7 @@ import { config } from './config';
 // TODO: strongly type context object passed to naming convention converter fns.
 
 /** Configuration info to be passed to the [[NamingConvention]] constructor */
-export class NamingConventionConfig {
+export interface NamingConventionConfig {
   /** The name of this NamingConvention */
   name?: string;
   /** Function that takes a server property name add converts it into a client side property name.  */
