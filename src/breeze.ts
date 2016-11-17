@@ -8,7 +8,7 @@ import { EntityKey } from './entity-key';
 import { EntityManager, ISaveContext, ISaveBundle, IHttpResponse, IKeyMapping, IServerError, ISaveResult } from './entity-manager';
 import { EntityQuery, FilterQueryOp, BooleanQueryOp, OrderByClause, ExpandClause, SelectClause } from './entity-query';
 import { EntityState } from './entity-state';
-import { InterfaceRegistry, IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, IInterfaceRegistryConfig } from './interface-registry';
+import { InterfaceRegistry, IAjaxAdapter, IDataServiceAdapter, IModelLibraryAdapter, IChangeRequestInterceptor, IUriBuilderAdapter, InterfaceRegistryConfig } from './interface-registry';
 import { KeyGenerator } from './key-generator';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 import { MappingContext } from './mapping-context';
@@ -58,7 +58,7 @@ export {
   IKeyMapping,
   IModelLibraryAdapter,
   InterfaceRegistry,
-  IInterfaceRegistryConfig,
+  InterfaceRegistryConfig,
   INodeContext,
   ISaveBundle,
   ISaveContext,

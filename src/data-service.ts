@@ -6,12 +6,19 @@ import { assertConfig } from './assert-param';
 import { config } from './config';
 import { core } from './core';
 
+/** Configuration info to be passed to the [[DataService]] constructor */
 export interface DataServiceConfig {
+  /** The serviceName for this DataService.  **/
   serviceName?: string;
+  /** The adapter name for the [[IDataServiceAdapter]] to be used with this service.  **/
   adapterName?: string;
+  /** The adapter name for the [[IUriBuilderAdapter]] to be used with this service.  **/
   uriBuilderName?: string;
+  /** Whether the server can provide metadata for this service.  **/
   hasServerMetadata?: boolean;
+  /** The [[JsonResultsAdapter]] used to process the results of any query against this DataService.  **/
   jsonResultsAdapter?: JsonResultsAdapter;
+  /** Whether to use JSONP when performing a 'GET' request against this service.  **/
   useJsonp?: boolean;
 }
 /**

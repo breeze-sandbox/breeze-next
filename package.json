@@ -15,12 +15,12 @@
     "jasmine-node": "^1.14.5",
     "lodash": "^4.16.4",
     "q": "^1.4.1",
-    "ts-loader": "^0.9.5",
-    "typescript": "^2.0.3",
-    "webpack": "^1.13.2",
-    "uglifyjs": "^2.4.10",
     "rollup": "^0.36.3",
-    "rollup-plugin-multi-entry": "^2.0.1"
+    "rollup-plugin-multi-entry": "^2.0.1",
+    "ts-loader": "^0.9.5",
+    "typescript": "^2.0.10",
+    "uglifyjs": "^2.4.10",
+    "webpack": "^1.13.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

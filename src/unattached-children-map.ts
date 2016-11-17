@@ -10,7 +10,7 @@ export interface INavTuple {
 }
 
 /** @hidden */
-/** Represents entities not yet attached to navigationProperties. */
+// Represents entities not yet attached to navigationProperties. 
 export class UnattachedChildrenMap {
   // key is EntityKey.toString(), value is array of { navigationProperty, children }
   map: { [index: string]: INavTuple[] } = {};

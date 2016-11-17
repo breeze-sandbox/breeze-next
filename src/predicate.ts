@@ -15,10 +15,18 @@ interface IOpMap {
   [key: string]: IOp;
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
+@adapter (see [[IUriBuilderAdapter]])    
+@internal 
+*/
 export interface IVisitor {
 
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
+@adapter (see [[IUriBuilderAdapter]])    
+@internal 
+*/
 export interface IVisitContext {
   entityType?: EntityType;
   // usesNameOnServer?: boolean;
@@ -27,6 +35,10 @@ export interface IVisitContext {
   visitor?: IVisitor;
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
+@adapter (see [[IUriBuilderAdapter]])    
+@internal 
+*/
 export interface IExpressionContext {
   entityType?: EntityType;
   usesNameOnServer?: boolean;

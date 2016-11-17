@@ -33,11 +33,11 @@ let rootContext = {
 
 /**
 Instances of the Validator class provide the logic to validate another object and provide a description of any errors
-encountered during the validation process.  They are typically associated with a 'validators' property on the following types: {{#crossLink "EntityType"}}{{/crossLink}},
-{{#crossLink "DataProperty"}}{{/crossLink}} or {{#crossLink "NavigationProperty"}}{{/crossLink}}.
+encountered during the validation process.  They are typically associated with a 'validators' property on the following types: [[EntityType]],
+[[DataProperty]] or [[NavigationProperty]].
 
 A number of property level validators are registered automatically, i.e added to each DataProperty.validators property
-based on {{#crossLink "DataProperty"}}{{/crossLink}} metadata.  For example,
+based on [[DataProperty]] metadata.  For example,
 
 - DataProperty.dataType -> one of the 'dataType' validator methods such as Validator.int64, Validator.date, Validator.bool etc.
 - DataProperty.maxLength -> Validator.maxLength

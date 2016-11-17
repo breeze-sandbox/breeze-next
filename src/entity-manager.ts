@@ -101,12 +101,13 @@ interface ITempKeyMap {
   [index: string]: EntityKey;
 }
 
-export interface IImportConfig {
+/** Configuration info to be passed to the [[EntityManager.importEntities]] method */
+export interface ImportConfig {
   mergeStrategy?: MergeStrategy;
   metadataVersionFn?: (arg: { metadataVersion: any, metadataStoreName: any }) => void;
 }
 
-interface IImportConfigExt extends IImportConfig {
+interface ImportConfigExt extends ImportConfig {
   tempKeyMap?: ITempKeyMap;
 }
 
@@ -131,14 +132,23 @@ export interface ISaveBundle {
   saveOptions: SaveOptions;
 }
 
+/** Configuration info to be passed to the [[EntityManager]] constructor */
 export interface EntityManagerConfig {
+  /** The service name associated with this EntityManager.  **/
   serviceName?: string;
+  /** The DataService associated with this EntityManager. **/
   dataService?: DataService;
+  /** The [[QueryOptions]] associated with this EntityManager.  **/
   queryOptions?: QueryOptions;
+  /** The [[SaveOptions]] associated with this EntityManager. **/
   saveOptions?: SaveOptions;
+  /** The [[ValidationOptions]] associated with this EntityManager.  **/
   validationOptions?: ValidationOptions;
+  /** The [[KeyGenerator]] associated with this EntityManager. **/
   keyGenerator?: KeyGenerator;
+  /** The [[KeyGenerator]] constructor associated with this EntityManager. **/
   keyGeneratorCtor?: { new (): KeyGenerator }; // TODO: review this
+  /** The [[MetadataStore]] associated with this EntityManager. **/
   metadataStore?: MetadataStore;
 }
 
@@ -150,7 +160,6 @@ export interface IEntityChangedArgs {
 
 /**
 Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client.
-
 **/
 export class EntityManager {
   /** @hidden */
@@ -158,7 +167,7 @@ export class EntityManager {
 
   /** The service name associated with this EntityManager. __Read Only__ **/
   serviceName: string;
-  /** The DataService name associated with this EntityManager. __Read Only__ **/
+  /** The DataService associated with this EntityManager. __Read Only__ **/
   dataService: DataService;
   /** The [[QueryOptions]] associated with this EntityManager. __Read Only__ **/
   queryOptions: QueryOptions;
@@ -166,6 +175,7 @@ export class EntityManager {
   saveOptions: SaveOptions;
   /** The [[ValidationOptions]] associated with this EntityManager. __Read Only__ **/
   validationOptions: ValidationOptions;
+  /** The [[KeyGenerator]] associated with this EntityManager. __Read Only__ **/
   keyGenerator: KeyGenerator;
   /** The [[KeyGenerator]] constructor associated with this EntityManager. __Read Only__ **/
   keyGeneratorCtor: { new (): KeyGenerator }; // TODO: review this
@@ -405,8 +415,8 @@ export class EntityManager {
     return entity;
   };
 
-  static importEntities(exportedString: string, config?: IImportConfig): EntityManager;
-  static importEntities(exportedData: Object, config?: IImportConfig): EntityManager;
+  static importEntities(exportedString: string, config?: ImportConfig): EntityManager;
+  static importEntities(exportedData: Object, config?: ImportConfig): EntityManager;
   /**
   Creates a new EntityManager and imports a previously exported result into it.
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
@@ -429,7 +439,7 @@ export class EntityManager {
   provided by the same named method on an EntityManager instance. Use that method if you need additional information
   regarding the imported entities.
   **/
-  static importEntities(exported: string | Object, config?: IImportConfig) {
+  static importEntities(exported: string | Object, config?: ImportConfig) {
     let em = new EntityManager();
     em.importEntities(exported, config);
     return em;
@@ -544,8 +554,8 @@ export class EntityManager {
   };
 
   // TODO: type the return value { entities: entitiesToLink, tempKeyMapping: tempKeyMap }
-  importEntities(exportedString: string, config?: IImportConfig): any;
-  importEntities(exportedData: Object, config?: IImportConfig): any;
+  importEntities(exportedString: string, config?: ImportConfig): any;
+  importEntities(exportedData: Object, config?: ImportConfig): any;
   /**
   Imports a previously exported result into this EntityManager.
 
@@ -579,7 +589,7 @@ export class EntityManager {
     - result.entities {Array of Entities} The entities that were imported.
     - result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager.
   **/
-  importEntities(exported: string | Object, importConfig?: IImportConfig) {
+  importEntities(exported: string | Object, importConfig?: ImportConfig) {
     importConfig = importConfig || {};
     assertConfig(importConfig)
       .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
@@ -610,7 +620,7 @@ export class EntityManager {
     });
 
     let entitiesToLink: IEntity[] = [];
-    let impConfig = importConfig as IImportConfigExt;
+    let impConfig = importConfig as ImportConfigExt;
 
     impConfig.tempKeyMap = tempKeyMap;
     core.wrapExecution(() => {
@@ -1917,7 +1927,7 @@ function exportTempKeyInfo(entityAspect: EntityAspect, tempKeys: ITempKey[]) {
   return tempNavPropNames;
 }
 
-function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: IImportConfigExt) {
+function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: ImportConfigExt) {
 
   let tempKeyMap = importConfig.tempKeyMap;
 

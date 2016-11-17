@@ -6,9 +6,9 @@ import { EntityQuery } from './entity-query';
 import { MetadataStore } from './entity-metadata';
 import { JsonResultsAdapter, DataService } from './data-service';
 import { IEntity } from './entity-aspect';
-import { ISaveContext, ISaveBundle, ISaveResult, IQueryResult } from './entity-manager';
+import { ISaveContext, ISaveBundle, IQueryResult, ISaveResult } from './entity-manager';
 
-export interface IInterfaceRegistryConfig {
+export interface InterfaceRegistryConfig {
     ajax?: InterfaceDef<IAjaxAdapter>;
     modelLibrary?: InterfaceDef<IModelLibraryAdapter>;
     dataService?: InterfaceDef<IDataServiceAdapter>;
@@ -35,7 +35,7 @@ declare module "./config" {
         @param [config.uriBuilder] {String} - the name of a previously registered "uriBuilder" adapter
         @return [array of instances]
         **/
-        initializeAdapterInstances(irConfig: IInterfaceRegistryConfig): void;
+        initializeAdapterInstances(irConfig: InterfaceRegistryConfig): void;
 
         // strongly typed version
         interfaceRegistry: InterfaceRegistry;
@@ -62,7 +62,7 @@ Initializes a collection of adapter implementations and makes each one the defau
 @param [config.uriBuilder] {String} - the name of a previously registered "uriBuilder" adapter
 @return [array of instances]
 **/
-config.initializeAdapterInstances = function (irConfig: IInterfaceRegistryConfig) {
+config.initializeAdapterInstances = function (irConfig: InterfaceRegistryConfig) {
     assertConfig(irConfig)
         .whereParam("dataService").isOptional()
         .whereParam("modelLibrary").isOptional()

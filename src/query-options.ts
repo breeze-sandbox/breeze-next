@@ -2,8 +2,6 @@
 import { BreezeEnum } from './enum';
 import { assertConfig } from './assert-param';
 
-
-
 /**
 MergeStrategy is an 'Enum' that determines how entities are merged into an EntityManager.
 
@@ -15,33 +13,21 @@ export class MergeStrategy extends BreezeEnum {
   /**
   MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed
   state (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will
-  remain {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities in which case the new EntityState will
+  remain [[EntityState.Unchanged]] unless you’re importing entities in which case the new EntityState will
   be that of the imported entities.
-
-  @property PreserveChanges {MergeStrategy}
-  @final
-  @static
   **/
   static PreserveChanges = new MergeStrategy();
   /**
   MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
   a changed state (added, modified, deleted). After the merge, the pending changes are lost.
-  The new EntityState will be  {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities
+  The new EntityState will be  [[EntityState/Unchanged]] unless you’re importing entities
   in which case the new EntityState will be that of the imported entities.
-
-  @property OverwriteChanges {MergeStrategy}
-  @final
-  @static
   **/
   static OverwriteChanges = new MergeStrategy();
 
   /**
   SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key.
   This is the fastest merge strategy but your existing cached data will remain “stale”.
-
-  @property SkipMerge {MergeStrategy}
-  @final
-  @static
   **/
   static SkipMerge = new MergeStrategy();
 
@@ -49,10 +35,6 @@ export class MergeStrategy extends BreezeEnum {
   Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.
   Use this strategy when you want to be sure that the incoming entity is not already in cache.
   This is the default strategy for EntityManager.attachEntity.
-
-  @property Disallowed {MergeStrategy}
-  @final
-  @static
   **/
   static Disallowed = new MergeStrategy();
 
@@ -63,25 +45,15 @@ MergeStrategy.resolveSymbols();
 
 /**
 FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.
-
-@class FetchStrategy
-@static
 **/
 export class FetchStrategy extends BreezeEnum {
 
-
   /**
   FromServer is used to tell the query to execute the query against a remote data source on the server.
-  @property FromServer {MergeStrategy}
-  @final
-  @static
   **/
   static FromServer = new FetchStrategy();
   /**
   FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.
-  @property FromLocalCache {MergeStrategy}
-  @final
-  @static
   **/
   static FromLocalCache = new FetchStrategy();
 
@@ -89,27 +61,31 @@ export class FetchStrategy extends BreezeEnum {
 
 FetchStrategy.resolveSymbols();
 
+/** Configuration info to be passed to the [[QueryOptions]] constructor. */
 export class QueryOptionsConfig {
-    fetchStrategy?: FetchStrategy;
-    mergeStrategy?: MergeStrategy;
-    includeDeleted?: boolean;
+  /** The [[FetchStrategy]] to use with any queries.*/
+  fetchStrategy?: FetchStrategy;
+  /** The [[MergeStrategy]] to use with any queries.*/
+  mergeStrategy?: MergeStrategy;
+  /** Whether to include cached deleted entities in a query result (false by default). __Read Only__ */
+  includeDeleted?: boolean;
 }
 
 /**
-  A QueryOptions instance is used to specify the 'options' under which a query will occur.
-
-  @class QueryOptions
-  **/
+A QueryOptions instance is used to specify the 'options' under which a query will occur.
+**/
 export class QueryOptions {
+  /** @hidden */
   _$typeName: string;
-
+  /** The [[FetchStrategy]] to use with any queries. __Read Only__ */
   fetchStrategy: FetchStrategy;
+  /** The [[MergeStrategy]] to use with any queries. __Read Only__ */
   mergeStrategy: MergeStrategy;
+  /** Whether to include cached deleted entities in a query result (false by default). __Read Only__ */
   includeDeleted: boolean;
+
   /**
-  The default value whenever QueryOptions are not specified.
-  @property defaultInstance {QueryOptions}
-  @static
+  The default instance for use whenever QueryOptions are not specified.
   **/
   static defaultInstance = new QueryOptions({
     fetchStrategy: FetchStrategy.FromServer,
@@ -119,72 +95,43 @@ export class QueryOptions {
 
   /**
   QueryOptions constructor
-  @example
-      var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-      // assume em1 is a preexisting EntityManager
-      em1.setProperties( { queryOptions: newQo });
-
+  >     var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+  >     // assume em1 is a preexisting EntityManager
+  >     em1.setProperties( { queryOptions: newQo });
   Any QueryOptions property that is not defined will be defaulted from any QueryOptions defined at a higher level in the breeze hierarchy, i.e.
   -  from query.queryOptions
   -  to   entityManager.queryOptions
   -  to   QueryOptions.defaultInstance;
 
-  @method <ctor> QueryOptions
-  @param [config] {Object}
-  @param [config.fetchStrategy] {FetchStrategy}
-  @param [config.mergeStrategy] {MergeStrategy}
-  @param [config.includeDeleted] {Boolean} Whether query should return cached deleted entities (false by default)
+  @param config - A configuration object.
   **/
   constructor(config?: QueryOptionsConfig) {
     QueryOptions._updateWithConfig(this, config);
   };
-
-
-  /**
-  A {{#crossLink "FetchStrategy"}}{{/crossLink}}
-  __readOnly__
-  @property fetchStrategy {FetchStrategy}
-  **/
-
-  /**
-  A {{#crossLink "MergeStrategy"}}{{/crossLink}}
-  __readOnly__
-  @property mergeStrategy {MergeStrategy}
-  **/
-
-  /**
-  Whether to include cached deleted entities in a query result (false by default).
-
-  __readOnly__
-  @property includeDeleted {Boolean}
-  **/
 
   static resolve(queryOptionsArray: any[]) {
     return new QueryOptions(core.resolveProperties(queryOptionsArray, ["fetchStrategy", "mergeStrategy", "includeDeleted"]));
   };
 
   /**
-  Returns a copy of this QueryOptions with the specified {{#crossLink "MergeStrategy"}}{{/crossLink}},
-  {{#crossLink "FetchStrategy"}}{{/crossLink}}, or 'includeDeleted' option applied.
-  @example
-      // Given an EntityManager instance, em
-      var queryOptions = em.queryOptions.using(MergeStrategy.PreserveChanges);
+  Returns a copy of this QueryOptions with the specified [[MergeStrategy]],
+  [[FetchStrategy]], or 'includeDeleted' option applied.
+  >     // Given an EntityManager instance, em
+  >     var queryOptions = em.queryOptions.using(MergeStrategy.PreserveChanges);
+
   or
-  @example
-      var queryOptions = em.queryOptions.using(FetchStrategy.FromLocalCache);
+  >     var queryOptions = em.queryOptions.using(FetchStrategy.FromLocalCache);
+
   or
-  @example
-      var queryOptions = em.queryOptions.using({ mergeStrategy: MergeStrategy.OverwriteChanges });
+  >     var queryOptions = em.queryOptions.using({ mergeStrategy: MergeStrategy.OverwriteChanges });
+
   or
-  @example
-      var queryOptions = em.queryOptions.using({
-          includeDeleted: true,
-          fetchStrategy:  FetchStrategy.FromLocalCache 
-      });
-  @method using
-  @param config {Configuration Object|MergeStrategy|FetchStrategy} The object to apply to create a new QueryOptions.
-  @return {QueryOptions}
-  @chainable
+  >     var queryOptions = em.queryOptions.using({
+  >        includeDeleted: true,
+  >        fetchStrategy:  FetchStrategy.FromLocalCache 
+  >     });
+  @param config - A configuration object or a standalone [[MergeStrategy]] or [[FetchStrategy]] 
+  @return A new QueryOptions instance.
   **/
   using(qoConfig: QueryOptionsConfig | MergeStrategy | FetchStrategy) {
     if (!qoConfig) return this;
@@ -200,11 +147,8 @@ export class QueryOptions {
   /**
   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance.
   The current instance is returned unchanged.
-  @method setAsDefault
-  @example
-      var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
-      newQo.setAsDefault();
-  @chainable
+  >     var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });
+  >     newQo.setAsDefault();
   **/
   setAsDefault() {
     return core.setAsDefault(this, QueryOptions);
@@ -239,7 +183,3 @@ export class QueryOptions {
 
 }
 QueryOptions.prototype._$typeName = "QueryOptions";
-
-
-
-
