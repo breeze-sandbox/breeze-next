@@ -5,7 +5,7 @@ import { IDataServiceAdapter, IAjaxAdapter } from './interface-registry';
 import { IEntity } from './entity-aspect';
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';
-import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveServerError } from './entity-manager';
+import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveErrorFromServer } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 
 /** For use by breeze plugin authors only.  The class is used as the base class for most [[IDataServiceAdapter]] implementations
@@ -318,7 +318,7 @@ function createError(httpResponse: IHttpResponse) {
     entityErrors.forEach(function (e) {
       e.propertyName = e.propertyName && propNameFn(e.propertyName);
     });
-    (err as ISaveServerError).entityErrors = entityErrors;
+    (err as ISaveErrorFromServer).entityErrors = entityErrors;
   }
 
   err.message = message || "Server side errors encountered - see the entityErrors collection on this object for more detail";

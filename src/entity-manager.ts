@@ -31,6 +31,7 @@ export interface IHttpResponse {
 
 // subclasses of Error
 
+/** Base shape of any errors returned from the server. */
 export interface IServerError extends Error {
   httpResponse: IHttpResponse;
   status: number;
@@ -40,23 +41,25 @@ export interface IServerError extends Error {
   url?: string;
 }
 
-export interface ISaveServerError extends IServerError {
-  entityErrors: IServerEntityErrorDetail[];
+/** Shape of a save error returned from the server. */
+export interface ISaveErrorFromServer extends IServerError {
+  entityErrors: IEntityErrorDetailFromServer[];
 }
 
-// not subclasses of Error 
+/** Shape of a save error when returned to the client. */
+export interface ISaveError extends IServerError {
+  entityErrors: IEntityErrorDetail[];
+}
 
-export interface IServerEntityErrorDetail {
+// not subclasses of Error
+
+export interface IEntityErrorDetailFromServer {
   entityTypeName: string;
   keyValues: any[];
 
   errorName: string;
   errorMessage: string;
   propertyName: string;
-}
-
-export interface ISaveError {
-  entityErrors: IEntityErrorDetail[];
 }
 
 export interface IEntityErrorDetail {
@@ -1102,11 +1105,11 @@ export class EntityManager {
       return savedEntities;
     }
 
-    function saveFail(error: ISaveServerError) {
+    function saveFail(serverError: ISaveErrorFromServer) {
       markIsBeingSaved(entitiesToSave, false);
-      processServerErrors(saveContext, error);
-      if (errorCallback) errorCallback(error);
-      return Promise.reject(error);
+      let clientError = processServerErrors(saveContext, serverError);
+      if (errorCallback) errorCallback(clientError);
+      return Promise.reject(clientError);
     }
   };
 
@@ -1134,7 +1137,7 @@ export class EntityManager {
       if (failedEntities.length > 0) {
         let valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
         (valError as any).entityErrors = createEntityErrors(failedEntities);
-        return valError;
+        return valError; // TODO: type this.
       }
     }
     return null;
@@ -1642,10 +1645,10 @@ function createEntityErrors(entities: IEntity[]) {
 }
 
 
-function processServerErrors(saveContext: ISaveContext, saveError: ISaveServerError) {
-  // replace IServerEntityError with IEntityErrors
+function processServerErrors(saveContext: ISaveContext, saveError: ISaveErrorFromServer) {
+  // converting ISaveErrorFromServer -> ISaveError
   let serverErrors = saveError.entityErrors;
-  if (!serverErrors) return;
+  if (!serverErrors) return <ISaveError> <any> saveError;
   let entityManager = saveContext.entityManager;
   let metadataStore = entityManager.metadataStore;
   let entityErrors = serverErrors.map((serr) => {
@@ -1677,8 +1680,9 @@ function processServerErrors(saveContext: ISaveContext, saveError: ISaveServerEr
     }, serr, ["errorName", "errorMessage", "propertyName"]) as IEntityErrorDetail;
     return entityError;
   });
-  // replacing IServerEntityError with IEntityErrors 
+  // converting ISaveErrorFromServer -> ISaveError 
   saveError.entityErrors = entityErrors as any;
+  return <ISaveError> <any> saveError;
 }
 
 export interface IEntityByKeyResult {
