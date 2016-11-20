@@ -11,7 +11,11 @@ import { IEntity } from './entity-aspect';
 import { EntityQuery } from './entity-query';
 
 
-// Internal helper class
+/**
+For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export interface IMergeOptions {
   mergeStrategy: MergeStrategy;
   includeDeleted?: boolean;
@@ -25,6 +29,11 @@ interface IMappingContextConfig {
   mergeOptions: IMergeOptions;
 }
 
+/**
+For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export class MappingContext {
   _$typeName: string; // on prototype
 

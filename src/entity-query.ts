@@ -871,7 +871,9 @@ function buildNavigationPredicate(entity: IEntity, navigationProperty: Navigatio
   }
 }
 
+/** Base class for BooleanQueryOp and FilterQueryOp */
 export interface IQueryOp {
+  /** The operator for this enum. */
   operator: string;
 }
 

@@ -41,7 +41,11 @@ export interface IServerError extends Error {
   url?: string;
 }
 
-/** Shape of a save error returned from the server. */
+/** Shape of a save error returned from the server. 
+For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export interface ISaveErrorFromServer extends IServerError {
   entityErrors: IEntityErrorDetailFromServer[];
 }
@@ -52,7 +56,11 @@ export interface ISaveError extends IServerError {
 }
 
 // not subclasses of Error
-
+/** 
+For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export interface IEntityErrorDetailFromServer {
   entityTypeName: string;
   keyValues: any[];
@@ -62,6 +70,7 @@ export interface IEntityErrorDetailFromServer {
   propertyName: string;
 }
 
+/** Shape of an error on a specific entity.  Part of a [[ISaveError]] */
 export interface IEntityErrorDetail {
   entity: IEntity;
   errorName: string;
