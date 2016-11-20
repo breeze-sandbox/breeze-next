@@ -191,31 +191,50 @@ export interface INodeContext {
   navigationProperty?: NavigationProperty;
 }
 
+/** Configuration info to be passed to the [[JsonResultsAdapter]] constructor */
 export interface JsonResultsAdapterConfig {
+  /** The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported. */
   name?: string;
-
+  /** A Function that is called once per query operation to extract the 'payload' from any json received over the wire. 
+  This method has a default implementation which to simply return the "results" property from any json returned as a result of executing the query. 
+  */
   extractResults?: Function;
+  /** A function that is called once per save operation to extract the entities from any json received over the wire.  Must return an array.
+  This method has a default implementation which simply returns the "entities" property from any json returned as a result of executing the save. */
   extractSaveResults?: Function;
+  /** A function that is called once per save operation to extract the key mappings from any json received over the wire.  Must return an array.
+  This method has a default implementation which simply returns the "keyMappings" property from any json returned as a result of executing the save. */
   extractKeyMappings?: (data: {}) => IKeyMapping[];
+  /** A function that is called once per save operation to extract any deleted keys from any json received over the wire.  Must return an array.
+  This method has a default implementation which simply returns an empty array. */
+  extractDeletedKeys?: (data: {}) => any[]; // TODO: refine
+  /** A visitor method that will be called on each node of the returned payload. */
   visitNode?: (v: any, mc: MappingContext, nodeContext: INodeContext) => INodeMeta;
+
 }
 
 /**
-  A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service.
-  This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens.
-
-  @class JsonResultsAdapter
-  **/
+A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service.
+This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens.
+**/
 export class JsonResultsAdapter {
   /** @hidden */
   _$typeName: string; // actually put on prototype.
-
+  /** The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported. */
   name: string;
-
+  /** A Function that is called once per query operation to extract the 'payload' from any json received over the wire. 
+  This method has a default implementation which simply returns the "results" property from any json returned as a result of executing the query. */
   extractResults: Function; // TODO - refine
+  /** A function that is called once per save operation to extract the entities from any json received over the wire.  Must return an array.
+  This method has a default implementation which simply returns the "entities" property from any json returned as a result of executing the save. */
   extractSaveResults: Function;
+    /** A function that is called once per save operation to extract the key mappings from any json received over the wire.  Must return an array.
+  This method has a default implementation which simply returns the "keyMappings" property from any json returned as a result of executing the save. */
   extractKeyMappings:  (data: {}) => IKeyMapping[];
+  /** A function that is called once per save operation to extract any deleted keys from any json received over the wire.  Must return an array.
+  This method has a default implementation which is to simply returns the "deletedKeys" property from any json returned as a result of executing the save. */
   extractDeletedKeys?: (data: {}) => any[]; // TODO: refine
+  /** A visitor method that will be called on each node of the returned payload. */
   visitNode: Function;
 
   /**
@@ -252,16 +271,8 @@ export class JsonResultsAdapter {
           dataService: dataService
       });
 
-  @method <ctor> JsonResultsAdapter
-  @param config {Object}
-  @param config.name {String} The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported.
-  @param [config.extractResults] {Function} Called once per query operation to extract the 'payload' from any json received over the wire.
-  This method has a default implementation which to simply return the "results" property from any json returned as a result of executing the query.
-  @param [config.extractSaveResults] {Function} Called once per save operation to extract the entities from any json received over the wire.  Must return an array.
-  This method has a default implementation which to simply return the "entities" property from any json returned as a result of executing the save.
-  @param [config.extractKeyMappings] {Function} Called once per save operation to extract the key mappings from any json received over the wire.  Must return an array.
-  This method has a default implementation which to simply return the "keyMappings" property from any json returned as a result of executing the save.
-  @param config.visitNode {Function} A visitor method that will be called on each node of the returned payload.
+  @param config - A configuration object.
+
   **/
   constructor(jsConfig: JsonResultsAdapterConfig) {
     if (arguments.length !== 1) {

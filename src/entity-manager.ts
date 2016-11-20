@@ -67,20 +67,20 @@ export interface IEntityErrorDetail {
   isServerError: boolean;
 }
 
-
+/** The shape of the Promise returned by an [[EntityManager.executeQuery]] call. */
 export interface IQueryResult {
   /** Top level entities returned */
   results: any[];
   /** Query that was executed */
   query: EntityQuery | string;
-  /** Raw response from the server */
-  httpResponse: IHttpResponse;
   /** EntityManager that executed the query */
   entityManager?: EntityManager;
   /** Total number of results available on the server */
   inlineCount?: number;
   /** All entities returned by the query.  Differs from results when an expand is used. */
   retrievedEntities?: IEntity[];
+    /** Raw response from the server */
+  httpResponse: IHttpResponse;
 }
 
 export interface QuerySuccessCallback {
@@ -91,6 +91,7 @@ export interface QueryErrorCallback {
   (error: { query: EntityQuery; httpResponse: IHttpResponse; entityManager: EntityManager; message?: string; stack?: string }): void;
 }
 
+/** Key mapping information returned as part of an [[ISaveResult]]. */
 export interface IKeyMapping {
   entityTypeName: string;
   tempValue: any;
@@ -111,6 +112,7 @@ interface ImportConfigExt extends ImportConfig {
   tempKeyMap?: ITempKeyMap;
 }
 
+/** The shape of the Promise returned by an [[EntityManager.saveChanges]] call. */
 export interface ISaveResult {
   entities: IEntity[];
   keyMappings: IKeyMapping[];
@@ -118,6 +120,10 @@ export interface ISaveResult {
   httpResponse?: IHttpResponse;
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export interface ISaveContext {
   entityManager: EntityManager;
   dataService: DataService;
@@ -127,6 +133,10 @@ export interface ISaveContext {
   routePrefix?: string;
 }
 
+/** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
+@adapter (see [[IDataServiceAdapter]])    
+@internal 
+*/
 export interface ISaveBundle {
   entities: IEntity[];
   saveOptions: SaveOptions;
@@ -152,6 +162,7 @@ export interface EntityManagerConfig {
   metadataStore?: MetadataStore;
 }
 
+/** The shape returned by callbacks registered with [[EntityManager.entityChanged]] event */
 export interface IEntityChangedArgs {
   entityAction: EntityAction;
   entity?: IEntity;
@@ -1091,7 +1102,7 @@ export class EntityManager {
       return savedEntities;
     }
 
-    function saveFail(error: any) {
+    function saveFail(error: ISaveServerError) {
       markIsBeingSaved(entitiesToSave, false);
       processServerErrors(saveContext, error);
       if (errorCallback) errorCallback(error);
