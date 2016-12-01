@@ -2201,7 +2201,7 @@ export class NavigationProperty {
   baseProperty?: NavigationProperty;
   /** The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction
   to this NavigationProperty. May be undefined for a undirectional NavigationProperty. __Read Only__ */
-  inverse?: NavigationProperty;
+  private _inverse?: NavigationProperty;
   /** The name of this property. __Read Only__ */
   name: string;
   /** The name of this property on the server. __Read Only__ */
@@ -2308,6 +2308,21 @@ export class NavigationProperty {
 
   };
 
+  /** The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction
+  to this NavigationProperty. May be undefined for a undirectional NavigationProperty. __Read Only__ */
+  get inverse(): NavigationProperty | undefined {
+    return this.getInverse();
+  }
+
+  /** @hidden */
+  getInverse(): NavigationProperty | undefined {
+    let np: NavigationProperty = this;
+    while (!np._inverse && np.baseProperty) {
+      np = np.baseProperty;
+    }
+    return np._inverse;
+  }
+
   setInverse(inverseNp: NavigationProperty | string) {
     // let invNp: NavigationProperty;
     let invNp = (inverseNp instanceof NavigationProperty) ? inverseNp : this.entityType.getNavigationProperty(inverseNp);
@@ -2316,7 +2331,7 @@ export class NavigationProperty {
       throw throwSetInverseError(this, "Unable to find inverse property: " + inverseNp);
     }
 
-    if (this.inverse || invNp.inverse) {
+    if (this._inverse || invNp._inverse) {
       throwSetInverseError(this, "It has already been set on one side or the other.");
     }
     if (invNp.entityType !== this.parentType) {
@@ -2390,7 +2405,7 @@ export class NavigationProperty {
       return altNp.associationName === np.associationName &&
         (altNp.name !== np.name || altNp.entityTypeName !== np.entityTypeName);
     });
-    np.inverse = invNp || undefined;
+    np._inverse = invNp || undefined;
     //if (invNp && invNp.inverse == null) {
     //    invNp._resolveNp();
     //}

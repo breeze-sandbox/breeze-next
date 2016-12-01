@@ -1503,10 +1503,11 @@ export class EntityManager {
             // except with unidirectional 1-n where it is parentToChildNp;
             let np = tpl.navigationProperty;
 
-            if (np.inverse) {
+            let inverseNp = np.inverse;
+            if (inverseNp) {
               // bidirectional
               childToParentNp = np;
-              parentToChildNp = np.inverse;
+              parentToChildNp = inverseNp;
 
               if (parentToChildNp.isScalar) {
                 let onlyChild = unattachedChildren[0];
