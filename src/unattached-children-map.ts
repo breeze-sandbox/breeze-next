@@ -46,14 +46,21 @@ export class UnattachedChildrenMap {
   };
 
   getTuples(parentEntityKey: EntityKey) {
+    let allTuples: INavTuple[] = [];
     let tuples = this.map[parentEntityKey.toString()];
+    if (tuples) {
+      allTuples = allTuples.concat(tuples);
+    }
     let entityType = parentEntityKey.entityType;
-    while (!tuples && entityType.baseEntityType) {
+    while (entityType.baseEntityType) {
       entityType = entityType.baseEntityType;
       let baseKey = parentEntityKey.toString(entityType);
       tuples = this.map[baseKey];
+      if (tuples) {
+        allTuples = allTuples.concat(tuples);
+      }
     }
-    return tuples;
+    return (allTuples.length) ? allTuples : undefined;
   };
 
   getTuplesByString(parentEntityKeyString: string) {
