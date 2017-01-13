@@ -115,7 +115,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
 
     // Add query params if .withParameters was used
     let query = mappingContext.query as breeze.EntityQuery;
-    if (query.parameters) {
+    if (!core.isEmpty(query.parameters)) {
       let paramString = toQueryString(query.parameters);
       let sep = url.indexOf("?") < 0 ? "?" : "&";
       url = url + sep + paramString;
