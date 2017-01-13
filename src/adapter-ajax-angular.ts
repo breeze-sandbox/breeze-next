@@ -79,7 +79,9 @@ export class AjaxAngularAdapter implements breeze.IAjaxAdapter {
       config: ngConfig,   // angular's $http configuration object
       dsaConfig: config,  // the config arg from the calling Breeze DataServiceAdapter
       success: successFn, // adapter's success callback
-      error: errorFn      // adapter's error callback
+      error: errorFn,      // adapter's error callback
+      responseSuccess: responseSuccessFn, // adapter's success callback (ng 1.6+)
+      responseError: responseErrorFn      // adapter's error callback (ng 1.6+)
     };
 
     if (core.isFunction(this.requestInterceptor)) {
@@ -91,10 +93,19 @@ export class AjaxAngularAdapter implements breeze.IAjaxAdapter {
     }
 
     if (requestInfo.config) { // exists unless requestInterceptor killed it.
-      this.$http(requestInfo.config)
-        .success(requestInfo.success)
-        .error(requestInfo.error);
+      let prom = this.$http(requestInfo.config);
+      if (prom.success) {
+        // response for ng < 1.6        
+        prom.success(requestInfo.success).error(requestInfo.error);
+      } else {
+        // response for ng 1.6+
+        prom.then(requestInfo.responseSuccess).catch(requestInfo.responseError);
+      }
       this.$rootScope && this.$rootScope.$digest();
+    }
+
+    function responseSuccessFn(response: any) {
+      return successFn(response.data, response.status, response.headers, response.config, response.statusText);
     }
 
     function successFn(data: any, status: any, headers: any, xconfig: any, statusText: string) {
@@ -109,6 +120,10 @@ export class AjaxAngularAdapter implements breeze.IAjaxAdapter {
         statusText: statusText
       };
       config.success(httpResponse);
+    }
+
+    function responseErrorFn(response: any) {
+      return errorFn(response.data, response.status, response.headers, response.config, response.statusText);
     }
 
     function errorFn(data: any, status: any, headers: any, xconfig: any, statusText: string) {
