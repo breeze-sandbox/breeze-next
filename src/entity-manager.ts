@@ -657,7 +657,9 @@ export class EntityManager {
         let entityType = this.metadataStore._getStructuralType(entityTypeName, false) as EntityType;
         let targetEntityGroup = findOrCreateEntityGroup(this, entityType);
         let entities = importEntityGroup(targetEntityGroup, jsonGroup, impConfig);
-        Array.prototype.push.apply(entitiesToLink, entities);
+        if (entities && entities.length) {
+          entitiesToLink = entitiesToLink.concat(entities);
+        }
       });
       entitiesToLink.forEach((entity) => {
         if (!entity.entityAspect.entityState.isDeleted()) {
@@ -1761,8 +1763,8 @@ function getChangesCore(em: EntityManager, entityTypes?: EntityType | EntityType
     // eg may be undefined or null
     if (!eg) return;
     let entities = eg.getChanges();
-    if (selected.length > 0) {
-      selected.push.apply(selected, entities);
+    if (selected && selected.length) {
+      selected = selected.concat(entities);
     } else {
       selected = entities;
     }
@@ -1779,8 +1781,8 @@ function getEntitiesCore(em: EntityManager, entityTypes: EntityType | EntityType
     // eg may be undefined or null
     if (!eg) return;
     let entities = eg.getEntities(entityStates);
-    if (selected.length > 0) {
-      selected.push.apply(selected, entities);
+    if (selected && selected.length) {
+      selected = selected.concat(entities);
     } else {
       selected = entities;
     }
