@@ -92,7 +92,7 @@ export interface IQueryResult {
   /** All entities returned by the query.  Differs from results when an expand is used. */
   retrievedEntities?: IEntity[];
     /** Raw response from the server */
-  httpResponse: IHttpResponse;
+  httpResponse?: IHttpResponse;
 }
 
 export interface QuerySuccessCallback {
@@ -1723,11 +1723,11 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
     }
   }
   if (foundIt) {
-    return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
+    return Promise.resolve({ entity: entity || undefined, entityKey: entityKey, fromCache: true });
   } else {
     return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function (data: any) {
       entity = (data.results.length === 0) ? null : data.results[0];
-      return Promise.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
+      return Promise.resolve({ entity: entity || undefined, entityKey: entityKey, fromCache: false });
     });
   }
 };

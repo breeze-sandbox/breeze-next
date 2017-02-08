@@ -32,7 +32,7 @@ gulp.task('webpack-breeze', function() {
 }); 
 
 gulp.task('watch-tsc', function() {
-    var spawnInfo = spawnExt('tsc', ['-w']);
+    var spawnInfo = spawnExt('./node_modules/typescript/bin/tsc', ['-w']);
 });
 
 // returns both a promise and the spawned process so that it can be killed if needed.

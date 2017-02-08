@@ -2,8 +2,32 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "0.1.0",
-    "command": "jasmine",
-    "isShellCommand": true,
-    "args": [],
-    "showOutput": "always"
+    "tasks": [
+        {
+            // runs the locally-installed typescript
+            "taskName": "tsc",
+            "command": "node", 
+            "args": ["node_modules/typescript/bin/tsc"],
+            "isShellCommand": true,
+            "isBuildCommand": true,
+            "showOutput": "silent",
+            "problemMatcher": "$tsc"
+        },
+        {
+            // runs the locally-installed typescript in watch mode
+            "taskName": "tsc-watch",
+            "command": "node", 
+            "args": ["node_modules/typescript/bin/tsc", "-w"],
+            "isShellCommand": true,
+            "isBackground": true,
+            "showOutput": "silent",
+            "problemMatcher": "$tsc-watch"
+        },
+        {
+            "taskName": "jasmine",
+            "command": "jasmine",
+            "isShellCommand": true,
+            "isTestCommand": true
+        }
+    ]
 }
