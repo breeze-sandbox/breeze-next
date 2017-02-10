@@ -13,7 +13,7 @@ export default {
       './src/adapter-uri-builder-json.js',
       ],
 
-  dest: 'build/breeze.es2015.js', // must be transpiled after
+  dest: './temp/breeze.full.es2015.js', // must be transpiled after
   moduleName: 'breeze',
   sourceMap: true,
   format: 'iife',

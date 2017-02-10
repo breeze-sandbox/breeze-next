@@ -454,16 +454,16 @@ export class EntityQuery {
     if (!obj) return this;
     let eq = clone(this);
     processUsing(eq, {
-      entityManager: null,
-      dataService: null,
-      queryOptions: null,
-      fetchStrategy: (eq: EntityQuery, val: any) => {
+      "entityManager": null,
+      "dataService": null,
+      "queryOptions": null,
+      "fetchStrategy": (eq: EntityQuery, val: any) => {
         eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val);
       },
-      mergeStrategy: (eq: EntityQuery, val: any) => {
+      "mergeStrategy": (eq: EntityQuery, val: any) => {
         eq.queryOptions = (eq.queryOptions || new QueryOptions()).using(val);
       },
-      jsonResultsAdapter: (eq: EntityQuery, val: any) => {
+      "jsonResultsAdapter": (eq: EntityQuery, val: any) => {
         eq.dataService = (eq.dataService || new DataService()).using({ jsonResultsAdapter: val });
       }
     }, obj);

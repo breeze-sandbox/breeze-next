@@ -21,6 +21,7 @@ src/**/*.js.map
 spec/**/*.js
 spec/**/*.js.map
 build/**/*.*
+temp/**/*.*
 docs/**/*.*
 
 

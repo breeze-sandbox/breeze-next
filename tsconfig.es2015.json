@@ -1,8 +1,8 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "target": "es2015",
-        "module": "es2015",
+        "target": "ES2015",
+        "module": "ES2015",
         "moduleResolution": "node",
         "sourceMap": true,
         "emitDecoratorMetadata": true,
@@ -12,6 +12,6 @@
         "strictNullChecks": true,
         "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": true,
-        "lib": ["es5", "es2015.promise", "webworker"]
+        "lib": ["ES5", "ES2015.Promise", "ES2015.Symbol", "WebWorker"]
     }
 }
