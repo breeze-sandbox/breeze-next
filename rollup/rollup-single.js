@@ -1,4 +1,5 @@
 var rollup = require( 'rollup' );
+var banner = require('./banner').banner;
 
 var args = process.argv.slice(2);
 if (args.length < 2) {
@@ -30,6 +31,7 @@ rollup.rollup({
     // name of module (for umd/iife bundles)
     moduleName: moduleName,
     dest: dest,
+    banner: banner,
     sourceMap: true
   });
 }).then(function() {

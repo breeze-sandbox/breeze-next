@@ -1,5 +1,6 @@
 import rollup      from 'rollup';
 import multiEntry  from 'rollup-plugin-multi-entry';
+import { banner }  from './banner';
 
 export default {
   entry: [
@@ -11,7 +12,8 @@ export default {
   dest: './temp/breeze.base.es2015.js', // must be transpiled after
   moduleName: 'breeze',
   sourceMap: true,
-  format: 'iife',
+  format: 'umd',
+  banner: banner,
   plugins: [
       multiEntry()
   ]

@@ -1,9 +1,11 @@
-var exec = require('child_process').exec;
+var fs = require("fs-extra");
+var isDifferent = require("./build-util").isDifferent;
+var run = require("./build-util").run;
 
 var args = process.argv.slice(2);
 if (args.length < 2) {
-  console.log("Usage: " + process.argv[0] + " " + process.argv[1] + " [filenameRoot] [moduleName]\n" + 
-  "Example: node rollup-module.js adapter-ajax-angular breezeAjaxAngular");
+  console.log("Usage: " + process.argv[0] + " " + process.argv[1] + " [filenameRoot] [moduleName]\n" +
+    "Example: node rollup-module.js adapter-ajax-angular breezeAjaxAngular");
   return;
 }
 
@@ -11,14 +13,25 @@ if (args.length < 2) {
 var root = args[0];   // 'adapter-ajax-angular';
 var moduleName = args[1]; // 'breezeAjaxAngular';
 
-var cmd = "node rollup/rollup-single.js " + root + " " + moduleName + 
-  " && npm run tsc-es5 -- --out build/" + root + ".js temp/" + root + ".es2015.js" + 
-  " && npm run minify -- --output build/" + root + ".min.js build/" + root + ".js";
+var cmd = "node rollup/rollup-single.js " + root + " " + moduleName +
+  " && npm run tsc-es5 -- --out temp/" + root + ".js temp/" + root + ".es2015.js";
 
-exec(cmd, function(error, stdout, stderr) {
-    console.log('stdout: ' + stdout);
-    console.log('stderr: ' + stderr);
-    if (error !== null) {
-        console.log('exec error: ' + error);
-    }
-});
+var mincmd = "npm run minify -- --output temp/" + root + ".min.js temp/" + root + ".js";
+
+var srcName = "temp/" + root + ".js";
+var destName = "build/" + root + ".js";
+var srcMin = "temp/" + root + ".min.js";
+var destMin = "build/" + root + ".min.js";
+
+run(cmd, function () {
+  if (isDifferent(srcName, destName)) {
+    fs.copySync(srcName, destName);
+
+    run(mincmd, function () {
+      if (isDifferent(srcMin, destMin)) {
+        fs.copySync(srcMin, destMin);
+      }
+    })
+  }
+})
+
