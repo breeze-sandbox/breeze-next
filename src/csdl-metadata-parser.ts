@@ -22,6 +22,7 @@ function parse(metadataStore: MetadataStore, schemas: any, altMetadata: any) {
   schemas.forEach(function (schema: any) {
     if (schema.cSpaceOSpaceMapping) {
       // Web api only - not avail in OData.
+      // TODO throw informative error if already parsed and converted to map on a previous pass
       let mappings = JSON.parse(schema.cSpaceOSpaceMapping);
       let newMap = {};
       mappings.forEach(function (mapping: any) {
