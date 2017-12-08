@@ -14,6 +14,7 @@ export const BYTE_MAX = 255;
 interface IValidationContext {
   property?: any;
   propertyName?: string;
+  value?: any;
 }
 
 interface IValidationFn {
@@ -227,7 +228,7 @@ export class Validator {
   @return {ValidationError|null} A ValidationError if validation fails, null otherwise
   **/
   validate(value: any, additionalContext: any) {
-    let currentContext: { value?: Object };
+    let currentContext: IValidationContext; // { value?: Object };
     if (additionalContext) {
       currentContext = core.extend(Object.create(this.context), additionalContext);
     } else {

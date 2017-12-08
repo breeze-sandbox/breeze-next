@@ -5,7 +5,7 @@ import { IDataServiceAdapter, IAjaxAdapter } from './interface-registry';
 import { IEntity } from './entity-aspect';
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';
-import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveErrorFromServer } from './entity-manager';
+import { IHttpResponse, ISaveContext, ISaveBundle, IServerError, ISaveResult, ISaveErrorFromServer, IQueryResult } from './entity-manager';
 import { MetadataStore } from './entity-metadata';
 
 /** For use by breeze plugin authors only.  The class is used as the base class for most [[IDataServiceAdapter]] implementations
@@ -85,7 +85,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
 
   executeQuery(mappingContext: MappingContext) {
     mappingContext.adapter = this;
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise<IQueryResult>((resolve, reject) => {
       let url = mappingContext.getUrl();
 
       let params = {
@@ -96,12 +96,13 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
         success: function (httpResponse: IHttpResponse) {
           let data = httpResponse.data;
           try {
-            let rData: Object;
+            let rData: IQueryResult;
             let results = data && (data.results || data.Results);
             if (results) {
-              rData = { results: results, inlineCount: data.inlineCount || data.InlineCount, httpResponse: httpResponse };
+              rData = { results: results, inlineCount: data.inlineCount || data.InlineCount, 
+                httpResponse: httpResponse, query: mappingContext.query };
             } else {
-              rData = { results: data, httpResponse: httpResponse };
+              rData = { results: data, httpResponse: httpResponse, query: mappingContext.query };
             }
 
             resolve(rData);
@@ -135,7 +136,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     let bundle = JSON.stringify(saveBundleSer);
 
     let url = saveContext.dataService.qualifyUrl(saveContext.resourceName);
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise<ISaveResult>((resolve, reject) => {
       this.ajaxImpl.ajax({
         type: "POST",
         url: url,

@@ -209,6 +209,7 @@ function wrapPropDescription(proto: any, property: breeze.EntityProperty): any {
   }
 
   let propDescr = Object.getOwnPropertyDescriptor(proto, property.name);
+  if (!propDescr) return undefined;
   // if not configurable; we can't touch it - so leave.
   if (!propDescr.configurable) return undefined;
   // if a data descriptor - don't change it - this is basically a static property - i.e. defined on every instance of the type with the same value.
@@ -218,6 +219,7 @@ function wrapPropDescription(proto: any, property: breeze.EntityProperty): any {
 
   let localAccessorFn = function (entity: any) {
     return function () {
+      if (!propDescr) return undefined;
       if (arguments.length === 0) {
         return propDescr.get!.bind(entity)();
       } else {
@@ -231,6 +233,7 @@ function wrapPropDescription(proto: any, property: breeze.EntityProperty): any {
 
   let newDescr = {
     get: function () {
+      if (!propDescr) return undefined;
       return propDescr.get!.bind(this)();
     },
     set: function (value: any) {

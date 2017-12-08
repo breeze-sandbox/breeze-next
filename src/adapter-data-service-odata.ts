@@ -1,4 +1,5 @@
 ﻿import * as breeze from './breeze';
+import { IQueryResult } from './entity-manager';
 
 let core = breeze.core;
 
@@ -121,7 +122,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
       url = url + sep + paramString;
     }
 
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise<IQueryResult>((resolve, reject) => {
       OData.read({
         requestUri: url,
         headers: core.extend({}, this.headers)
@@ -141,7 +142,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
           } else {
             results = data;
           }
-          return resolve({ results: results, inlineCount: inlineCount, httpResponse: response });
+          return resolve({ results: results, inlineCount: inlineCount, httpResponse: response, query: query });
         },
         function (error: any) {
           return reject(createError(error, url));
@@ -170,7 +171,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
     let requestData = createChangeRequests(saveContext, saveBundle);
     let tempKeys = saveContext.tempKeys;
     let contentKeys = saveContext.contentKeys;
-    let promise = new Promise((resolve, reject) => {
+    let promise = new Promise<breeze.ISaveResult>((resolve, reject) => {
       OData.request({
         headers: core.extend({}, this.headers),
         requestUri: url,

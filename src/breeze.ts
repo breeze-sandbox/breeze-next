@@ -140,6 +140,7 @@ export const breeze = {
   makeComplexArray: makeComplexArray,
   makePrimitiveArray: makePrimitiveArray,
   makeRelationArray: makeRelationArray,
+  version: "1.7.0-beta.1"
 };
 
 /** @hidden */
