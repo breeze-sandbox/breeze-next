@@ -18,7 +18,7 @@ var format = 'umd';
 
 rollup.rollup({
   // path to main entry point
-  entry: src,
+  input: src,
 
   // which related modules to keep out of this bundle
   external: function(id) { console.log(id); return id !== src; },
@@ -29,10 +29,10 @@ rollup.rollup({
   return bundle.write({
     format: 'umd',
     // name of module (for umd/iife bundles)
-    moduleName: moduleName,
-    dest: dest,
+    name: moduleName,
+    file: dest,
     banner: banner,
-    sourceMap: true
+    sourcemap: true
   });
 }).then(function() {
     console.log("wrote " + dest);

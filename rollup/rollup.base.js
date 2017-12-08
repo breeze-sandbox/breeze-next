@@ -1,20 +1,21 @@
-import rollup      from 'rollup';
-import multiEntry  from 'rollup-plugin-multi-entry';
-import { banner }  from './banner';
+import multiEntry from 'rollup-plugin-multi-entry';
+var banner = require('./banner').banner;
 
 export default {
-  entry: [
-      './src/breeze.js',
-      './src/interface-registry.js',
-      './src/abstract-data-service-adapter.js'
-      ],
+    input: [
+        './src/breeze.js',
+        './src/interface-registry.js',
+        './src/abstract-data-service-adapter.js'
+    ],
 
-  dest: './temp/breeze.base.es2015.js', // must be transpiled after
-  moduleName: 'breeze',
-  sourceMap: true,
-  format: 'umd',
-  banner: banner,
-  plugins: [
-      multiEntry()
-  ]
+    output: {
+        name: 'breeze',
+        sourcemap: true,
+        file: './temp/breeze.base.es2015.js', // must be transpiled after
+        format: 'umd'
+    },
+    banner: banner,
+    plugins: [
+        multiEntry()
+    ]
 }

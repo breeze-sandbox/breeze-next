@@ -11,4 +11,4 @@ var banner =
 module.exports = {
   banner: banner
 };
-export { banner };
+//export { banner };
