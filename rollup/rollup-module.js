@@ -3,17 +3,16 @@ var isDifferent = require("./build-util").isDifferent;
 var run = require("./build-util").run;
 
 var args = process.argv.slice(2);
-if (args.length < 2) {
-  console.log("Usage: " + process.argv[0] + " " + process.argv[1] + " [filenameRoot] [moduleName]\n" +
-    "Example: node rollup-module.js adapter-ajax-angular breezeAjaxAngular");
+if (args.length !== 1 || args[0].indexOf('.js') >= 0) {
+  console.log("Usage: " + process.argv[0] + " " + process.argv[1] + " [filenameRoot]\n" +
+    "Example: node rollup-module.js adapter-ajax-angular");
   return;
 }
 
 // get from command-line arguments
 var root = args[0];   // 'adapter-ajax-angular';
-var moduleName = args[1]; // 'breezeAjaxAngular';
 
-var cmd = "node rollup/rollup-single.js " + root + " " + moduleName +
+var cmd = "node rollup/rollup-single.js " + root + 
   " && npm run tsc-es5 -- --out temp/" + root + ".js temp/" + root + ".es2015.js";
 
 var mincmd = "npm run minify -- --output temp/" + root + ".min.js temp/" + root + ".js";

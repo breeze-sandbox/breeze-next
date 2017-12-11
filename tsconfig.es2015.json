@@ -12,6 +12,6 @@
         "strictNullChecks": true,
         "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": true,
-        "lib": ["ES5", "ES2015.Promise", "ES2015.Symbol", "WebWorker"]
+        "lib": ["es5", "es2015.promise", "es2015.symbol", "webworker"]
     }
 }

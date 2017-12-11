@@ -183,6 +183,11 @@ export class BreezeConfig {
         return <InterfaceDef<T>>kv.value;
     }
 
+    /** @deprecated no-op kept for backward compatibility */
+    setQ(q: any) {
+        console && console.warn("setQ does nothing; ES6 Promise support is required - use a shim if necessary.");
+    }
+
     _storeObject(obj: Object, type: string | Function, name: string) {
         // uncomment this if we make this public.
         //assertParam(obj, "obj").isObject().check();
