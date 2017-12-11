@@ -20,10 +20,10 @@ src/**/*.js
 src/**/*.js.map
 spec/**/*.js
 spec/**/*.js.map
-build/**/*.*
-temp/**/*.*
-docs/**/*.*
-
+build/**/*
+temp/**/*
+docs/**/*
+package-lock.json
 
 ### node setup ###
 # Logs
