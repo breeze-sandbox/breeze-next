@@ -1,27 +1,22 @@
 # breeze-next
 Next version of Breeze, built using TypeScript 2.
 
-## The Plan
-1. Work our way through the original JavaScript files, converting each file to one or more TypeScript modules.
-2. Get it all built into a loadable JS module that can replace the legacy breeze.debug.js
-3. Test and fix bugs until it works as well as legacy
-4. Refactor
-    - remove redundancy
-    - move KO (and other non-backingstore) support into separate modules
-    - move EF metadata support into a separate module
-    - improve performance
-5. Test more
+## Build using Rollup
+Run `npm run build`.  This will create files '\build' dir.
 
-## Build using WebPack
-Run `npm run build`.  This will create a breeze.core.js file in the '\build' dir.
+ - `adapter-*.js` - breeze adapters for ajax, data service, model library, and uri builder
+ - `breeze.base.debug.js` - breeze core functionality
+ - `breeze.debug.js` - breeze core functionality bundled with adapters.  This is for backward compatibility.
+ - `breeze-client-{version}.tgz` - the npm deployment package
 
 ## Build API Docs
-Run `npm run tsdocs`.  This will create a '\docs' dir. click on the 'index.html' in this folder to see the docs.
+Run `npm run typedoc`.  This will create a '\docs' dir. click on the 'index.html' in this folder to see the docs.
 
 ## Breaking changes
 Api is almost identical to the original but small changes are noted below:
 
-Breeze no longer depends upon Q.js.  But it does depend on a ES6 promise implementation. i.e. the existence of a global Promise object. 
+ - Breeze no longer depends upon Q.js.  But it does depend on a ES6 promise implementation. i.e. the existence of a global Promise object. 
+ - The names of the adapter files have changed
 
 
 ## Compile Notes
