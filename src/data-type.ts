@@ -55,7 +55,7 @@ export class DataType extends BreezeEnum {
   // same effect as above but doesn't give right TSDOC.
   // static parseDateFromServer = DataType.parseDateAsUTC;
 
-  /** @hidden */
+  /** @hidden @internal */
   static constants: { stringPrefix: string, nextNumber: number, nextNumberIncrement: number };
 
   static String = new DataType({
@@ -276,7 +276,7 @@ export class DataType extends BreezeEnum {
     return val;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   // used during initialization; visible on instance for testing purposes.
   static _resetConstants() {
     DataType.constants = {
@@ -401,7 +401,7 @@ function coerceToFloat(source: any, sourceTypeName: string) {
     return isNaN(val) ? source : val;
   }
   return source;
-};
+}
 
 function coerceToDate(source: any, sourceTypeName: string) {
   let val: any;
@@ -415,7 +415,7 @@ function coerceToDate(source: any, sourceTypeName: string) {
     return core.isDate(val) ? val : source;
   }
   return source;
-};
+}
 
 function coerceToBool(source: any, sourceTypeName: string) {
   if (sourceTypeName === "string") {
@@ -429,15 +429,15 @@ function coerceToBool(source: any, sourceTypeName: string) {
     }
   }
   return source;
-};
+}
 
 function fmtString(val: any) {
   return val == null ? null : "'" + val.replace(/'/g, "''") + "'";
-};
+}
 
 function fmtInt(val: any) {
   return val == null ? null : ((typeof val === "string") ? parseInt(val, 10) : val);
-};
+}
 
 function makeFloatFmt(fmtSuffix: string) {
   return function (val: any) {
@@ -447,7 +447,7 @@ function makeFloatFmt(fmtSuffix: string) {
     }
     return val + fmtSuffix;
   };
-};
+}
 
 function fmtDateTime(val: Date) {
   if (val == null) return null;
@@ -456,7 +456,7 @@ function fmtDateTime(val: Date) {
   } catch (e) {
     throwError("'%1' is not a valid dateTime", val);
   }
-};
+}
 
 function fmtDateTimeOffset(val: Date) {
   if (val == null) return null;
@@ -465,7 +465,7 @@ function fmtDateTimeOffset(val: Date) {
   } catch (e) {
     throwError("'%1' is not a valid dateTime", val);
   }
-};
+}
 
 function fmtTime(val: any) {
   if (val == null) return null;
@@ -473,7 +473,7 @@ function fmtTime(val: any) {
     throwError("'%1' is not a valid ISO 8601 duration", val);
   }
   return "time'" + val + "'";
-};
+}
 
 function fmtGuid(val: any) {
   if (val == null) return null;
@@ -481,7 +481,7 @@ function fmtGuid(val: any) {
     throwError("'%1' is not a valid guid", val);
   }
   return "guid'" + val + "'";
-};
+}
 
 function fmtBoolean(val: any) {
   if (val == null) return null;
@@ -490,17 +490,17 @@ function fmtBoolean(val: any) {
   } else {
     return !!val;
   }
-};
+}
 
 function fmtBinary(val: any) {
   if (val == null) return val;
   return "binary'" + val + "'";
-};
+}
 
 // TODO: use __identity instead;
 function fmtUndefined(val: any) {
   return val;
-};
+}
 
 function throwError(msg: string, val: any) {
   msg = core.formatString(msg, val);

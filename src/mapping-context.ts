@@ -14,7 +14,7 @@ import { EntityQuery } from './entity-query';
 /**
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface IMergeOptions {
   mergeStrategy: MergeStrategy;
@@ -22,7 +22,8 @@ export interface IMergeOptions {
   noTracking?: boolean;
 }
 
-interface IMappingContextConfig {
+/** @hidden @internal */
+export interface IMappingContextConfig {
   dataService: DataService;
   query?: EntityQuery | string;
   entityManager: EntityManager;
@@ -32,7 +33,7 @@ interface IMappingContextConfig {
 /**
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class MappingContext {
   _$typeName: string; // on prototype
@@ -62,7 +63,7 @@ export class MappingContext {
     this.jsonResultsAdapter = this.dataService.jsonResultsAdapter;
     this.metadataStore = this.entityManager.metadataStore;
     this.rawValueFn = DataProperty.getRawValueFromServer; // think about passing this in later.
-  };
+  }
 
   getUrl() {
     let query = this.query;
@@ -103,7 +104,7 @@ export class MappingContext {
       }
       return processMeta(that, node, meta);
     }, this.mergeOptions.includeDeleted);
-  };
+  }
 
   processDeferred() {
     if (this.deferredFns.length > 0) {
@@ -112,7 +113,7 @@ export class MappingContext {
       });
     }
   }
-};
+}
 MappingContext.prototype._$typeName = "MappingContext";
 
 

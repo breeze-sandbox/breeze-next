@@ -24,7 +24,7 @@ The default LocalQueryComparisonOptions stipulates 'caseInsensitive" queries wit
 length strings.
 **/
 export class LocalQueryComparisonOptions {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on prototype
   /** The name for this instance. */
   name: string;
@@ -60,7 +60,7 @@ export class LocalQueryComparisonOptions {
       this.name = core.getUuid();
     }
     config._storeObject(this, "LocalQueryComparisonOptions", this.name);
-  };
+  }
 
   /**
   Case insensitive SQL compliant options - this is also the default unless otherwise changed.
@@ -87,7 +87,7 @@ export class LocalQueryComparisonOptions {
   **/
   setAsDefault() {
     return core.setAsDefault(this, LocalQueryComparisonOptions);
-  };
+  }
 
 }
 LocalQueryComparisonOptions.prototype._$typeName = "LocalQueryComparisonOptions";

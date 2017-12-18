@@ -41,7 +41,7 @@ export class BreezeEnum {
   // // TODO: think about CompositeEnum (flags impl).
   /** The name of this symbol */
   name: string;
-  /** @hidden */
+  /** @hidden @internal */
   static _resolvedNamesAndSymbols: { name: string, symbol: BreezeEnum }[];
 
   /**  */
@@ -58,7 +58,7 @@ export class BreezeEnum {
   **/
   static getSymbols() {
     return this.resolveSymbols().map(ks => ks.symbol);
-  };
+  }
 
   /**
   Returns the names of all of the symbols contained within this Enum.
@@ -67,7 +67,7 @@ export class BreezeEnum {
   **/
   static getNames() {
     return this.resolveSymbols().map(ks => ks.name);
-  };
+  }
 
   /**
   Returns an Enum symbol given its name.
@@ -78,7 +78,7 @@ export class BreezeEnum {
   **/
   static fromName(name: string) {
     return this[name];
-  };
+  }
 
   /**
   Seals this enum so that no more symbols may be added to it. This should only be called after all symbols
@@ -118,7 +118,7 @@ export class BreezeEnum {
     }
 
     return this[sym.name] != null;
-  };
+  }
 
 
   // /**
@@ -135,7 +135,7 @@ export class BreezeEnum {
   /** Returns the string name of this Enum */
   toString() {
     return this.name;
-  };
+  }
 
   /** Return enum name and symbol name */
   toJSON() {
@@ -143,7 +143,7 @@ export class BreezeEnum {
       _$typeName: (this.constructor as any).name,
       name: this.name
     };
-  };
+  }
 
 }
 

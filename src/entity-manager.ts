@@ -44,7 +44,7 @@ export interface IServerError extends Error {
 /** Shape of a save error returned from the server. 
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface ISaveErrorFromServer extends IServerError {
   entityErrors: IEntityErrorDetailFromServer[];
@@ -59,7 +59,7 @@ export interface ISaveError extends IServerError {
 /** 
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface IEntityErrorDetailFromServer {
   entityTypeName: string;
@@ -134,7 +134,7 @@ export interface ISaveResult {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface ISaveContext {
   entityManager: EntityManager;
@@ -147,7 +147,7 @@ export interface ISaveContext {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface ISaveBundle {
   entities: IEntity[];
@@ -185,7 +185,7 @@ export interface IEntityChangedArgs {
 Instances of the EntityManager contain and manage collections of entities, either retrieved from a backend datastore or created on the client.
 **/
 export class EntityManager {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // actually defined on prototype
 
   /** The service name associated with this EntityManager. __Read Only__ **/
@@ -268,17 +268,17 @@ export class EntityManager {
   hasChangesChanged: BreezeEvent<{ entityManager: EntityManager; hasChanges: boolean }>;
 
 
-  /** @hidden */
+  /** @hidden @internal */
   _pendingPubs?: any[]; // TODO: refine later
-  /** @hidden */
+  /** @hidden @internal */
   _hasChangesAction?: (() => boolean); // TODO refine later
-  /** @hidden */
+  /** @hidden @internal */
   _hasChanges: boolean;
-  /** @hidden */
+  /** @hidden @internal */
   _entityGroupMap: { [index: string]: EntityGroup };
-  /** @hidden */
+  /** @hidden @internal */
   _unattachedChildrenMap: UnattachedChildrenMap;
-  /** @hidden */
+  /** @hidden @internal */
   _inKeyFixup: boolean;
 
   helper = {
@@ -362,7 +362,7 @@ export class EntityManager {
     EntityManager._updateWithConfig(this, config, false);
   };
 
-  /** @hidden */
+  /** @hidden @internal */
   static _updateWithConfig(em: EntityManager, config: EntityManagerConfig, isCtor: boolean) {
     let defaultQueryOptions = isCtor ? QueryOptions.defaultInstance : em.queryOptions;
     let defaultSaveOptions = isCtor ? SaveOptions.defaultInstance : em.saveOptions;
@@ -1122,7 +1122,7 @@ export class EntityManager {
       if (errorCallback) errorCallback(clientError);
       return Promise.reject(clientError);
     }
-  };
+  }
 
   /**
   Run the "saveChanges" pre-save client validation logic.
@@ -1154,10 +1154,10 @@ export class EntityManager {
     return null;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _findEntityGroup(entityType: EntityType) {
     return this._entityGroupMap[entityType.name];
-  };
+  }
 
   /**
   >      // assume em1 is an EntityManager containing a number of preexisting entities.
@@ -1203,7 +1203,7 @@ export class EntityManager {
       return e != null;
     });
     return e || null;
-  };
+  }
 
   fetchEntityByKey(typeName: string, keyValues: any | any[], checkLocalCacheFirst?: boolean): Promise<IEntityByKeyResult>;
   fetchEntityByKey(entityType: EntityType, keyValues: any | any[], checkLocalCacheFirst?: boolean): Promise<IEntityByKeyResult>;
@@ -1240,7 +1240,7 @@ export class EntityManager {
         return fetchEntityByKeyCore(this, args);
       });
     }
-  };
+  }
 
   /**
   [Deprecated] - Attempts to locate an entity within this EntityManager by its  [[EntityKey]].
@@ -1255,7 +1255,7 @@ export class EntityManager {
   **/
   findEntityByKey(entityKey: EntityKey) {
     return this.getEntityByKey(entityKey);
-  };
+  }
 
   /**
   Generates a temporary key for the specified entity.  This is used to insure that newly
@@ -1292,7 +1292,7 @@ export class EntityManager {
     entity.setProperty(keyProp.name, nextKeyValue);
     entity.entityAspect.hasTempKey = true;
     return nextKeyValue;
-  };
+  }
 
   hasChanges(): boolean;
   hasChanges(entityTypeNames: string | string[]): boolean;
@@ -1329,10 +1329,10 @@ export class EntityManager {
     if (!this._hasChanges) return false;
     if (entityTypes === undefined) return this._hasChanges;
     return this._hasChangesCore(entityTypes);
-  };
+  }
 
 
-  /** @hidden */
+  /** @hidden @internal */
   // backdoor to "really" check for changes.
   _hasChangesCore(entityTypes?: EntityType | EntityType[] | string | string[]) {
     let ets = checkEntityTypes(this, entityTypes);
@@ -1340,7 +1340,7 @@ export class EntityManager {
     return entityGroups.some(function (eg) {
       return eg && eg.hasChanges();
     });
-  };
+  }
 
   getChanges(): IEntity[];
   getChanges(entityTypeNames: string | string[]): IEntity[];
@@ -1370,7 +1370,7 @@ export class EntityManager {
   getChanges(entityTypes?: EntityType | EntityType[] | string | string[]) {
     let ets = checkEntityTypes(this, entityTypes);
     return getChangesCore(this, ets);
-  };
+  }
 
   /**
   Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
@@ -1393,7 +1393,7 @@ export class EntityManager {
     });
     this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
     return changes;
-  };
+  }
 
   getEntities(entityTypeNames?: string | string[], entityStates?: EntityState | EntityState[]): IEntity[];
   getEntities(entityTypes?: EntityType | EntityType[], entityStates?: EntityState | EntityState[]): IEntity[];
@@ -1435,11 +1435,11 @@ export class EntityManager {
 
     let states = validateEntityStates(this, entityStates);
     return getEntitiesCore(this, entTypes, states);
-  };
+  }
 
 
   // protected methods
-  /** @hidden */
+  /** @hidden @internal */
   _notifyStateChange(entity: IEntity, needsSave: boolean) {
     let ecArgs = { entityAction: EntityAction.EntityStateChange, entity: entity };
 
@@ -1462,9 +1462,9 @@ export class EntityManager {
       }
     }
     this.entityChanged.publish(ecArgs);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _setHasChanges(hasChanges?: boolean) {
     if (hasChanges == null) hasChanges = this._hasChangesCore();
     let hadChanges = this._hasChanges;
@@ -1475,7 +1475,7 @@ export class EntityManager {
     this._hasChangesAction = undefined;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _linkRelatedEntities(entity: IEntity) {
     let em = this;
     let entityAspect = entity.entityAspect;
@@ -1606,7 +1606,7 @@ export class EntityManager {
 
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _attachEntityCore(entity: IEntity, entityState: EntityState, mergeStrategy: MergeStrategy) {
     let group = findOrCreateEntityGroup(this, entity.entityType);
     let attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
@@ -1614,7 +1614,7 @@ export class EntityManager {
     return attachedEntity;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateFkVal(fkProp: DataProperty, oldValue: any, newValue: any) {
     let group = this._entityGroupMap[fkProp.parentType.name];
     if (!group) return;
@@ -1730,7 +1730,7 @@ function fetchEntityByKeyCore(em: EntityManager, args: any[]): Promise<IEntityBy
       return Promise.resolve({ entity: entity || undefined, entityKey: entityKey, fromCache: false });
     });
   }
-};
+}
 
 
 // private fns
@@ -1845,7 +1845,7 @@ function exportEntityGroups(em: EntityManager, entitiesOrEntityTypes: IEntity[] 
             entityGroupMap[et.name] = group;
           }
         });
-      };
+      }
     }
   } else if (entitiesOrEntityTypes && entitiesOrEntityTypes.length === 0) {
     // empty array = export nothing
@@ -2471,7 +2471,7 @@ function executeQueryLocallyCore(em: EntityManager, query: EntityQuery) {
     result = result.map(selectFn);
   }
   return { results: result, inlineCount: inlineCount };
-};
+}
 
 function coHasOriginalValues(co: IComplexObject) {
   // next line checks all non complex properties of the co.

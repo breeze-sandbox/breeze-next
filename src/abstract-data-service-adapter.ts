@@ -1,7 +1,7 @@
 ﻿import { core } from './core';
 import { config } from './config';
 import { EntityQuery } from './entity-query';
-import { IDataServiceAdapter, IAjaxAdapter } from './interface-registry';
+import { IDataServiceAdapter, IAjaxAdapter, IChangeRequestInterceptorCtor, IChangeRequestInterceptor } from './interface-registry';
 import { IEntity } from './entity-aspect';
 import { MappingContext } from './mapping-context';
 import { DataService, JsonResultsAdapter } from './data-service';
@@ -10,10 +10,10 @@ import { MetadataStore } from './entity-metadata';
 
 /** For use by breeze plugin authors only.  The class is used as the base class for most [[IDataServiceAdapter]] implementations
 @adapter (see [[IDataServiceAdapter]])    
-@internal 
+@hidden @internal 
 */
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
-  /** @hidden */
+  /** @hidden @internal */
   _$impl?: any;
   /** The name of this adapter. */
   name: string;
@@ -29,7 +29,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     if (interfaceInitializedArgs.interfaceName === "ajax" && interfaceInitializedArgs.isDefault) {
       this.initialize();
     }
-  };
+  }
 
   initialize() {
     this.ajaxImpl = config.getAdapterInstance<IAjaxAdapter>("ajax") !;
@@ -39,7 +39,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
       return;
     }
     throw new Error("Unable to find ajax adapter for dataservice adapter '" + (this.name || '') + "'.");
-  };
+  }
 
   fetchMetadata(metadataStore: MetadataStore, dataService: DataService) {
     let serviceName = dataService.serviceName;
@@ -81,7 +81,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
       });
     });
     return promise;
-  };
+  }
 
   executeQuery(mappingContext: MappingContext) {
     mappingContext.adapter = this;
@@ -162,7 +162,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     });
 
     return promise;
-  };
+  }
 
   /** Abstract method that needs to be overwritten in any concrete DataServiceAdapter sublclass. 
   The return value from this method should be a serializable object that will be sent to the server after calling JSON.stringify on it.
@@ -170,7 +170,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle): any {
     // The implementor should call _createChangeRequestInterceptor
     throw new Error("Need a concrete implementation of _prepareSaveBundle");
-  };
+  }
 
   /**
   Returns a constructor function for a "ChangeRequestInterceptor"
@@ -198,9 +198,9 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   @param saveBundle - Contains the array of entities-to-be-saved (AKA, the entity change-set).
   @return Constructor for a "ChangeRequestInterceptor".
   **/
-  changeRequestInterceptor = DefaultChangeRequestInterceptor;
+  changeRequestInterceptor: IChangeRequestInterceptorCtor = DefaultChangeRequestInterceptor;
 
-  /** @hidden */
+  /** @hidden @internal */
   _createChangeRequestInterceptor(saveContext: ISaveContext, saveBundle: ISaveBundle) {
     let adapter = saveContext.adapter!;
     let cri = adapter.changeRequestInterceptor;
@@ -218,7 +218,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
       }
       return interceptor;
     } else {
-      return new DefaultChangeRequestInterceptor(saveContext, saveBundle);
+      return new DefaultChangeRequestInterceptor(saveContext, saveBundle) as IChangeRequestInterceptor;
     }
   }
 
@@ -227,7 +227,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
   */
   _prepareSaveResult(saveContext: ISaveContext, data: any): ISaveResult {
     throw new Error("Need a concrete implementation of _prepareSaveResult");
-  };
+  }
 
 
   /** Utility method that may be used in any concrete DataServiceAdapter sublclass to handle any 
@@ -335,8 +335,8 @@ class DefaultChangeRequestInterceptor {
 
   getRequest(request: any, entity: IEntity, index: number) {
     return request;
-  };
+  }
 
   done(requests: Object[]) {
-  };
+  }
 }

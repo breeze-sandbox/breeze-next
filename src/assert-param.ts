@@ -1,8 +1,8 @@
 ﻿import { BreezeEnum } from './enum';
 import { core  } from './core';
 
-
-interface IParamContext {
+/** @hidden @internal */
+export interface IParamContext {
     typeName?: string;
     type?: Function;
     prevContext?: IParamContext;
@@ -12,6 +12,13 @@ interface IParamContext {
     propertyName?: string;
     allowNull?: boolean;
     fn?(context: IParamContext, v: any): boolean;
+}
+
+/** @hidden @internal */
+export interface IConfigParam {
+    config: any;
+    params: Param[];
+    whereParam: (propName: string) => Param;
 }
 
 export class Param {
@@ -27,10 +34,10 @@ export class Param {
     v: any;
     name: string;
     defaultValue: any;
-    parent: ConfigParam;
-    /** @hidden */
+    parent: IConfigParam;
+    /** @hidden @internal */
     _context: IParamContext;
-    /** @hidden */
+    /** @hidden @internal */
     _contexts: IParamContext[];
 
     constructor(v: any, name: string) {
@@ -64,7 +71,7 @@ export class Param {
             fn: isNonEmptyString,
             msg: "must be a nonEmpty string"
         });
-    };
+    }
 
 
     isTypeOf(typeName: string): Param {
@@ -73,7 +80,7 @@ export class Param {
             typeName: typeName,
             msg: "must be a '" + typeName + "'"
         });
-    };
+    }
 
 
     isInstanceOf(type: Function, typeName?: string): Param {
@@ -84,7 +91,7 @@ export class Param {
             typeName: typeName,
             msg: "must be an instance of '" + typeName + "'"
         });
-    };
+    }
 
 
     hasProperty(propertyName: string): Param {
@@ -93,7 +100,7 @@ export class Param {
             propertyName: propertyName,
             msg: "must have a '" + propertyName + "' property"
         });
-    };
+    }
 
 
     isEnumOf(enumType: any): Param {
@@ -102,7 +109,7 @@ export class Param {
             enumType: enumType,
             msg: "must be an instance of the '" + (enumType.name || 'unknown') + "' enumeration"
         });
-    };
+    }
 
     isRequired(allowNull: boolean = false): Param {
         return addContext(this, {
@@ -110,7 +117,7 @@ export class Param {
             allowNull: allowNull,
             msg: "is required"
         });
-    };
+    }
 
     isOptional(): Param {
         let context = {
@@ -119,11 +126,11 @@ export class Param {
             msg: isOptionalMessage
         };
         return addContext(this, context);
-    };
+    }
 
     isNonEmptyArray(): Param {
         return this.isArray(true);
-    };
+    }
 
     isArray(mustNotBeEmpty?: boolean): Param {
         let context = {
@@ -133,13 +140,13 @@ export class Param {
             msg: isArrayMessage
         };
         return addContext(this, context);
-    };
+    }
 
     or() {
         this._contexts.push(<any>null);
         this._context = <any>null;
         return this;
-    };
+    }
 
     check(defaultValue?: any) {
         let ok = exec(this);
@@ -153,13 +160,13 @@ export class Param {
         } else {
             return defaultValue;
         }
-    };
+    }
 
-    /** @hidden */
+    /** @hidden @internal */
     // called from outside this file.
     _addContext(context: IParamContext) {
         return addContext(this, context);
-    };
+    }
 
     getMessage() {
         let that = this;
@@ -167,16 +174,16 @@ export class Param {
             return getMessage(context, that.v);
         }).join(", or it ");
         return core.formatString(this.MESSAGE_PREFIX, this.name) + " " + message;
-    };
+    }
 
     withDefault(defaultValue: any) {
         this.defaultValue = defaultValue;
         return this;
-    };
+    }
 
     whereParam(propName: string) {
         return this.parent.whereParam(propName);
-    };
+    }
 
     applyAll(instance: any, checkOnly: boolean = false) {
         let parentTypeName = instance._$typeName;
@@ -201,9 +208,9 @@ export class Param {
                 }
             }
         }
-    };
+    }
 
-    /** @hidden */
+    /** @hidden @internal */
     _applyOne = function (this: Param, instance: any) {
         if (this.v !== undefined) {
             instance[this.name] = this.v;
@@ -370,7 +377,7 @@ class ConfigParam {
 }
 
 export let assertConfig = function (config: Object) {
-    return new ConfigParam(config);
+    return new ConfigParam(config) as IConfigParam;
 };
 
 

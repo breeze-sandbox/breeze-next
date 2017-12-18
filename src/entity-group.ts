@@ -5,7 +5,7 @@ import { EntityState } from './entity-state';
 import { EntityManager } from './entity-manager';
 import { MergeStrategy } from './query-options';
 
-/** @hidden */
+/** @hidden @internal */
 export class EntityGroup {
   entityManager: EntityManager;
   entityType: EntityType;
@@ -122,12 +122,12 @@ export class EntityGroup {
       }
     }
     return changes;
-  };
+  }
 
   getEntities(entityStates: EntityState[]) {
     let filter = getFilter(entityStates);
     return this._entities.filter(filter) as IEntity[];
-  };
+  }
 
   _checkOperation(operationName: string) {
     this._entities.forEach(function (entity) {
@@ -135,7 +135,7 @@ export class EntityGroup {
     });
     // for chaining;
     return this;
-  };
+  }
 
   // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
   // just for the entityManager clear method - the entityGroup will be in an inconsistent state
@@ -150,7 +150,7 @@ export class EntityGroup {
     (this as any)._entities = null;
     (this as any)._indexMap = null;
     (this as any)._emptyIndexes = null;
-  };
+  }
 
   _updateFkVal(fkProp: DataProperty, oldValue: any, newValue: any) {
     let fkPropName = fkProp.name;
@@ -176,13 +176,13 @@ export class EntityGroup {
     delete entity.entityAspect.hasTempKey;
     delete this._indexMap[tempValue];
     this._indexMap[realValue] = ix;
-  };
+  }
 
   _replaceKey(oldKey: EntityKey, newKey: EntityKey) {
     let ix = this._indexMap[oldKey._keyInGroup];
     delete this._indexMap[oldKey._keyInGroup];
     this._indexMap[newKey._keyInGroup] = ix;
-  };
+  }
 
 }
 

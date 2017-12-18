@@ -9,18 +9,18 @@ An EntityKey is an object that represents the unique identity of an entity.  Ent
 
 **/
 export class EntityKey {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // actually placed on prototype
-  /** @hidden */
+  /** @hidden @internal */
   static ENTITY_KEY_DELIMITER = ":::";
   /**  The 'EntityType' that this is a key for. __Read Only__ */
   entityType: EntityType;
   /**  An array of the values for this key. This will usually only have a single element, 
   unless the entity type has a multipart key. __Read Only__ */
   values: any[];
-  /** @hidden */
+  /** @hidden @internal */
   _keyInGroup: string;
-  /** @hidden */
+  /** @hidden @internal */
   _subtypes: EntityType[];
 
   /**
@@ -65,7 +65,7 @@ export class EntityKey {
     this.values = keyValues;
     this._keyInGroup = EntityKey.createKeyString(keyValues);
 
-  };
+  }
 
 
   toJSON() {
@@ -73,12 +73,12 @@ export class EntityKey {
       entityType: this.entityType.name,
       values: this.values
     };
-  };
+  }
 
   static fromJSON(json: any, metadataStore: MetadataStore) {
     let et = metadataStore._getStructuralType(json.entityType, true) as EntityType;
     return new EntityKey(et, json.values);
-  };
+  }
 
   /**
   Used to compare EntityKeys are determine if they refer to the same Entity.
@@ -97,14 +97,14 @@ export class EntityKey {
     if (!(entityKey instanceof EntityKey)) return false;
     return (this.entityType === entityKey.entityType) &&
       core.arrayEquals(this.values, entityKey.values);
-  };
+  }
 
   /*
   Returns a human readable representation of this EntityKey.
   */
   toString(altEntityType?: EntityType) {
     return (altEntityType || this.entityType).name + '-' + this._keyInGroup;
-  };
+  }
 
   /**
   Used to compare EntityKeys are determine if they refer to the same Entity.
@@ -121,13 +121,13 @@ export class EntityKey {
   static equals(k1: EntityKey, k2: EntityKey) {
     if (!(k1 instanceof EntityKey)) return false;
     return k1.equals(k2);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   // TODO: we may want to compare to default values later.
   _isEmpty() {
     return this.values.join("").length === 0;
-  };
+  }
 
   /** hidden */
   // TODO: think about giving _ prefix or documenting.

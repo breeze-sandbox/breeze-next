@@ -2,8 +2,10 @@
 import { assertParam  } from './assert-param';
 import { BreezeEvent } from './event';
 
-interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; };
-interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>; defaultInstance?: T; };
+/** @hidden @internal */
+export interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; }
+/** @hidden @internal */
+export interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>; defaultInstance?: T; }
 
 export class InterfaceDef<T extends IBaseAdapter> {
 
@@ -20,12 +22,12 @@ export class InterfaceDef<T extends IBaseAdapter> {
     /** Define an implementation of the given adaptername */
     registerCtor(adapterName: string, ctor: IAdapterCtor<T>): void {
         this._implMap[adapterName.toLowerCase()] = { ctor: ctor, defaultInstance: undefined };
-    };
+    }
 
     /** Return the definition for the given adapterName */
     getImpl(adapterName: string): IDef<T> {
         return this._implMap[adapterName.toLowerCase()];
-    };
+    }
 
     /** Return the first implementation for this InterfaceDef */
     getFirstImpl(): IDef<T> {
@@ -33,7 +35,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
             return true;
         });
         return kv ? kv.value : null;
-    };
+    }
 
     getDefaultInstance() {
         return this.defaultInstance as T;
@@ -96,7 +98,7 @@ export class BreezeConfig {
         } else {
             return idef.defaultInstance ? idef.defaultInstance._$impl.ctor : null;
         }
-    };
+    }
 
     /**
     Initializes a single adapter implementation. Initialization means either newing a instance of the
@@ -121,7 +123,7 @@ export class BreezeConfig {
         }
 
         return this._initializeAdapterInstanceCore(idef, impl, isDefault);
-    };
+    }
 
     /**
     Returns the adapter instance corresponding to the specified interface and adapter names.
@@ -149,7 +151,7 @@ export class BreezeConfig {
         } else {
             return this._initializeAdapterInstanceCore(idef, impl, isDefault);
         }
-    };
+    }
 
     /** this is needed for reflection purposes when deserializing an object that needs a fn or ctor.
         Used to register validators. */
@@ -158,18 +160,18 @@ export class BreezeConfig {
         assertParam(fnName, "fnName").isString().check();
         fn.prototype._$fnName = fnName;
         this.functionRegistry[fnName] = fn;
-    };
+    }
 
     registerType(ctor: Function, typeName: string) {
         assertParam(ctor, "ctor").isFunction().check();
         assertParam(typeName, "typeName").isString().check();
         ctor.prototype._$typeName = typeName;
         this.typeRegistry[typeName] = ctor;
-    };
+    }
 
     getRegisteredFunction(fnName: string) {
         return this.functionRegistry[fnName];
-    };
+    }
 
     getInterfaceDef<T extends IBaseAdapter>(interfaceName: string) {
         let lcName = interfaceName.toLowerCase();
@@ -194,7 +196,7 @@ export class BreezeConfig {
         //assertParam(name, "objName").isString().check();
         let key = (typeof (type) === "string" ? type : type.prototype._$typeName) + "." + name;
         this.objectRegistry[key] = obj;
-    };
+    }
 
     _fetchObject(type: string | Function, name: string) {
         if (!name) return undefined;
@@ -204,7 +206,7 @@ export class BreezeConfig {
             throw new Error("Unable to locate a registered object by the name: " + key);
         }
         return result;
-    };
+    }
 
     _initializeAdapterInstanceCore<T extends IBaseAdapter>(interfaceDef: InterfaceDef<T>, impl: IDef<T>, isDefault: boolean) {
         let instance: T;

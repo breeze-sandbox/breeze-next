@@ -8,7 +8,8 @@ import { EntityQuery } from './entity-query';
 
 // TODO: mixin impl is not very typesafe
 
-interface IRelationArray extends IObservableArray {
+/** @hidden @internal */
+export interface IRelationArray extends IObservableArray {
   [index: number]: IEntity;
   parentEntity: IEntity;
   parentProperty?: DataProperty;
@@ -184,7 +185,7 @@ function checkForDups(relationArray: IRelationArray, adds: IEntity[]) {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IModelLibraryAdapter]] implementation. 
 @adapter (see [[IModelLibraryAdapter]])    
-@internal 
+@hidden @internal 
 */
 export function makeRelationArray(arr: any[], parentEntity: IEntity, navigationProperty: NavigationProperty): IRelationArray {
   let arrX = arr as any;

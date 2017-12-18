@@ -1,5 +1,6 @@
 ﻿import * as breeze from './breeze';
-import { IQueryResult } from './entity-manager';
+import { IQueryResult, ISaveResult } from './entity-manager';
+import { JsonResultsAdapter } from './data-service';
 
 let core = breeze.core;
 
@@ -24,12 +25,12 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
   constructor() {
     super();
     this.name = "OData";
-  };
+  }
 
   initialize() {
     OData = core.requireLib("OData", "Needed to support remote OData services");
     OData.jsonHandler.recognizeDates = true;
-  };
+  }
 
 
   // Absolute URL is the default as of Breeze 1.5.5.  
@@ -100,7 +101,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
     });
 
     return promise;
-  };
+  }
 
 
 
@@ -150,12 +151,12 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
       );
     });
     return promise;
-  };
+  }
 
 
-  saveChanges(saveContext: ODataSaveContext, saveBundle: breeze.ISaveBundle) {
-    let adapter = saveContext.adapter = this;
-
+  saveChanges(odataSaveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle): Promise<ISaveResult> {
+    let adapter = odataSaveContext.adapter = this;
+    let saveContext = odataSaveContext as ODataSaveContext;
     let url: string;
     if (this.relativeUrl === true) {
       saveContext.routePrefix = adapter.getRoutePrefix(saveContext.dataService);
@@ -222,9 +223,9 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
     });
     return promise;
 
-  };
+  }
 
-  jsonResultsAdapter = new breeze.JsonResultsAdapter({
+  jsonResultsAdapter: JsonResultsAdapter = new breeze.JsonResultsAdapter({
     name: "OData_default",
 
     visitNode: function (node: any, mappingContext: breeze.MappingContext, nodeContext: breeze.INodeContext) {
@@ -282,7 +283,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
         base;
     }
     return base + url;
-  };
+  }
 
   getRoutePrefix(dataService: breeze.DataService) {
     // Get the routePrefix from a Web API OData service name.
@@ -307,7 +308,7 @@ export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
       prefix += '/';
     }      // ensure trailing '/'
     return prefix;
-  };
+  }
 
 }
 

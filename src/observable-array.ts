@@ -3,7 +3,7 @@ import { BreezeEvent } from './event';
 import { EntityAspect } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
-/** @hidden */
+/** @hidden @internal */
 export interface IObservableArray {
   push: (...args: any[]) => number;
   _push: (...args: any[]) => number;
@@ -172,7 +172,7 @@ function combineArgs(target: Object, source: Object) {
     }
   }
 }
-/** @hidden */
+/** @hidden @internal */
 export const observableArray = {
   mixin: mixin,
   updateEntityState: updateEntityState,

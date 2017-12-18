@@ -1,4 +1,5 @@
-﻿import { BreezeEnum } from './enum';
+﻿/** See if this comment will make it into .d.ts */
+import { BreezeEnum } from './enum';
 declare var global: any;
 declare var window: any;
 

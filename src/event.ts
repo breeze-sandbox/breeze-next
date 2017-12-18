@@ -27,7 +27,8 @@ function fallbackErrorHandler(e: Error) {
 }
 
 
-interface ISubscription {
+/** @hidden @internal */
+export interface ISubscription {
   unsubKey: number;
   callback: (data: any) => any;
 }
@@ -36,18 +37,18 @@ interface ISubscription {
 Class to support basic event publication and subscription semantics.
 **/
 export class BreezeEvent<T> {
-  /** @hidden */
+  /** @hidden @internal */
   static __eventNameMap = {};
-  /** @hidden */
+  /** @hidden @internal */
   static __nextUnsubKey = 1;
   /** The name of this Event */
   name: string;
   /** The object doing the publication. i.e. the object to which this event is attached. */
   publisher: Object;
 
-  /** @hidden */
+  /** @hidden @internal */
   _subscribers: ISubscription[];
-  /** @hidden */
+  /** @hidden @internal */
   _defaultErrorCallback: (e: Error) => any;
 
 
@@ -100,7 +101,7 @@ export class BreezeEvent<T> {
       publishCore(this, data, errorCallback);
     }
     return true;
-  };
+  }
 
   /**
   Publish data for this event asynchronously.
@@ -117,7 +118,7 @@ export class BreezeEvent<T> {
   **/
   publishAsync(data: any, errorCallback: (e: Error) => any) {
     this.publish(data, true, errorCallback);
-  };
+  }
 
   /**
   Subscribe to this event.
@@ -148,7 +149,7 @@ export class BreezeEvent<T> {
     this._subscribers.push({ unsubKey: unsubKey, callback: callback });
     ++BreezeEvent.__nextUnsubKey;
     return unsubKey;
-  };
+  }
 
   /**
   Unsubscribe from this event.
@@ -182,14 +183,14 @@ export class BreezeEvent<T> {
   /** remove all subscribers */
   clear() {
     this._subscribers = <any>null;
-  };
+  }
 
   /** event bubbling - document later. */
 
   // null or undefined 'getParentFn' means Event does not need to bubble i.e. that it is always enabled - .
   static bubbleEvent(target: any, getParentFn?: (() => any)) {
     target._getEventParent = getParentFn || null;
-  };
+  }
 
   /**
   Enables or disables the named event for an object and all of its children.
@@ -226,7 +227,7 @@ export class BreezeEvent<T> {
       ob._$eventMap = {};
     }
     ob._$eventMap[eventName] = isEnabled;
-  };
+  }
 
   /**
   Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set.
@@ -245,9 +246,9 @@ export class BreezeEvent<T> {
     }
     // return ctor._isEnabled(getFullEventName(eventName), obj);
     return BreezeEvent._isEnabled(eventName, 3);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   static _isEnabled = function (eventName: string, obj: Object) {
     let isEnabled: any = null;
     let ob = <any>obj;

@@ -3,13 +3,13 @@ import { IEntity } from './entity-aspect';
 import { NavigationProperty } from './entity-metadata';
 import { EntityKey } from './entity-key';
 
-/** @hidden */
+/** @hidden @internal */
 export interface INavTuple {
   navigationProperty: NavigationProperty;
   children: IEntity[];
 }
 
-/** @hidden */
+/** @hidden @internal */
 // Represents entities not yet attached to navigationProperties. 
 export class UnattachedChildrenMap {
   // key is EntityKey.toString(), value is array of { navigationProperty, children }
@@ -23,7 +23,7 @@ export class UnattachedChildrenMap {
       core.getArray(this.map, parentEntityKey.toString()).push(tuple);
     }
     tuple.children.push(child);
-  };
+  }
 
   removeChildren(parentEntityKeyString: string, navigationProperty: NavigationProperty) {
     let tuples = this.map[parentEntityKeyString];
@@ -34,7 +34,7 @@ export class UnattachedChildrenMap {
     if (!tuples.length) {
       delete this.map[parentEntityKeyString];
     }
-  };
+  }
 
   getTuple(parentEntityKey: EntityKey, navigationProperty: NavigationProperty) {
     let tuples = this.getTuples(parentEntityKey);
@@ -43,7 +43,7 @@ export class UnattachedChildrenMap {
       return t.navigationProperty === navigationProperty;
     });
     return tuple;
-  };
+  }
 
   getTuples(parentEntityKey: EntityKey) {
     let allTuples: INavTuple[] = [];
@@ -61,7 +61,7 @@ export class UnattachedChildrenMap {
       }
     }
     return (allTuples.length) ? allTuples : undefined;
-  };
+  }
 
   getTuplesByString(parentEntityKeyString: string) {
     return this.map[parentEntityKeyString];

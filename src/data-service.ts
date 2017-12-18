@@ -36,7 +36,7 @@ anytime a MetadataStore.fetchMetadata call occurs with a new dataService ( or se
 
 **/
 export class DataService {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // actually put on prototype.
   /** The serviceName for this DataService. __Read Only__ **/
   serviceName: string;
@@ -73,7 +73,7 @@ export class DataService {
   **/
   constructor(config?: DataServiceConfig) {
     updateWithConfig(this, config);
-  };
+  }
 
 
   /**
@@ -84,7 +84,7 @@ export class DataService {
     if (!config) return this;
     let result = new DataService(this);
     return updateWithConfig(result, config);
-  };
+  }
 
   static resolve(dataServices: DataService[]) {
     // final defaults
@@ -103,9 +103,9 @@ export class DataService {
     ds.jsonResultsAdapter = ds.jsonResultsAdapter || ds.adapterInstance!.jsonResultsAdapter;
     ds.uriBuilder = ds.uriBuilder || config.getAdapterInstance<IUriBuilderAdapter>("uriBuilder", ds.uriBuilderName);
     return ds;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   static _normalizeServiceName(serviceName: string) {
     serviceName = serviceName.trim();
     if (serviceName.substr(-1) !== "/") {
@@ -113,7 +113,7 @@ export class DataService {
     } else {
       return serviceName;
     }
-  };
+  }
 
   /**  */
   toJSON() {
@@ -128,12 +128,12 @@ export class DataService {
       },
       useJsonp: null
     });
-  };
+  }
 
   static fromJSON(json: any) {
     json.jsonResultsAdapter = config._fetchObject(JsonResultsAdapter, json.jsonResultsAdapter);
     return new DataService(json);
-  };
+  }
 
   /**
    Returns a url for this dataService with the specified suffix. This method handles dataService names either
@@ -154,7 +154,7 @@ export class DataService {
       url = url + suffix;
     }
     return url;
-  };
+  }
 
 }
 DataService.prototype._$typeName = "DataService";
@@ -218,7 +218,7 @@ A JsonResultsAdapter instance is used to provide custom extraction and parsing l
 This facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens.
 **/
 export class JsonResultsAdapter {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // actually put on prototype.
   /** The name of this adapter.  This name is used to uniquely identify and locate this instance when an 'exported' JsonResultsAdapter is later imported. */
   name: string;
@@ -288,7 +288,7 @@ export class JsonResultsAdapter {
         .whereParam("visitNode").isFunction()
         .applyAll(this);
     config._storeObject(this, "JsonResultsAdapter", this.name);
-  };
+  }
 
 }
 JsonResultsAdapter.prototype._$typeName = "JsonResultsAdapter";

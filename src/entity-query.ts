@@ -6,7 +6,7 @@ import { EntityAspect, IEntity } from './entity-aspect';
 import { EntityKey } from './entity-key';
 import { BreezeEnum } from './enum';
 import { DataService, JsonResultsAdapter } from './data-service';
-import { EntityManager } from './entity-manager';
+import { EntityManager, IQueryResult } from './entity-manager';
 import { MetadataStore, EntityType, NavigationProperty, EntityProperty } from './entity-metadata';
 import { QueryOptions, MergeStrategy, FetchStrategy } from './query-options';
 import { Predicate } from './predicate';
@@ -15,7 +15,8 @@ export interface IRecursiveArray<T> {
   [i: number]: T | IRecursiveArray<T>;
 }
 
-interface IEntityQueryJsonContext {
+/** @hidden @internal */
+export interface IEntityQueryJsonContext {
   entityType?: EntityType;
   propertyPathFn?: Function; // TODO
   toNameOnServer?: boolean;
@@ -28,7 +29,7 @@ EntityQueries can be 'modified' without affecting any current instances.
 
 **/
 export class EntityQuery {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // actually placed on prototype
   // top = this.take; // TODO: consider
   /** The resource name used by this query. __Read Only__ */
@@ -96,7 +97,7 @@ export class EntityQuery {
     // this.dataService = new DataService();
     this.entityManager = undefined;
 
-  };
+  }
 
 
   /**
@@ -112,7 +113,7 @@ export class EntityQuery {
     // TODO: think about allowing entityType as well
     assertParam(resourceName, "resourceName").isString().check();
     return clone(this, "resourceName", resourceName);
-  };
+  }
 
   /**
   This is a static version of the "from" method and it creates a 'base' entityQuery for the specified resource name.
@@ -125,7 +126,7 @@ export class EntityQuery {
   static from(resourceName: string) {
     assertParam(resourceName, "resourceName").isString().check();
     return new EntityQuery(resourceName);
-  };
+  }
 
   /**
   Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.
@@ -138,7 +139,7 @@ export class EntityQuery {
   toType(entityType: string | EntityType) {
     assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
     return clone(this, "resultEntityType", entityType);
-  };
+  }
 
 
   where(predicate: Predicate): EntityQuery;
@@ -205,7 +206,7 @@ export class EntityQuery {
       }
     }
     return clone(this, "wherePredicate", wherePredicate);
-  };
+  }
 
 
   orderBy(propertyPaths: string, isDescending?: boolean): EntityQuery;
@@ -265,7 +266,7 @@ export class EntityQuery {
   **/
   orderByDesc(propertyPaths: string | string[]) {
     return this.orderBy(propertyPaths as any, true);
-  };
+  }
 
   /**
   Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This
@@ -301,7 +302,7 @@ export class EntityQuery {
   select(propertyPaths: string | string[]) {
     let selectClause = propertyPaths == null ? null : new SelectClause(normalizePropertyPaths(propertyPaths));
     return clone(this, "selectClause", selectClause);
-  };
+  }
 
   /**
   Returns a new query that skips the specified number of entities when returning results.
@@ -314,7 +315,7 @@ export class EntityQuery {
   skip(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
     return clone(this, "skipCount", (count == null) ? null : count);
-  };
+  }
 
   /**
   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
@@ -326,7 +327,7 @@ export class EntityQuery {
   **/
   top(count?: number) {
     return this.take(count);
-  };
+  }
 
   /**
   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.
@@ -339,7 +340,7 @@ export class EntityQuery {
   take(count?: number) {
     assertParam(count, "count").isOptional().isNumber().check();
     return clone(this, "takeCount", (count == null) ? null : count);
-  };
+  }
 
   /**
   Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property
@@ -384,7 +385,7 @@ export class EntityQuery {
   withParameters(parameters: Object) {
     assertParam(parameters, "parameters").isObject().check();
     return clone(this, "parameters", parameters);
-  };
+  }
 
   /**
   Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property
@@ -423,7 +424,7 @@ export class EntityQuery {
     assertParam(enabled, "enabled").isBoolean().isOptional().check();
     enabled = (enabled === undefined) ? true : !!enabled;
     return clone(this, "noTrackingEnabled", enabled);
-  };
+  }
 
   using(obj: EntityManager): EntityQuery;
   using(obj: DataService): EntityQuery;
@@ -468,7 +469,7 @@ export class EntityQuery {
       }
     }, obj);
     return eq;
-  };
+  }
 
   /**
   Executes this query.  This method requires that an EntityManager has been previously specified via the "using" method.
@@ -508,7 +509,7 @@ export class EntityQuery {
   @param errorCallback - Function called on failure.
   @return Promise
   **/
-  execute(callback?: Callback, errorCallback?: ErrorCallback) {
+  execute(callback?: Callback, errorCallback?: ErrorCallback): Promise<IQueryResult> {
     if (!this.entityManager) {
       throw new Error("An EntityQuery must have its EntityManager property set before calling 'execute'");
     }
@@ -535,7 +536,7 @@ export class EntityQuery {
   }
 
   /** Typically only for use when building UriBuilderAdapters.  
-  @internal  
+  @hidden @internal  
   */
   toJSONExt(context?: IEntityQueryJsonContext) {
     context = context || {};
@@ -613,7 +614,7 @@ export class EntityQuery {
       q = q.using(em);
     }
     return q;
-  };
+  }
 
   /**
   Creates an EntityQuery for the specified [[EntityKey]].
@@ -633,7 +634,7 @@ export class EntityQuery {
     let pred = buildKeyPredicate(entityKey);
     q = q.where(pred).toType(entityKey.entityType);
     return q;
-  };
+  }
 
   /**
   Creates an EntityQuery for the specified entity and [[NavigationProperty]].
@@ -659,7 +660,7 @@ export class EntityQuery {
   };
 
   // protected methods
-  /** @hidden */
+  /** @hidden @internal */
   _getFromEntityType(metadataStore: MetadataStore, throwErrorIfNotFound?: boolean) {
     // Uncomment next two lines if we make this method public.
     // assertParam(metadataStore, "metadataStore").isInstanceOf(MetadataStore).check();
@@ -701,9 +702,9 @@ export class EntityQuery {
     this.fromEntityType = entityType;
     return entityType;
 
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _getToEntityType(metadataStore: MetadataStore, skipFromCheck?: boolean): EntityType | undefined {
     // skipFromCheck is to avoid recursion if called from _getFromEntityType;
     if (this.resultEntityType instanceof EntityType) {
@@ -724,9 +725,9 @@ export class EntityQuery {
       }
 
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   // for testing
   _toUri(em: EntityManager) {
     let ds = DataService.resolve([em.dataService]);
@@ -935,7 +936,7 @@ BooleanQueryOp.resolveSymbols();
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@internal -
+@hidden @internal -
 
 An OrderByClause is a description of the properties and direction that the result
 of a query should be sorted in.  OrderByClauses are immutable, which means that any
@@ -970,14 +971,14 @@ export class OrderByClause {
       });
     }
 
-  };
+  }
 
   validate(entityType: EntityType) {
     if (entityType == null || entityType.isAnonymous) return;
     this.items.forEach((item) => {
       item.validate(entityType);
     });
-  };
+  }
 
   getComparer(entityType: EntityType) {
     let orderByFuncs = this.items.map(function (obc) {
@@ -992,17 +993,18 @@ export class OrderByClause {
       }
       return 0;
     };
-  };
+  }
 
   toJSONExt(context: IEntityQueryJsonContext) {
     return this.items.map(function (item) {
       return context.propertyPathFn!(item.propertyPath) + (item.isDesc ? " desc" : "");
     });
-  };
+  }
 
 }
 
-class OrderByItem {
+/** @hidden @internal */
+export class OrderByItem {
   propertyPath: string;
   isDesc: boolean;
   lastProperty: EntityProperty;
@@ -1029,14 +1031,14 @@ class OrderByItem {
     }
     this.propertyPath = parts[0];
     this.isDesc = isDesc || false;
-  };
+  }
 
-  validate(entityType: EntityType) {
+  validate(entityType: EntityType): EntityProperty | undefined {
     if (entityType == null || entityType.isAnonymous) return;
     // will throw an exception on bad propertyPath
     this.lastProperty = entityType.getProperty(this.propertyPath, true) as EntityProperty;
     return this.lastProperty;
-  };
+  }
 
   getComparer(entityType: EntityType) {
     let propDataType: DataType;
@@ -1080,7 +1082,7 @@ class OrderByItem {
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 **/
 export class SelectClause {
   propertyPaths: string[];
@@ -1091,7 +1093,7 @@ export class SelectClause {
     this._pathNames = propertyPaths.map(function (pp) {
       return pp.replace(".", "_");
     });
-  };
+  }
 
   validate(entityType: EntityType) {
     if (entityType == null || entityType.isAnonymous) return; // can't validate yet
@@ -1099,7 +1101,7 @@ export class SelectClause {
     this.propertyPaths.forEach(function (path) {
       entityType.getProperty(path, true);
     });
-  };
+  }
 
   toFunction(/* config */) {
     let that = this;
@@ -1110,18 +1112,18 @@ export class SelectClause {
       });
       return result;
     };
-  };
+  }
 
   toJSONExt(context: IEntityQueryJsonContext) {
     return this.propertyPaths.map(function (pp) {
       return context.propertyPathFn!(pp);
     });
-  };
+  }
 }
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 **/
 export class ExpandClause {
   propertyPaths: string[];

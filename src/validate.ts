@@ -11,13 +11,13 @@ export const INT32_MAX = 2147483647;
 export const BYTE_MIN = 0;
 export const BYTE_MAX = 255;
 
-interface IValidationContext {
+export interface IValidationContext {
   property?: any;
   propertyName?: string;
   value?: any;
 }
 
-interface IValidationFn {
+export interface IValidationFn {
     (value: any, context?: any): boolean;
 }
 
@@ -185,7 +185,7 @@ export class Validator {
     this.name = name;
     this.valFn = valFn;
     this.context = context;
-  };
+  }
 
   /**
   The name of this validator.
@@ -246,7 +246,7 @@ export class Validator {
     } catch (e) {
       return new ValidationError(this, currentContext, "Exception occured while executing this validator: " + this.name);
     }
-  };
+  }
 
 
   // context.value is not avail unless validate was called first.
@@ -278,11 +278,11 @@ export class Validator {
     } catch (e) {
       return "Unable to format error message" + e.toString();
     }
-  };
+  }
 
   toJSON() {
     return this._baseContext;
-  };
+  }
 
   /**
   Creates a validator instance from a JSON object or an array of instances from an array of JSON objects.
@@ -303,7 +303,7 @@ export class Validator {
       throw new Error("Unable to locate a validator named:" + json.name);
     }
     return fn(json);
-  };
+  }
 
   /**
   Register a validator instance so that any deserialized metadata can reference it.
@@ -315,7 +315,7 @@ export class Validator {
     config.registerFunction(function () {
       return validator;
     }, "Validator." + validator.name);
-  };
+  }
 
   /**
   Register a validator factory so that any deserialized metadata can reference it.
@@ -326,7 +326,7 @@ export class Validator {
   **/
   public static registerFactory(validatorFn: IValidationFn, name: string) {
     config.registerFunction(validatorFn, "Validator." + name);
-  };
+  }
 
   /**
   Map of standard error message templates keyed by validator name.
@@ -392,7 +392,7 @@ export class Validator {
       }
     };
     return new Validator("required", valFn, context);
-  };
+  }
 
   /**
   Returns a standard maximum string length Validator; the maximum length must be specified
@@ -415,7 +415,7 @@ export class Validator {
       return v.length <= ctx.maxLength;
     };
     return new Validator("maxLength", valFn, context);
-  };
+  }
 
   /**
   Returns a standard string length Validator; both minimum and maximum lengths must be specified.
@@ -527,7 +527,7 @@ export class Validator {
       return (typeof v === "number" && !isNaN(v));
     };
     return new Validator("number", valFn, context);
-  };
+  }
   public static double = Validator.number;
   public static single = Validator.number;
 
@@ -552,7 +552,7 @@ export class Validator {
       return (typeof v === "number") && (!isNaN(v)) && Math.floor(v) === v;
     };
     return new Validator("integer", valFn, context);
-  };
+  }
   public static int64 = Validator.integer;
 
   /**
@@ -568,7 +568,7 @@ export class Validator {
   **/
   public static int32(context: any) {
     return intRangeValidatorCtor("int32", INT32_MIN, INT32_MAX, context)();
-  };
+  }
 
   /**
   Returns a standard 16 bit integer data type Validator.
@@ -584,7 +584,7 @@ export class Validator {
   **/
   public static int16(context: any) {
     return intRangeValidatorCtor("int16", INT16_MIN, INT16_MAX, context)();
-  };
+  }
 
   /**
   Returns a standard byte data type Validator. (This is a integer between 0 and 255 inclusive for js purposes).
@@ -601,7 +601,7 @@ export class Validator {
   **/
   public static byte(context: any) {
     return intRangeValidatorCtor("byte", BYTE_MIN, BYTE_MAX, context)();
-  };
+  }
 
   /**
   Returns a standard boolean data type Validator.
@@ -621,14 +621,14 @@ export class Validator {
       return (v === true) || (v === false);
     };
     return new Validator("bool", valFn);
-  };
+  }
 
   public static none() {
     let valFn = function (v: any) {
       return true;
     };
     return new Validator("none", valFn);
-  };
+  }
 
   /**
   Returns a standard date data type Validator.
@@ -659,7 +659,7 @@ export class Validator {
       }
     };
     return new Validator("date", valFn);
-  };
+  }
 
   /**
   Returns a credit card number validator
@@ -683,9 +683,9 @@ export class Validator {
       v = v.replace(/(\-|\s)/g, ""); // remove dashes and spaces
       if (!v || /\D/.test(v)) return false; // all digits, not empty
       return luhn(v);
-    };
+    }
     return new Validator('creditCard', valFn, context);
-  };
+  }
 
 
   /**
@@ -713,9 +713,9 @@ export class Validator {
       } catch (e) {
         throw new Error('Missing or invalid expression parameter to regExp validator');
       }
-    };
+    }
     return new Validator('regularExpression', valFn, context);
-  };
+  }
 
   /**
   Returns the email address validator
@@ -734,7 +734,7 @@ export class Validator {
     // See https://github.com/srkirkland/DataAnnotationsExtensions/blob/master/DataAnnotationsExtensions/EmailAttribute.cs
     let reEmailAddress = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i;
     return makeRegExpValidator('emailAddress', reEmailAddress, null, context);
-  };
+  }
 
   /**
   Returns the phone validator
@@ -892,7 +892,7 @@ export function makeRegExpValidator(validatorName: string, expression: RegExp, d
     return re.test(v);
   };
   return new Validator(validatorName, valFn, context);
-};
+}
 
 // http://rosettacode.org/wiki/Luhn_test_of_credit_card_numbers#JavaScript
 
@@ -962,7 +962,7 @@ export class ValidationError {
       this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
     }
     this.isServerError = false;
-  };
+  }
 
 
   /**
@@ -1026,8 +1026,8 @@ export class ValidationError {
   public static getKey(validatorOrErrorName: Validator | string, propertyName: string) {
     let name = (typeof validatorOrErrorName === 'string') ? validatorOrErrorName : validatorOrErrorName.name;
     return name + (propertyName ? ":" + propertyName : "");
-  };
+  }
 
-};
+}
 
 

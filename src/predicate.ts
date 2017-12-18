@@ -5,19 +5,20 @@ import { DataType  } from './data-type';
 import { EntityAspect, IEntity } from './entity-aspect';
 import { LocalQueryComparisonOptions } from './local-query-comparison-options';
 
-interface IOp {
+export interface IOp {
   key: string;
   aliases?: string[];
   isFunction?: boolean;
 }
 
-interface IOpMap {
+/** @hidden @internal */
+export interface IOpMap {
   [key: string]: IOp;
 }
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface IVisitor {
 
@@ -25,7 +26,7 @@ export interface IVisitor {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface IVisitContext {
   entityType?: EntityType;
@@ -37,7 +38,7 @@ export interface IVisitContext {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export interface IExpressionContext {
   entityType?: EntityType;
@@ -53,7 +54,7 @@ method that would modify a Predicate actually returns a new Predicate.
 **/
 export class Predicate {
   op: IOp;
-  /** @hidden */
+  /** @hidden @internal */
   _entityType?: EntityType;
   aliasMap: IOpMap;
   visitorMethodName: string;
@@ -131,9 +132,9 @@ export class Predicate {
       //      Predicate("orders", "any", "freight",  ">", 950);
       return createPredicateFromArray(args);
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     // noop here;
   }
@@ -158,7 +159,7 @@ export class Predicate {
     // return undefined if empty
     // return pred.op && pred;
     return pred;
-  };
+  }
 
   /**
   Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.
@@ -178,7 +179,7 @@ export class Predicate {
     let pred = new AndOrPredicate("or", args);
     // return pred.op && pred;
     return pred;
-  };
+  }
 
   /**
   Creates a 'composite' Predicate by 'negating' a specified predicate.
@@ -193,7 +194,7 @@ export class Predicate {
   **/
   static not(pred: Predicate) {
     return pred.not();
-  };
+  }
 
   // TODO: determine if/where this is used.
   // static extendBinaryPredicateFn(opMap: IOpMap, visitorFn: any) {
@@ -237,7 +238,7 @@ export class Predicate {
   **/
   and(...args: any[]) {
     return new AndOrPredicate("and", argsForAndOrPredicates(this, args));
-  };
+  }
 
   /**
   'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate
@@ -259,7 +260,7 @@ export class Predicate {
   **/
   or(...args: any[]) {
     return new AndOrPredicate("or", argsForAndOrPredicates(this, args));
-  };
+  }
 
   /**
   Returns the 'negated' version of this Predicate
@@ -275,7 +276,7 @@ export class Predicate {
   **/
   not() {
     return new UnaryPredicate("not", this);
-  };
+  }
 
   //
   toJSON() {
@@ -286,7 +287,7 @@ export class Predicate {
 
   /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
   @adapter (see [[IUriBuilderAdapter]])    
-  @internal 
+  @hidden @internal 
   */
   toJSONExt(context: IVisitContext) {
     return this.visit(context, toJSONVisitor);
@@ -294,7 +295,7 @@ export class Predicate {
 
   /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
   @adapter (see [[IUriBuilderAdapter]])    
-  @internal 
+  @hidden @internal 
   */
   toFunction(context: IVisitContext) {
     return this.visit(context, toFunctionVisitor);
@@ -302,11 +303,11 @@ export class Predicate {
 
   toString() {
     return JSON.stringify(this);
-  };
+  }
 
   /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
   @adapter (see [[IUriBuilderAdapter]])    
-  @internal 
+  @hidden @internal 
   */
   visit(context: IVisitContext, visitor?: IVisitor) {
     if (core.isEmpty(context)) {
@@ -339,7 +340,7 @@ export class Predicate {
     return fn.call(this, context);
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _initialize(visitorMethodName: string, opMap: { [key: string]: { aliases?: string[], isFunction?: boolean }} = {}) {
     this.visitorMethodName = visitorMethodName;
     let aliasMap = this.aliasMap = {};
@@ -348,7 +349,7 @@ export class Predicate {
     }
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _resolveOp(op: string | IQueryOp, okIfNotFound?: boolean) {
     let opStr = (typeof op === "string") ? op : op.operator;
     let result = this.aliasMap[opStr.toLowerCase()];
@@ -378,7 +379,7 @@ function createPredicateFromArray(arr: any[]) {
     value[op] = createPredicateFromArray(arr.splice(2));
   }
   return createPredicateFromObject(json);
-};
+}
 
 function createPredicateFromObject(obj: Object) {
   if (obj instanceof Predicate) return obj;
@@ -463,14 +464,14 @@ function updateAliasMap(aliasMap: IOpMap, opStr: string, op: IOp) {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 class PassthruPredicate extends Predicate {
   value: any;
   constructor(value: any) {
     super();
     this.value = value;
-  };
+  }
 
   // _validate = core.noop;
 }
@@ -478,7 +479,7 @@ PassthruPredicate.prototype._initialize('passthruPredicate');
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class UnaryPredicate extends Predicate {
   op: IOp;
@@ -487,11 +488,11 @@ export class UnaryPredicate extends Predicate {
     super();
     this.op = this._resolveOp(op);
     this.pred = new Predicate(args);
-  };
+  }
 
   _validate(entityType: EntityType, usesNameOnServer?: boolean) {
     this.pred._validate(entityType, usesNameOnServer);
-  };
+  }
 }
 
 UnaryPredicate.prototype._initialize('unaryPredicate', {
@@ -500,7 +501,7 @@ UnaryPredicate.prototype._initialize('unaryPredicate', {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class BinaryPredicate extends Predicate {
   op: IOp;
@@ -516,7 +517,7 @@ export class BinaryPredicate extends Predicate {
     this.expr2Source = expr2;
     // this.expr1 and this.expr2 won't be
     // determined until validate is run
-  };
+  }
 
 
   _validate(entityType: EntityType, usesNameOnServer?: boolean) {
@@ -583,7 +584,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class AndOrPredicate extends Predicate {
   op: IOp;
@@ -607,7 +608,7 @@ export class AndOrPredicate extends Predicate {
     if (this.preds.length === 1) {
       return this.preds[0] as AndOrPredicate; // HACK: this.preds[0] is actually NOT a AndOrPredicate but some other kind of pred.
     }
-  };
+  }
 
   _validate(entityType: EntityType, usesNameOnServer?: boolean) {
     this.preds.forEach((pred) => {
@@ -623,7 +624,7 @@ AndOrPredicate.prototype._initialize("andOrPredicate", {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class AnyAllPredicate extends Predicate {
   op: IOp;
@@ -637,7 +638,7 @@ export class AnyAllPredicate extends Predicate {
     this.exprSource = expr;
     // this.expr will not be resolved until validate is called
     this.pred = new Predicate(pred);
-  };
+  }
 
   _validate(entityType: EntityType, usesNameOnServer: boolean) {
     this.expr = createExpr(this.exprSource, { entityType: entityType, usesNameOnServer: usesNameOnServer } as IExpressionContext);
@@ -655,7 +656,8 @@ AnyAllPredicate.prototype._initialize("anyAllPredicate", {
   'all': { aliases: ["every"] }
 });
 
-class PredicateExpression {
+/** @hidden @internal */
+export class PredicateExpression {
   visitorMethodName: string;
   visit: Function; // TODO
   dataType?: DataType | StructuralType;
@@ -673,7 +675,7 @@ class PredicateExpression {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class LitExpr extends PredicateExpression {
   value: any;
@@ -705,7 +707,7 @@ export class LitExpr extends PredicateExpression {
 
   toString() {
     return " LitExpr - value: " + this.value.toString() + " dataType: " + this.dataType.toString();
-  };
+  }
 
 }
 
@@ -726,7 +728,7 @@ function resolveDataType(dataType?: DataType | string) {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class PropExpr extends PredicateExpression {
   propertyPath: string;
@@ -737,11 +739,11 @@ export class PropExpr extends PredicateExpression {
     this.propertyPath = propertyPath;
     //this.dataType = DataType.Undefined;
     // this.dataType resolved after validate ( if not on an anon type }
-  };
+  }
 
   toString() {
     return " PropExpr - " + this.propertyPath;
-  };
+  }
 
   _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
 
@@ -759,13 +761,13 @@ export class PropExpr extends PredicateExpression {
     } else {
       this.dataType = prop.entityType;
     }
-  };
+  }
 
 }
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@internal 
+@hidden @internal 
 */
 export class FnExpr extends PredicateExpression {
   fnName: string;
@@ -783,20 +785,20 @@ export class FnExpr extends PredicateExpression {
     }
     this.localFn = qf.fn;
     this.dataType = qf.dataType;
-  };
+  }
 
   toString() {
     let exprStr = this.exprs.map(function (expr) {
       expr.toString();
     }).toString();
     return "FnExpr - " + this.fnName + "(" + exprStr + ")";
-  };
+  }
 
   _validate(entityType: EntityType | undefined, usesNameOnServer?: boolean) {
     this.exprs.forEach(function (expr) {
       expr._validate(entityType, usesNameOnServer);
     });
-  };
+  }
 
   static _funcMap = {
     toupper: {

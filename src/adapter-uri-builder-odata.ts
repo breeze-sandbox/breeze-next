@@ -6,9 +6,9 @@ export class UriBuilderODataAdapter implements breeze.IUriBuilderAdapter {
 
   constructor() {
     this.name = "odata";
-  };
+  }
 
-  initialize() { };
+  initialize() { }
 
   buildUri(entityQuery: breeze.EntityQuery, metadataStore: breeze.MetadataStore) {
     // force entityType validation;
@@ -99,7 +99,7 @@ export class UriBuilderODataAdapter implements breeze.IUriBuilderAdapter {
         return "";
       }
     }
-  };
+  }
 
 
 }

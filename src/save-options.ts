@@ -18,7 +18,7 @@ export interface SaveOptionsConfig {
 A SaveOptions instance is used to specify the 'options' under which a save will occur.
 **/
 export class SaveOptions {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
   /** Resource name to be used during the save - this defaults to "SaveChanges". __Read Only__ */
   resourceName: string;
@@ -34,7 +34,7 @@ export class SaveOptions {
 
   constructor(config: SaveOptionsConfig) {
     SaveOptions._updateWithConfig(this, config);
-  };
+  }
 
 
   /**
@@ -43,7 +43,7 @@ export class SaveOptions {
   **/
   setAsDefault() {
     return core.setAsDefault(this, SaveOptions);
-  };
+  }
 
   /**
   Returns a copy of this SaveOptions with the specified config options applied.
@@ -51,7 +51,7 @@ export class SaveOptions {
   **/
   using(config: SaveOptionsConfig) {
     return SaveOptions._updateWithConfig(this, config);
-  };
+  }
 
   private static _updateWithConfig(obj: SaveOptions, config: SaveOptionsConfig) {
     if (config) {

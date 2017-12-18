@@ -22,7 +22,7 @@ A ValidationOptions instance is used to specify the conditions under which valid
 
 */
 export class ValidationOptions implements ValidationOptionsConfig {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
   /** Whether entity and property level validation should occur when entities are attached to the EntityManager 
   other than via a query. (default = true) __Read Only__ */
@@ -48,7 +48,7 @@ export class ValidationOptions implements ValidationOptionsConfig {
   **/
   constructor(config: ValidationOptionsConfig) {
     updateWithConfig(this, config);
-  };
+  }
 
 
   /**
@@ -63,7 +63,7 @@ export class ValidationOptions implements ValidationOptionsConfig {
     let result = new ValidationOptions(this);
     updateWithConfig(result, config);
     return result;
-  };
+  }
 
   /**
   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance.
@@ -74,7 +74,7 @@ export class ValidationOptions implements ValidationOptionsConfig {
   **/
   setAsDefault() {
     return core.setAsDefault(this, ValidationOptions);
-  };
+  }
 
   /**
   The default instance for use whenever ValidationOptions are not specified.

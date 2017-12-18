@@ -5,7 +5,7 @@ import { EntityAspect, ComplexAspect, IEntity, IStructuralObject } from './entit
 import { EntityState } from './entity-state';
 import { EntityAction } from './entity-action';
 
-/** @hidden */
+/** @hidden @internal */
 export function defaultPropertyInterceptor(this: IStructuralObject, property: EntityProperty, newValue: any, rawAccessorFn: Function) {
   // 'this' is the entity itself in this context.
 
@@ -255,7 +255,7 @@ function setDpValueSimple(context: IContext, rawAccessorFn: any) {
           // hopefully it doesn't happen often.
           entityManager!._updateFkVal(invFkProp, oldValue, newValue);
         }
-        ;
+        
       });
     }
 

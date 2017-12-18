@@ -1,11 +1,12 @@
 ﻿import * as breeze from './breeze'; // TODO: think about this approach for plugin modules.
+import { JsonResultsAdapter, IKeyMapping } from './breeze';
 
 export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter {
 
   constructor() {
     super();
     this.name = "webApi";
-  };
+  }
 
   _prepareSaveBundle(saveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle) {
     let changeRequestInterceptor = this._createChangeRequestInterceptor(saveContext, saveBundle);
@@ -39,13 +40,13 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
     serSaveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
     changeRequestInterceptor.done(serSaveBundle.entities);
     return serSaveBundle;
-  };
+  }
 
   _prepareSaveResult(saveContext: breeze.ISaveContext, data: any) {
     // use the jsonResultAdapter to extractResults and extractKeyMappings
     let jra = saveContext.dataService.jsonResultsAdapter || this.jsonResultsAdapter;
     let entities = jra.extractSaveResults(data) || [];
-    let keyMappings = jra.extractKeyMappings(data) || [];
+    let keyMappings: IKeyMapping[] = jra.extractKeyMappings(data) || [];
     let deletedKeys = jra.extractDeletedKeys ? (jra.extractDeletedKeys(data)) || [] : [];
 
     if (keyMappings.length) {
@@ -70,9 +71,9 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
 
     return { entities: entities, keyMappings: keyMappings, deletedKeys: deletedKeys };
 
-  };
+  }
 
-  jsonResultsAdapter = new breeze.JsonResultsAdapter({
+  jsonResultsAdapter: JsonResultsAdapter = new breeze.JsonResultsAdapter({
 
     name: "webApi_default",
 

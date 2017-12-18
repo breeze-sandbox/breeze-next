@@ -16,7 +16,7 @@ interface ITempIdMap {
   @class KeyGenerator
   */
 export class KeyGenerator {
-  _tempIdMap: ITempIdMap;
+  private _tempIdMap: ITempIdMap;
 
 
   constructor() {
@@ -24,7 +24,7 @@ export class KeyGenerator {
     // propEntry = { entityType, propertyName, keyMap }
     // keyMap has key of the actual value ( as a string) and a value of null or the real id.
     this._tempIdMap = {};
-  };
+  }
 
 
   /*
@@ -82,7 +82,7 @@ export class KeyGenerator {
 
     propEntry.keyMap[nextId.toString()] = true;
     return nextId;
-  };
+  }
 
   getTempKeys() {
     let results: EntityKey[] = [];
@@ -97,7 +97,7 @@ export class KeyGenerator {
       }
     }
     return results;
-  };
+  }
 
 
   // proto methods below are not part of the KeyGenerator interface.
@@ -111,7 +111,7 @@ export class KeyGenerator {
       return false;
     }
     return (propEntry.keyMap[entityKey.values[0].toString()] !== undefined);
-  };
+  }
 
   private _getPropEntry(keyProp: DataProperty, createIfMissing = false) {
     let key = keyProp.name + ".." + keyProp.parentType.name;

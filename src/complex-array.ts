@@ -133,7 +133,7 @@ function setAspect(co: IComplexObject, arr: IComplexArray) {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IModelLibraryAdapter]] implementation. 
 @adapter (see [[IModelLibraryAdapter]])    
-@internal 
+@hidden @internal 
 */
 export function makeComplexArray(arr: any[], parent: IStructuralObject, parentProperty: DataProperty) {
   let arrX = arr as any;

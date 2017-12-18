@@ -75,7 +75,7 @@ export interface QueryOptionsConfig {
 A QueryOptions instance is used to specify the 'options' under which a query will occur.
 **/
 export class QueryOptions {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string;
   /** The [[FetchStrategy]] to use with any queries. __Read Only__ */
   fetchStrategy: FetchStrategy;
@@ -107,11 +107,11 @@ export class QueryOptions {
   **/
   constructor(config?: QueryOptionsConfig) {
     QueryOptions._updateWithConfig(this, config);
-  };
+  }
 
   static resolve(queryOptionsArray: any[]) {
     return new QueryOptions(core.resolveProperties(queryOptionsArray, ["fetchStrategy", "mergeStrategy", "includeDeleted"]));
-  };
+  }
 
   /**
   Returns a copy of this QueryOptions with the specified [[MergeStrategy]],
@@ -142,7 +142,7 @@ export class QueryOptions {
       qoConfig = { fetchStrategy: qoConfig };
     }
     return QueryOptions._updateWithConfig(result, qoConfig);
-  };
+  }
 
   /**
   Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance.
@@ -152,7 +152,7 @@ export class QueryOptions {
   **/
   setAsDefault() {
     return core.setAsDefault(this, QueryOptions);
-  };
+  }
 
   toJSON() {
     return core.toJson(this, {
@@ -160,7 +160,7 @@ export class QueryOptions {
       mergeStrategy: null,
       includeDeleted: false
     });
-  };
+  }
 
   static fromJSON(json: any) {
     return new QueryOptions({
@@ -168,7 +168,7 @@ export class QueryOptions {
       mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
       includeDeleted: json.includeDeleted === true
     });
-  };
+  }
 
   private static _updateWithConfig(obj: QueryOptions, config?: QueryOptionsConfig) {
     if (config) {

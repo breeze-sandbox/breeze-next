@@ -16,12 +16,13 @@ import { defaultPropertyInterceptor } from './default-property-interceptor';
 export type EntityProperty = DataProperty | NavigationProperty;
 export type StructuralType = EntityType | ComplexType;
 
-interface IStructuralTypeMap {
+/** @hidden @internal */
+export interface IStructuralTypeMap {
   [index: string]: StructuralType;
 }
 
 // TODO: consider exposing later
-/** @hidden */
+/** @hidden @internal */
 export interface IMetadataJson {
   metadataVersion: string;
   name: string;
@@ -55,12 +56,12 @@ explicit MetadataStore, the MetadataStore from the MetadataStore.defaultInstance
 
 **/
 export class MetadataStore {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
 
-  /** @hidden */
+  /** @hidden @internal */
   static __id = 0;
-  /** @hidden */
+  /** @hidden @internal */
   static ANONTYPE_PREFIX = "_IB_";
   /** The version of any MetadataStores created by this class */
   static metadataVersion = '1.0.5';
@@ -88,23 +89,23 @@ export class MetadataStore {
   @event
   **/
   metadataFetched: BreezeEvent<IMetadataFetchedEventArgs>;
-  /** @hidden */
+  /** @hidden @internal */
   _resourceEntityTypeMap: {};
-  /** @hidden */
+  /** @hidden @internal */
   _entityTypeResourceMap: {};
-  /** @hidden */
+  /** @hidden @internal */
   _structuralTypeMap: IStructuralTypeMap; // key is qualified structuraltype name - value is structuralType. ( structural = entityType or complexType).
-  /** @hidden **/
+  /** @hidden @internal **/
   _shortNameMap: {}; // key is shortName, value is qualified name - does not need to be serialized.
-  /** @hidden **/
+  /** @hidden @internal **/
   _ctorRegistry: {}; // key is either short or qual type name - value is ctor;
-  /** @hidden **/
+  /** @hidden @internal **/
   _incompleteTypeMap: {}; // key is entityTypeName; value is array of nav props
-  /** @hidden **/
+  /** @hidden @internal **/
   _incompleteComplexTypeMap: {}; //
-  /** @hidden **/
+  /** @hidden @internal **/
   _deferredTypes: {};
-  /** @hidden **/
+  /** @hidden @internal **/
   _id: number;
 
   /**
@@ -147,7 +148,7 @@ export class MetadataStore {
     this._id = MetadataStore.__id++;
     this.metadataFetched = new BreezeEvent("metadataFetched", this);
 
-  };
+  }
 
   // needs to be made avail to dataService.xxx files
   static normalizeTypeName = core.memoize(function (rawTypeName: string) {
@@ -173,7 +174,7 @@ export class MetadataStore {
       .whereParam("name").isString().isOptional()
       .whereParam("serializerFn").isFunction().isOptional()
       .applyAll(this);
-  };
+  }
 
   /**
   Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
@@ -194,14 +195,14 @@ export class MetadataStore {
     } else {
       this.dataServices.push(dataService);
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _getDataServiceIndex(serviceName: string) {
     return core.arrayIndexOf(this.dataServices, function (ds) {
       return ds.serviceName === serviceName;
     });
-  };
+  }
 
   /**
   Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has
@@ -262,7 +263,7 @@ export class MetadataStore {
       structuralType.getEntityCtor();
     }
 
-  };
+  }
 
 
   /**
@@ -288,7 +289,7 @@ export class MetadataStore {
       "resourceEntityTypeMap": this._resourceEntityTypeMap
     }, null, config.stringifyPad);
     return result;
-  };
+  }
 
   /**
   Imports a previously exported serialized MetadataStore into this MetadataStore.
@@ -348,7 +349,7 @@ export class MetadataStore {
     core.extend(this._incompleteTypeMap, json.incompleteTypeMap);
 
     return this;
-  };
+  }
 
   /**
   Creates a new MetadataStore from a previously exported serialized MetadataStore
@@ -365,7 +366,7 @@ export class MetadataStore {
     let ms = new MetadataStore();
     ms.importMetadata(exportedString);
     return ms;
-  };
+  }
 
   /**
   Returns whether Metadata has been retrieved for a specified service name.
@@ -378,7 +379,7 @@ export class MetadataStore {
   **/
   hasMetadataFor(serviceName: string) {
     return !!this.getDataService(serviceName);
-  };
+  }
 
   /**
   Returns the DataService for a specified service name
@@ -395,7 +396,7 @@ export class MetadataStore {
     return core.arrayFirst(this.dataServices, function (ds: DataService) {
       return ds.serviceName === serviceName;
     });
-  };
+  }
 
   /**
   Fetches the metadata for a specified 'service'. This method is automatically called
@@ -444,7 +445,7 @@ export class MetadataStore {
     } catch (e) {
       return Promise.reject(e);
     }
-  };
+  }
 
 
   // TODO: strongly type interceptor below.
@@ -460,7 +461,7 @@ export class MetadataStore {
     // TODO: think about adding this to the MetadataStore.
     let entityType = new EntityType(this);
     entityType._setCtor(entityCtor, interceptor);
-  };
+  }
 
   /**
   Provides a mechanism to register a 'custom' constructor to be used when creating new instances
@@ -508,7 +509,7 @@ export class MetadataStore {
       stype && stype.getCtor(true); // this will complete the registration if avail now.
     }
 
-  };
+  }
 
   /**
   Returns whether this MetadataStore contains any metadata yet.
@@ -519,7 +520,7 @@ export class MetadataStore {
   **/
   isEmpty() {
     return core.isEmpty(this._structuralTypeMap);
-  };
+  }
 
   /**
   Returns an [[EntityType]] or a [[ComplexType]] given its name.
@@ -538,9 +539,9 @@ export class MetadataStore {
     assertParam(structuralTypeName, "structuralTypeName").isString().check();
     assertParam(okIfNotFound, "okIfNotFound").isBoolean().isOptional().check(false);
     return this._getStructuralType(structuralTypeName, okIfNotFound);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _getStructuralType(typeName: string, okIfNotFound: boolean = false) {
     let qualTypeName = getQualifiedTypeName(this, typeName, false);
     let type = this._structuralTypeMap[qualTypeName];
@@ -555,7 +556,7 @@ export class MetadataStore {
     //   throw new Error("There are multiple types with this 'shortName': " + typeNames);
     // }
     return type;
-  };
+  }
 
   /**
   Returns an array containing all of the [[EntityType]]s or [[ComplexType]]s in this MetadataStore.
@@ -564,13 +565,13 @@ export class MetadataStore {
   **/
   getEntityTypes() {
     return getTypesFromMap(this._structuralTypeMap);
-  };
+  }
 
   getIncompleteNavigationProperties() {
     return core.objectMap(this._incompleteTypeMap, function (key, value) {
       return value;
     });
-  };
+  }
 
   /**
   Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation
@@ -579,7 +580,7 @@ export class MetadataStore {
   getEntityTypeNameForResourceName(resourceName: string) {
     assertParam(resourceName, "resourceName").isString().check();
     return this._resourceEntityTypeMap[resourceName];
-  };
+  }
 
   /**
   Associates a resourceName with an entityType.
@@ -607,7 +608,7 @@ export class MetadataStore {
     if (entityType && entityType instanceof EntityType && !entityType.defaultResourceName) {
       entityType.defaultResourceName = resourceName;
     }
-  };
+  }
 
   /** __Dev Only__ - for use when creating a new MetadataParserAdapter  */
   static parseTypeName(entityTypeName: string) {
@@ -648,7 +649,7 @@ export class MetadataStore {
   }
 
   // protected methods
-  /** @hidden */
+  /** @hidden @internal */
   _checkEntityType(entity: IEntity) {
     if (entity.entityType) return;
     let typeName = entity.prototype._$typeName;
@@ -660,7 +661,7 @@ export class MetadataStore {
     if (entityType) {
       entity.entityType = entityType;
     }
-  };
+  }
 
 
 }
@@ -815,9 +816,9 @@ export interface EntityTypeSetConfig {
 /** Container for all of the metadata about a specific type of Entity.
 **/
 export class EntityType {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
-  /** @hidden */
+  /** @hidden @internal */
   static __nextAnonIx = 0;
   /** Always false for an EntityType. **/
   isComplexType = false;
@@ -880,11 +881,11 @@ export class EntityType {
   initFn: Function | string;
   noTrackingFn: Function;
 
-  /** @hidden */
+  /** @hidden @internal */
   _extra: any;
-  /** @hidden */
+  /** @hidden @internal */
   _ctor: { new (): IStructuralObject };
-  /** @hidden */
+  /** @hidden @internal */
   _mappedPropertiesCount: number;
 
   /** 
@@ -892,7 +893,7 @@ export class EntityType {
   */
   getEntityCtor = this.getCtor;
 
-  static qualifyTypeName = qualifyTypeName;
+  // static qualifyTypeName = qualifyTypeName;
 
 
   /** EntityType constructor  
@@ -955,7 +956,7 @@ export class EntityType {
     if (etConfig && etConfig.navigationProperties) {
       addProperties(this, etConfig.navigationProperties, NavigationProperty);
     }
-  };
+  }
 
   /**
   General purpose property set method
@@ -977,7 +978,7 @@ export class EntityType {
     if (config.defaultResourceName) {
       this.defaultResourceName = config.defaultResourceName;
     }
-  };
+  }
 
   /**
   Returns whether this type is a subtype of a specified type.
@@ -990,7 +991,7 @@ export class EntityType {
       baseType = baseType.baseEntityType;
     } while (baseType);
     return false;
-  };
+  }
 
   /**
   Returns an array containing this type and any/all subtypes of this type down thru the hierarchy.
@@ -1002,7 +1003,7 @@ export class EntityType {
       result.push.apply(result, subtypes);
     });
     return result;
-  };
+  }
 
   getAllValidators() {
     let result = this.validators.slice(0);
@@ -1040,9 +1041,9 @@ export class EntityType {
       });
     }
     return newprop;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateFromBase(baseEntityType: EntityType) {
     this.baseEntityType = baseEntityType;
     if (this.autoGeneratedKeyType === AutoGeneratedKeyType.None) {
@@ -1066,7 +1067,7 @@ export class EntityType {
     baseEntityType.subtypes.push(this);
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _addPropertyCore(property: EntityProperty, shouldResolve: boolean = false) {
     if (this.isFrozen) {
       throw new Error("The '" + this.name + "' EntityType/ComplexType has been frozen. You can only add properties to an EntityType/ComplexType before any instances of that type have been created and attached to an entityManager.");
@@ -1103,7 +1104,7 @@ export class EntityType {
         config.interfaceRegistry.modelLibrary.getDefaultInstance().initializeEntityPrototype(proto);
       }
     }
-  };
+  }
 
   /**
   Create a new entity of this type.
@@ -1151,17 +1152,17 @@ export class EntityType {
 
     this._initializeInstance(instance);
     return instance;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _createInstanceCore() {
     let aCtor = this.getCtor();
     let instance = new aCtor();
     new EntityAspect(instance as IEntity);
     return instance;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _initializeInstance(instance: any) {
     if (this.baseEntityType) {
       this.baseEntityType._initializeInstance(instance);
@@ -1186,7 +1187,7 @@ export class EntityType {
     if (instance.entityAspect) {
       instance.entityAspect._initialized = true;
     }
-  };
+  }
 
   /**
   Returns the constructor for this EntityType.
@@ -1223,10 +1224,10 @@ export class EntityType {
     aCtor.prototype._$typeName = this.name;
     this._setCtor(aCtor);
     return aCtor;
-  };
+  }
 
 
-  /** @hidden */
+  /** @hidden @internal */
   // May make public later.
   _setCtor(aCtor: { new (): IStructuralObject }, interceptor?: any) {
 
@@ -1249,7 +1250,7 @@ export class EntityType {
     (instanceProto as any)._$interceptor = interceptor || defaultPropertyInterceptor;
     config.interfaceRegistry.modelLibrary.getDefaultInstance().initializeEntityPrototype(instanceProto);
     this._ctor = aCtor;
-  };
+  }
 
   /**
   Adds either an entity or property level validator to this EntityType.
@@ -1285,7 +1286,7 @@ export class EntityType {
     } else {
       this.validators.push(validator);
     }
-  };
+  }
 
   /**
   Returns all of the properties ( dataProperties and navigationProperties) for this EntityType.
@@ -1296,7 +1297,7 @@ export class EntityType {
   **/
   getProperties(): EntityProperty[] {
     return (this.dataProperties as EntityProperty[]).concat(this.navigationProperties);
-  };
+  }
 
   /**
   Returns all of the property names ( for both dataProperties and navigationProperties) for this EntityType.
@@ -1306,7 +1307,7 @@ export class EntityType {
   **/
   getPropertyNames() {
     return this.getProperties().map(core.pluck('name'));
-  };
+  }
 
   /**
   Returns a data property with the specified name or null.
@@ -1317,7 +1318,7 @@ export class EntityType {
   **/
   getDataProperty(propertyName: string) {
     return core.arrayFirst(this.dataProperties, core.propEq('name', propertyName));
-  };
+  }
 
   /**
   Returns a navigation property with the specified name or null.
@@ -1328,7 +1329,7 @@ export class EntityType {
   **/
   getNavigationProperty(propertyName: string) {
     return core.arrayFirst(this.navigationProperties, core.propEq('name', propertyName));
-  };
+  }
 
   /**
   Returns either a DataProperty or a NavigationProperty with the specified name or null.
@@ -1348,9 +1349,9 @@ export class EntityType {
   getProperty(propertyPath: string, throwIfNotFound: boolean = false) {
     let props = this.getPropertiesOnPath(propertyPath, false, throwIfNotFound);
     return (props && props.length > 0) ? props[props.length - 1] : null;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   // TODO: have this return empty array instead of null and fix consumers.
   // TODO: think about renaming with '_' prefix.
   getPropertiesOnPath(propertyPath: string, useServerName: boolean, throwIfNotFound: boolean = false) {
@@ -1398,9 +1399,9 @@ export class EntityType {
       return DataType.parseRawValue(val, dp.dataType as DataType);
     });
     return new EntityKey(this, keyValues);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateTargetFromRaw(target: IStructuralObject, raw: any, rawValueFn: Function) {
     // called recursively for complex properties
     this.dataProperties.forEach((dp) => {
@@ -1481,7 +1482,7 @@ export class EntityType {
   **/
   toString() {
     return this.name;
-  };
+  }
 
   toJSON() {
     return core.toJson(this, {
@@ -1496,9 +1497,9 @@ export class EntityType {
       validators: null,
       custom: null
     });
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateNames(property: EntityProperty) {
     let nc = this.metadataStore.namingConvention;
     updateClientServerNames(nc, property, "name");
@@ -1514,9 +1515,9 @@ export class EntityType {
       //    dataProperty.relatedNavigationProperty
       //    dataProperty.inverseNavigationProperty
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _checkNavProperty(navigationProperty: NavigationProperty | string) {
     // if (navigationProperty.isNavigationProperty) {
     if (navigationProperty instanceof NavigationProperty) {
@@ -1533,9 +1534,9 @@ export class EntityType {
       if (np && np instanceof NavigationProperty) return np;
     }
     throw new Error("The 'navigationProperty' parameter must either be a NavigationProperty or the name of a NavigationProperty");
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _addDataProperty(dp: DataProperty) {
 
     this.dataProperties.push(dp);
@@ -1556,9 +1557,9 @@ export class EntityType {
       this.unmappedProperties.push(dp);
     }
 
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _addNavigationProperty(np: NavigationProperty) {
 
     this.navigationProperties.push(np);
@@ -1566,9 +1567,9 @@ export class EntityType {
     if (!isQualifiedTypeName(np.entityTypeName)) {
       np.entityTypeName = qualifyTypeName(np.entityTypeName, this.namespace);
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateCps() {
     let metadataStore = this.metadataStore;
     let incompleteTypeMap = metadataStore._incompleteComplexTypeMap;
@@ -1585,9 +1586,9 @@ export class EntityType {
       });
       delete incompleteTypeMap[this.name];
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _updateNps() {
     let metadataStore = this.metadataStore;
 
@@ -1602,7 +1603,7 @@ export class EntityType {
     });
     // every navProp that pointed to this type should now be resolved
     delete incompleteTypeMap[this.name];
-  };
+  }
 }
 
 EntityType.prototype._$typeName = "EntityType";
@@ -1730,7 +1731,7 @@ function calcUnmappedProperties(stype: StructuralType, instance: any) {
   });
 }
 
-interface ComplexTypeConfig {
+export interface ComplexTypeConfig {
   shortName?: string;
   namespace?: string;
   dataProperties?: DataProperty[];
@@ -1746,7 +1747,7 @@ interface ComplexTypeConfig {
 @param config - Configuration settings
 **/
 export class ComplexType {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
   /** For polymorphic purpose only - always true here */
   isComplexType = true;
@@ -1785,9 +1786,9 @@ export class ComplexType {
 
   /** A free form object that can be used to define any custom metadata for this ComplexType. ***/
   custom?: any;
-  /** @hidden */
+  /** @hidden @internal */
   _mappedPropertiesCount: number;
-  /** @hidden */
+  /** @hidden @internal */
   _extra?: any;
 
   // copy entityType methods onto complexType
@@ -1800,19 +1801,19 @@ export class ComplexType {
   getProperty = EntityType.prototype.getProperty;
   getPropertiesOnPath = EntityType.prototype.getPropertiesOnPath;
   getPropertyNames = EntityType.prototype.getPropertyNames;
-  /** @hidden */
+  /** @hidden @internal */
   _addPropertyCore = EntityType.prototype._addPropertyCore;
-  /** @hidden */
+  /** @hidden @internal */
   _addDataProperty = EntityType.prototype._addDataProperty;
-  /** @hidden */
+  /** @hidden @internal */
   _updateNames = EntityType.prototype._updateNames;
-  /** @hidden */
+  /** @hidden @internal */
   _updateCps = EntityType.prototype._updateCps;
-  /** @hidden */
+  /** @hidden @internal */
   _initializeInstance = EntityType.prototype._initializeInstance;
-  /** @hidden */
+  /** @hidden @internal */
   _updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
-  /** @hidden */
+  /** @hidden @internal */
   _setCtor = EntityType.prototype._setCtor;
 
   constructor(config: ComplexTypeConfig) {
@@ -1842,7 +1843,7 @@ export class ComplexType {
     if (config.dataProperties) {
       addProperties(this, config.dataProperties, DataProperty);
     }
-  };
+  }
 
   /**
   General purpose property set method
@@ -1858,7 +1859,7 @@ export class ComplexType {
     assertConfig(config)
       .whereParam("custom").isOptional()
       .applyAll(this);
-  };
+  }
 
 
   getAllValidators() {
@@ -1866,24 +1867,24 @@ export class ComplexType {
     return this.validators;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _createInstanceCore(parent: IStructuralObject, parentProperty: DataProperty) {
     let aCtor = this.getCtor();
     let instance = new aCtor() as IComplexObject;
     new ComplexAspect(instance, parent, parentProperty);
     // initialization occurs during either attach or in createInstance call.
     return instance;
-  };
+  }
 
 
   addProperty(dataProperty: DataProperty) {
     assertParam(dataProperty, "dataProperty").isInstanceOf(DataProperty).check();
     return this._addPropertyCore(dataProperty);
-  };
+  }
 
   getProperties(): EntityProperty[] {
     return this.dataProperties;
-  };
+  }
 
   toJSON() {
     return core.toJson(this, {
@@ -1894,14 +1895,14 @@ export class ComplexType {
       validators: null,
       custom: null
     });
-  };
+  }
 
 }
 ComplexType.prototype._$typeName = "ComplexType";
 /** Creates an instance of this complexType */
 ComplexType.prototype.createInstance = EntityType.prototype.createEntity;
 
-interface DataPropertyConfig {
+export interface DataPropertyConfig {
   name?: string;
   nameOnServer?: string;
   dataType?: DataType | string | ComplexType;
@@ -1928,7 +1929,7 @@ Instances of the DataProperty class are constructed automatically during Metadat
 directly via the constructor.
 **/
 export class DataProperty {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string; // on proto
   /** Is this a DataProperty? - always true here. Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
   isDataProperty = true;
@@ -2060,7 +2061,7 @@ export class DataProperty {
       this.isScalar = this.isScalar == null || this.isScalar === true;
     }
 
-  };
+  }
 
   static getRawValueFromServer(rawEntity: Object, dp: DataProperty) {
     if (dp.isUnmapped) {
@@ -2139,7 +2140,7 @@ export class DataProperty {
       isScalar: true,
       custom: null
     });
-  };
+  }
 
   static fromJSON(json: any) {
     json.dataType = DataType.fromName(json.dataType);
@@ -2153,7 +2154,7 @@ export class DataProperty {
     }
 
     return new DataProperty(json);
-  };
+  }
 
 }
 DataProperty.prototype._$typeName = "DataProperty";
@@ -2179,7 +2180,7 @@ Instances of the NavigationProperty class are constructed automatically during M
 directly via the constructor.
 **/
 export class NavigationProperty {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string;
   /** Is this a DataProperty? - always false here 
   Allows polymorphic treatment of DataProperties and NavigationProperties. __Read Only__ */
@@ -2272,7 +2273,7 @@ export class NavigationProperty {
     if (!hasName) {
       throw new Error("A Navigation property must be instantiated with either a 'name' or a 'nameOnServer' property");
     }
-  };
+  }
 
   /**
   General purpose property set method
@@ -2309,7 +2310,7 @@ export class NavigationProperty {
       this.setInverse(inverse);
     }
 
-  };
+  }
 
   /** The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction
   to this NavigationProperty. May be undefined for a undirectional NavigationProperty. __Read Only__ */
@@ -2317,7 +2318,7 @@ export class NavigationProperty {
     return this.getInverse();
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   getInverse(): NavigationProperty | undefined {
     let np: NavigationProperty = this;
     while (!np._inverse && np.baseProperty) {
@@ -2350,7 +2351,7 @@ export class NavigationProperty {
     }
     this._resolveNp();
     invNp._resolveNp();
-  };
+  }
 
   // // In progress - will be used for manual metadata config
   // createInverse(config: any) {
@@ -2387,16 +2388,16 @@ export class NavigationProperty {
       invForeignKeyNames: null,
       custom: null
     });
-  };
+  }
 
   static fromJSON(json: any) {
     if (json.validators) {
       json.validators = json.validators.map(Validator.fromJSON);
     }
     return new NavigationProperty(json);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _resolveNp() {
     let np = this;
     let entityType = np.entityType;
@@ -2492,7 +2493,7 @@ export class AutoGeneratedKeyType extends BreezeEnum {
   **/
   static KeyGenerator = new AutoGeneratedKeyType();
 
-};
+}
 AutoGeneratedKeyType.resolveSymbols();
 
 

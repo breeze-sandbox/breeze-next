@@ -24,6 +24,12 @@ import { config, IBaseAdapter } from './config';
 import { core } from './core';
 import { makeRelationArray, makePrimitiveArray, makeComplexArray } from './array';
 
+import { BreezeConfig } from './config';
+import { IComplexArray } from './complex-array';
+import { IConfigParam } from './assert-param';
+import { IRelationArray } from './relation-array';
+
+
 export {
   AbstractDataServiceAdapter,
   AndOrPredicate,
@@ -96,7 +102,7 @@ export {
   makeComplexArray,
   makePrimitiveArray,
   makeRelationArray,
-}
+};
 
 // create a breeze variable here
 export const breeze = {
@@ -143,13 +149,13 @@ export const breeze = {
   version: "2.0.0-alpha.1"
 };
 
-/** @hidden */
+/** @hidden @internal */
 declare var window: any;
 
-/** @hidden */
+/** @hidden @internal */
 declare var global: any;
 
-/** @hidden */
+/** @hidden @internal */
 let win: any;
 try {
   win = window ? window : (global ? global.window : undefined);

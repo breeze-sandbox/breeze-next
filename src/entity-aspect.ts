@@ -65,7 +65,7 @@ export class EntityAspect {
   entity?: IEntity;
   /** The [[EntityManager]] that contains this entity. __Read Only__ **/
   entityManager?: EntityManager;
-  /**  @hidden */
+  /**  @hidden @internal */
   entityGroup?: EntityGroup;
   /** The [[EntityState]] of this entity. __Read Only__ **/
   entityState: EntityState;
@@ -130,23 +130,23 @@ export class EntityAspect {
   **/
   propertyChanged: BreezeEvent<IPropertyChangedEventArgs>;
 
-  /** @hidden */
+  /** @hidden @internal */
   _validationErrors: { [index: string]: ValidationError };
-  /** @hidden */
+  /** @hidden @internal */
   _pendingValidationResult: any;
-  /** @hidden */
+  /** @hidden @internal */
   _entityKey: EntityKey;
-  /** @hidden */
+  /** @hidden @internal */
   _loadedNps: any[];
-  /** @hidden */
+  /** @hidden @internal */
   _initialized?: boolean;
-  /** @hidden */
+  /** @hidden @internal */
   _inProcess: any[]; // used in defaultPropertyInterceptor for temp storage.
-  /** @hidden */
+  /** @hidden @internal */
   _inProcessEntity?: IEntity; // used in EntityManager
-  /** @hidden */
+  /** @hidden @internal */
   static _nullInstance = new EntityAspect(); // TODO: determine if this works
-  /** @hidden */
+  /** @hidden @internal */
   constructor(entity?: IEntity) {
 
     // if called without new
@@ -188,7 +188,7 @@ export class EntityAspect {
     }
   };
 
-  /** @hidden */
+  /** @hidden @internal */
   // type-guard
   static isEntity(obj: IStructuralObject): obj is IEntity {
     return (obj as any).entityAspect != null;
@@ -296,7 +296,7 @@ export class EntityAspect {
     }
   };
 
-  /**  @hidden */
+  /**  @hidden @internal */
   // TODO: rename - and use '_'; used on both EntityAspect and ComplexAspect for polymorphic reasons.
   getPropertyPath(propName: string) {
     return propName;
@@ -484,7 +484,7 @@ export class EntityAspect {
     return this._loadedNps && this._loadedNps.indexOf(navProperty.name) >= 0;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _markAsLoaded(navPropName: string) {
     this._loadedNps = this._loadedNps || [];
     core.arrayAddItemUnique(this._loadedNps, navPropName);
@@ -605,7 +605,7 @@ export class EntityAspect {
     this._processValidationOpAndPublish(function (that: any) {
       that._removeValidationError(key);
     });
-  };
+  }
 
   /**
   Removes all of the validation errors for a specified entity
@@ -620,7 +620,7 @@ export class EntityAspect {
       });
       that.hasValidationErrors = !core.isEmpty(that._validationErrors);
     });
-  };
+  }
 
   /**
   Returns an [[EntityKey]] for the entity pointed to by the specified scalar NavigationProperty.
@@ -642,7 +642,7 @@ export class EntityAspect {
       return that.entity!.getProperty(fkn);
     });
     return new EntityKey(navigationProperty.entityType, fkValues);
-  };
+  }
 
   // TODO: refactor this and the static getPropertyPathValue.
   /**
@@ -668,10 +668,10 @@ export class EntityAspect {
       value = this.entity!.getProperty(property.name);
     }
     return value;
-  };
+  }
 
   // internal methods
-  /** @hidden */
+  /** @hidden @internal */
   _checkOperation(operationName: string) {
     if (this.isBeingSaved) {
       throw new Error("Cannot perform a '" + operationName + "' on an entity that is in the process of being saved");
@@ -680,7 +680,7 @@ export class EntityAspect {
     return this;
   }
 
-  /** @hidden */
+  /** @hidden @internal */
   _detach() {
     this.entityGroup = undefined;
     this.entityManager = undefined;
@@ -691,11 +691,11 @@ export class EntityAspect {
     this.validationErrorsChanged.clear();
     this.propertyChanged.clear();
 
-  };
+  }
 
 
   // called from defaultInterceptor.
-  /** @hidden */
+  /** @hidden @internal */
   _validateProperty(value: any, context: any) {
     let ok = true;
     this._processValidationOpAndPublish(function (that: any) {
@@ -704,9 +704,9 @@ export class EntityAspect {
       });
     });
     return ok;
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _processValidationOpAndPublish(validationFn: any) {
     if (this._pendingValidationResult) {
       // only top level processValidations call publishes
@@ -725,17 +725,17 @@ export class EntityAspect {
         this._pendingValidationResult = undefined;
       }
     }
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   // TODO: add/use a ValidationError type
   _addValidationError(validationError: any) {
     this._validationErrors[validationError.key] = validationError;
     this.hasValidationErrors = true;
     this._pendingValidationResult.added.push(validationError);
-  };
+  }
 
-  /** @hidden */
+  /** @hidden @internal */
   _removeValidationError(key: string) {
     let valError = this._validationErrors[key];
     if (valError) {
@@ -743,7 +743,7 @@ export class EntityAspect {
       this.hasValidationErrors = !core.isEmpty(this._validationErrors);
       this._pendingValidationResult.removed.push(valError);
     }
-  };
+  }
 
 }
 
@@ -817,7 +817,7 @@ function removeFromRelationsCore(entity: IEntity) {
     }
   });
 
-};
+}
 
 // note entityAspect only - ( no complex aspect allowed on the call).
 function validate(entityAspect: EntityAspect, validator: Validator, value: any, context?: any) {
@@ -935,7 +935,7 @@ export class ComplexAspect {
     let complexCtor = complexType.getCtor();
     config.interfaceRegistry.modelLibrary.getDefaultInstance().startTracking(complexObject, complexCtor.prototype);
 
-  };
+  }
 
 
   /**
@@ -952,7 +952,7 @@ export class ComplexAspect {
     return entityAspect || new EntityAspect();
   }
 
-  /**  @hidden */
+  /**  @hidden @internal */
   // TODO: rename - and use '_'; used on both EntityAspect and ComplexAspect for polymorphic reasons.
   getPropertyPath(propName: string) {
     let parent = <any>this.parent;

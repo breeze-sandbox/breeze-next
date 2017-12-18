@@ -22,7 +22,7 @@ The default NamingConvention does not perform any translation, it simply passes 
 
 **/
 export class NamingConvention {
-  /** @hidden */
+  /** @hidden @internal */
   _$typeName: string;
   /** The name of this NamingConvention. __Read Only__ */
   name: string;
@@ -56,7 +56,7 @@ export class NamingConvention {
       this.name = core.getUuid();
     }
     config._storeObject(this, "NamingConvention", this.name);
-  };
+  }
 
   /**
 
@@ -108,7 +108,7 @@ export class NamingConvention {
   **/
   setAsDefault() {
     return core.setAsDefault(this, NamingConvention);
-  };
+  }
 
 }
 
