@@ -56,6 +56,7 @@ export class Predicate {
   op: IOp;
   /** @hidden @internal */
   _entityType?: EntityType;
+  /** @hidden @internal */
   aliasMap: IOpMap;
   visitorMethodName: string;
 
@@ -479,7 +480,7 @@ PassthruPredicate.prototype._initialize('passthruPredicate');
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export class UnaryPredicate extends Predicate {
   op: IOp;
@@ -584,7 +585,7 @@ BinaryPredicate.prototype._initialize('binaryPredicate', {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal 
+@hidden
 */
 export class AndOrPredicate extends Predicate {
   op: IOp;
@@ -624,10 +625,11 @@ AndOrPredicate.prototype._initialize("andOrPredicate", {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IUriBuilderAdapter]] implementation. 
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export class AnyAllPredicate extends Predicate {
   op: IOp;
+  /** @internal */
   expr: PredicateExpression;
   exprSource: string;
   pred: Predicate;

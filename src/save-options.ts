@@ -53,6 +53,7 @@ export class SaveOptions {
     return SaveOptions._updateWithConfig(this, config);
   }
 
+  /** @hidden @internal */
   private static _updateWithConfig(obj: SaveOptions, config: SaveOptionsConfig) {
     if (config) {
       assertConfig(config)

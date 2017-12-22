@@ -14,6 +14,7 @@ interface ODataSaveContext extends breeze.ISaveContext {
   contentKeys: breeze.IEntity[];
 }
 
+/** @hidden @internal */
 export class DataServiceODataAdapter extends breeze.AbstractDataServiceAdapter {
   name: string;
   relativeUrl: boolean | ((ds: breeze.DataService, url: string) => string);

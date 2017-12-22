@@ -134,7 +134,7 @@ export interface ISaveResult {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export interface ISaveContext {
   entityManager: EntityManager;
@@ -147,7 +147,7 @@ export interface ISaveContext {
 
 /** For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export interface ISaveBundle {
   entities: IEntity[];

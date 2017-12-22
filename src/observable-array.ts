@@ -3,7 +3,7 @@ import { BreezeEvent } from './event';
 import { EntityAspect } from './entity-aspect';
 import { DataProperty } from './entity-metadata';
 
-/** @hidden @internal */
+/** @hidden */
 export interface IObservableArray {
   push: (...args: any[]) => number;
   _push: (...args: any[]) => number;

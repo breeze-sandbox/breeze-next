@@ -168,6 +168,7 @@ This object will be passed into the Validator's validation function whenever 'va
 of additional properties that will be automatically added to this object if not otherwise specified.
 **/
 export class Validator {
+  /** @hidden @internal */
   _$typeName: string; // on proto
 
   name: string;

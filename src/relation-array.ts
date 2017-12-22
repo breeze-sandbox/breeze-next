@@ -8,7 +8,7 @@ import { EntityQuery } from './entity-query';
 
 // TODO: mixin impl is not very typesafe
 
-/** @hidden @internal */
+/** @hidden */
 export interface IRelationArray extends IObservableArray {
   [index: number]: IEntity;
   parentEntity: IEntity;

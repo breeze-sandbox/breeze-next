@@ -10,7 +10,7 @@ import { MetadataStore } from './entity-metadata';
 
 /** For use by breeze plugin authors only.  The class is used as the base class for most [[IDataServiceAdapter]] implementations
 @adapter (see [[IDataServiceAdapter]])    
-@hidden @internal 
+@hidden
 */
 export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter {
   /** @hidden @internal */
@@ -164,7 +164,7 @@ export abstract class AbstractDataServiceAdapter implements IDataServiceAdapter 
     return promise;
   }
 
-  /** Abstract method that needs to be overwritten in any concrete DataServiceAdapter sublclass. 
+  /** Abstract method that needs to be overwritten in any concrete DataServiceAdapter subclass. 
   The return value from this method should be a serializable object that will be sent to the server after calling JSON.stringify on it.
   */
   _prepareSaveBundle(saveContext: ISaveContext, saveBundle: ISaveBundle): any {

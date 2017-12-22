@@ -1,6 +1,7 @@
 ﻿import * as breeze from './breeze'; // TODO: think about this approach for plugin modules.
 import { JsonResultsAdapter, IKeyMapping } from './breeze';
 
+/** @hidden @internal */
 export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter {
 
   constructor() {
@@ -8,6 +9,7 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
     this.name = "webApi";
   }
 
+  /** @hidden @internal */
   _prepareSaveBundle(saveContext: breeze.ISaveContext, saveBundle: breeze.ISaveBundle) {
     let changeRequestInterceptor = this._createChangeRequestInterceptor(saveContext, saveBundle);
     let em = saveContext.entityManager;
@@ -42,6 +44,7 @@ export class DataServiceWebApiAdapter extends breeze.AbstractDataServiceAdapter 
     return serSaveBundle;
   }
 
+  /** @hidden @internal */
   _prepareSaveResult(saveContext: breeze.ISaveContext, data: any) {
     // use the jsonResultAdapter to extractResults and extractKeyMappings
     let jra = saveContext.dataService.jsonResultsAdapter || this.jsonResultsAdapter;

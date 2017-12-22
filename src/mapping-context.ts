@@ -14,7 +14,7 @@ import { EntityQuery } from './entity-query';
 /**
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export interface IMergeOptions {
   mergeStrategy: MergeStrategy;
@@ -22,7 +22,7 @@ export interface IMergeOptions {
   noTracking?: boolean;
 }
 
-/** @hidden @internal */
+/** @hidden */
 export interface IMappingContextConfig {
   dataService: DataService;
   query?: EntityQuery | string;
@@ -33,9 +33,10 @@ export interface IMappingContextConfig {
 /**
 For use by breeze plugin authors only. The class is for use in building a [[IDataServiceAdapter]] implementation. 
 @adapter (see [[IDataServiceAdapter]])    
-@hidden @internal 
+@hidden 
 */
 export class MappingContext {
+  /** @hidden @internal */
   _$typeName: string; // on prototype
 
   rawValueFn = DataProperty.getRawValueFromServer; // think about passing this in later.

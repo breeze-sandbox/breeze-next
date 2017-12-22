@@ -16,6 +16,7 @@ interface ITempIdMap {
   @class KeyGenerator
   */
 export class KeyGenerator {
+  /** @hidden @internal */
   private _tempIdMap: ITempIdMap;
 
 
@@ -113,6 +114,7 @@ export class KeyGenerator {
     return (propEntry.keyMap[entityKey.values[0].toString()] !== undefined);
   }
 
+  /** @hidden @internal */
   private _getPropEntry(keyProp: DataProperty, createIfMissing = false) {
     let key = keyProp.name + ".." + keyProp.parentType.name;
     let propEntry = this._tempIdMap[key];

@@ -21,6 +21,7 @@ export interface IConfigParam {
     whereParam: (propName: string) => Param;
 }
 
+/** @hidden @internal */
 export class Param {
     // The %1 parameter
     // is required
@@ -225,6 +226,7 @@ export class Param {
 
 }
 
+/** @hidden @internal */
 export let assertParam = function (v: any, name: string) {
     return new Param(v, name);
 };
@@ -376,6 +378,7 @@ class ConfigParam {
     }
 }
 
+/** @hidden @internal */
 export let assertConfig = function (config: Object) {
     return new ConfigParam(config) as IConfigParam;
 };

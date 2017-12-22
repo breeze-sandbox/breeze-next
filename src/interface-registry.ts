@@ -23,6 +23,7 @@ export class InterfaceRegistry {
 }
 
 // This module describes the interfaceRegistry by extending config
+/** @hidden @internal */
 declare module "./config" {
     interface BreezeConfig {
         /**
@@ -87,7 +88,7 @@ export interface IModelLibraryAdapter extends IBaseAdapter {
 export interface IDataServiceAdapter extends IBaseAdapter {
     fetchMetadata(metadataStore: MetadataStore, dataService: DataService): Promise<any>;  // result of Promise is either rawMetadata or a string explaining why not.
     executeQuery(mappingContext: MappingContext): Promise<IQueryResult>;   // result of executeQuery will get passed to JsonResultsAdapter extractResults method
-    saveChanges(saveContext: any, saveBundle: any): Promise<ISaveResult>;
+    saveChanges(saveContext: ISaveContext, saveBundle: ISaveBundle): Promise<ISaveResult>;
     changeRequestInterceptor: IChangeRequestInterceptorCtor;
     jsonResultsAdapter: JsonResultsAdapter;
 }

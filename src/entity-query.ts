@@ -15,7 +15,6 @@ export interface IRecursiveArray<T> {
   [i: number]: T | IRecursiveArray<T>;
 }
 
-/** @hidden @internal */
 export interface IEntityQueryJsonContext {
   entityType?: EntityType;
   propertyPathFn?: Function; // TODO
@@ -936,7 +935,7 @@ BooleanQueryOp.resolveSymbols();
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal -
+@hidden
 
 An OrderByClause is a description of the properties and direction that the result
 of a query should be sorted in.  OrderByClauses are immutable, which means that any
@@ -952,6 +951,7 @@ or
 >     let obc = new OrderByClause("Company.CompanyName, LastName", true);
 */
 export class OrderByClause {
+  /** @hidden @internal */
   items: OrderByItem[];
 
   constructor(propertyPaths: string[] | OrderByClause[], isDesc?: boolean) {
@@ -1082,10 +1082,11 @@ export class OrderByItem {
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal 
+@hidden 
 **/
 export class SelectClause {
   propertyPaths: string[];
+  /** @hidden @internal */
   _pathNames: string[];
 
   constructor(propertyPaths: string[]) {
@@ -1123,7 +1124,7 @@ export class SelectClause {
 
 /** For use by breeze plugin authors only.  The class is used in most [[IUriBuilderAdapter]] implementations
 @adapter (see [[IUriBuilderAdapter]])    
-@hidden @internal 
+@hidden 
 **/
 export class ExpandClause {
   propertyPaths: string[];

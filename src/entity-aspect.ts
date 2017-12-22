@@ -17,7 +17,9 @@ export interface IEntity {
   entityType: EntityType;
   getProperty(prop: string): any;
   setProperty(prop: any, value: any): void;
+  /** @hidden @internal */
   prototype: { _$typeName: string };
+  /** @hidden @internal */
   _$entityType: EntityType;
 }
 
@@ -26,6 +28,7 @@ export interface IComplexObject {
   complexType: ComplexType;
   getProperty(prop: string): any;
   setProperty(prop: any, value: any): void;
+  /** @hidden @internal */
   prototype: { _$typeName: string };
 }
 

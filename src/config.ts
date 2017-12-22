@@ -2,15 +2,16 @@
 import { assertParam  } from './assert-param';
 import { BreezeEvent } from './event';
 
-/** @hidden @internal */
+/** @hidden */
 export interface IAdapterCtor<T extends IBaseAdapter> { new (...args: any[]): T; }
-/** @hidden @internal */
+/** @hidden */
 export interface IDef<T extends IBaseAdapter> { ctor: IAdapterCtor<T>; defaultInstance?: T; }
 
 export class InterfaceDef<T extends IBaseAdapter> {
 
     name: string;
     defaultInstance?: T;
+    /** @hidden @internal */
     _implMap: { [name: string]: IDef<T> };
 
     constructor(name: string) {
@@ -43,6 +44,7 @@ export class InterfaceDef<T extends IBaseAdapter> {
 }
 
 export interface IBaseAdapter {
+    /** @hidden @internal */
     _$impl?: any;
     name: string;
     initialize(): void;
@@ -56,6 +58,7 @@ export class BreezeConfig {
     interfaceInitialized: BreezeEvent<{ interfaceName: string, instance: IBaseAdapter, isDefault: boolean }>;
 
     stringifyPad = '';
+    /** @hidden @internal */
     _interfaceRegistry: any;  // will be set in adapter-interfaces. untyped here to avoid circularity issues.
 
     constructor() {
@@ -133,6 +136,7 @@ export class BreezeConfig {
     omitted then the default implementation of the specified interface is returned. If there is
     no defaultInstance of this interface, then the first registered instance of this interface is returned.
     @return {an instance of the specified adapter}
+    @internal
     **/
     getAdapterInstance<T extends IBaseAdapter>(interfaceName: string, adapterName?: string) {
         let idef = this.getInterfaceDef<T>(interfaceName);
@@ -185,11 +189,12 @@ export class BreezeConfig {
         return <InterfaceDef<T>>kv.value;
     }
 
-    /** @deprecated no-op kept for backward compatibility */
+    /** @deprecated @internal no-op kept for backward compatibility */
     setQ(q: any) {
         console && console.warn("setQ does nothing; ES6 Promise support is required - use a shim if necessary.");
     }
 
+    /** @hidden @internal */
     _storeObject(obj: Object, type: string | Function, name: string) {
         // uncomment this if we make this public.
         //assertParam(obj, "obj").isObject().check();
@@ -198,6 +203,7 @@ export class BreezeConfig {
         this.objectRegistry[key] = obj;
     }
 
+    /** @hidden @internal */
     _fetchObject(type: string | Function, name: string) {
         if (!name) return undefined;
         let key = (typeof (type) === "string" ? type : type.prototype._$typeName) + "." + name;
@@ -208,6 +214,7 @@ export class BreezeConfig {
         return result;
     }
 
+    /** @hidden @internal */
     _initializeAdapterInstanceCore<T extends IBaseAdapter>(interfaceDef: InterfaceDef<T>, impl: IDef<T>, isDefault: boolean) {
         let instance: T;
         let inst = impl.defaultInstance;

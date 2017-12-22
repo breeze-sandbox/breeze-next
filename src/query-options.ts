@@ -170,6 +170,7 @@ export class QueryOptions {
     });
   }
 
+  /** @hidden @internal */
   private static _updateWithConfig(obj: QueryOptions, config?: QueryOptionsConfig) {
     if (config) {
       assertConfig(config)

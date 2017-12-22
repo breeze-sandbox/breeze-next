@@ -139,8 +139,8 @@ export const breeze = {
   ValidationError: ValidationError,
   ValidationOptions: ValidationOptions,
   Validator,
-  assertConfig: assertConfig,
-  assertParam: assertParam,
+  assertConfig: null,
+  assertParam: null,
   config: config,
   core: core,
   makeComplexArray: makeComplexArray,
@@ -148,6 +148,9 @@ export const breeze = {
   makeRelationArray: makeRelationArray,
   version: "2.0.0-alpha.1"
 };
+
+breeze.assertConfig = assertConfig as any;
+breeze.assertParam = assertParam as any;
 
 /** @hidden @internal */
 declare var window: any;
