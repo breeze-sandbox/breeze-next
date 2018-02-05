@@ -116,7 +116,9 @@ interface ITempKeyMap {
 
 /** Configuration info to be passed to the [[EntityManager.importEntities]] method */
 export interface ImportConfig {
-  mergeStrategy?: MergeStrategy;
+  /** If true, merge Added entities (with temp keys) as well.  This can be dangerous. */
+  mergeAdds?: boolean;
+  mergeStrategy?: MergeStrategy;  
   metadataVersionFn?: (arg: { metadataVersion: any, metadataStoreName: any }) => void;
 }
 
@@ -617,6 +619,7 @@ export class EntityManager {
     assertConfig(importConfig)
       .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
       .whereParam("metadataVersionFn").isFunction().isOptional()
+      .whereParam("mergeAdds").isBoolean().isOptional()
       .applyAll(importConfig);
 
     let json = (typeof exported === "string") ? JSON.parse(exported) : exported;
@@ -1957,6 +1960,7 @@ function exportTempKeyInfo(entityAspect: EntityAspect, tempKeys: ITempKey[]) {
 function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[] }, importConfig: ImportConfigExt) {
 
   let tempKeyMap = importConfig.tempKeyMap;
+  let mergeAdds = !!importConfig.mergeAdds;
 
   let entityType = entityGroup.entityType;
   let mergeStrategy = importConfig.mergeStrategy;
@@ -1976,11 +1980,10 @@ function importEntityGroup(entityGroup: EntityGroup, jsonGroup: { entities: any[
       throw new Error("Only entities with a non detached entity state may be imported.");
     }
 
-    // Merge if raw entity is in cache
-    // UNLESS this is a new entity w/ a temp key
-    // Cannot safely merge such entities even
-    // if could match temp key to an entity in cache.
-    let newTempKey = entityState.isAdded() && getMappedKey(tempKeyMap!, entityKey);
+    // Merge if raw entity is in cache UNLESS this is a new entity w/ a temp key
+    // Cannot safely merge such entities even if could match temp key to an entity in cache.
+    // Can enable merge of entities w/temp key using "mergeAdds" - use at your own risk!
+    let newTempKey = !mergeAdds && entityState.isAdded() && getMappedKey(tempKeyMap!, entityKey);
     targetEntity = newTempKey ? undefined : entityGroup.findEntityByKey(entityKey);
 
     if (targetEntity) {

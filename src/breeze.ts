@@ -24,10 +24,10 @@ import { config, IBaseAdapter } from './config';
 import { core } from './core';
 import { makeRelationArray, makePrimitiveArray, makeComplexArray } from './array';
 
-import { BreezeConfig } from './config';
-import { IComplexArray } from './complex-array';
-import { IConfigParam } from './assert-param';
-import { IRelationArray } from './relation-array';
+// import { BreezeConfig } from './config';
+// import { IComplexArray } from './complex-array';
+// import { IConfigParam } from './assert-param';
+// import { IRelationArray } from './relation-array';
 
 
 export {
